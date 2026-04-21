@@ -12,10 +12,10 @@
   tasks:
     - name: System Preparation - Update apt package cache and upgrade all packages
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
         upgrade: dist
-        autoclean: yes
-        autoremove: yes
+        autoclean: true
+        autoremove: true
       tags:
         - system-preparation
 
@@ -23,7 +23,7 @@
       ansible.builtin.apt:
         name:
           - docker.io
-          - docker-compose-plugin
+          - docker-compose
           - python3-docker
         state: present
       tags:
@@ -34,7 +34,7 @@
         name: mediasvc
         gid: "{{ mediasvc_gid }}"
         state: present
-        system: yes # Mark as a system group
+        system: true # Mark as a system group
       tags:
         - identity
 
@@ -46,8 +46,8 @@
         home: /nonexistent # No home directory
         shell: /usr/sbin/nologin # Non-login shell
         state: present
-        system: yes # Mark as a system user
-        create_home: no
+        system: true # Mark as a system user
+        create_home: false
       tags:
         - identity
 
@@ -55,7 +55,7 @@
       ansible.builtin.user:
         name: "{{ ansible_user }}"
         groups: docker
-        append: yes
+        append: true
       tags:
         - identity
 
@@ -148,8 +148,8 @@
       ansible.builtin.systemd:
         name: docker
         state: started
-        enabled: yes
-        daemon_reload: yes
+        enabled: true
+        daemon_reload: true
       tags:
         - docker-service
 

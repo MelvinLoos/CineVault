@@ -1,4 +1,5 @@
-
+/infrastructure-report.xml
+**/__pycache__/
 # START Ruler Generated Files
 /.agent/rules/ruler.md
 /.agent/rules/ruler.md.bak
