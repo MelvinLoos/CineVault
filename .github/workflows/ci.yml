@@ -58,6 +58,8 @@ jobs:
           cd ~
           # 1. Install Ansible explicitly so ansible-galaxy is on the $PATH
           pipx install ansible-core
+
+          pipx inject ansible-core python-vagrant
           
           # 2. Pin to known stable versions
           pipx install molecule==25.1.0
