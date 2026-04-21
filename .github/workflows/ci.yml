@@ -1,0 +1,78 @@
+---
+# CI workflow: validates that The Host provisioning playbook produces
+# a correctly configured environment by executing the full Molecule
+# lifecycle (create → converge → verify → destroy) with the Testinfra
+# contract suite on every push and pull request to main.
+
+name: CI
+
+"on":
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  molecule-testinfra:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enable KVM group permissions
+        # Required for nested virtualisation: the Vagrant/libvirt driver
+        # spins up a Debian 13 VM to host The Host provisioning playbook.
+        run: |
+          RULE='KERNEL=="kvm", GROUP="kvm", MODE="0666",'
+          RULE="${RULE}"' OPTIONS+="static_node=kvm"'
+          echo "${RULE}" \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install libvirt, QEMU and Vagrant
+        # System-level dependencies for the Vagrant/libvirt Molecule driver
+        # that provisions the ephemeral Host under test.
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libvirt-daemon-system \
+            qemu-kvm \
+            vagrant
+          sudo systemctl enable --now libvirtd
+          sudo usermod -aG libvirt,kvm "${USER}"
+
+      - name: Install pipx and Molecule
+        # Installs Molecule with the vagrant driver plugin and the
+        # pytest-testinfra verifier used to assert the Testinfra contract.
+        run: |
+          sudo apt-get install -y --no-install-recommends pipx
+          pipx ensurepath
+          pipx install molecule
+          pipx inject molecule \
+            "molecule-plugins[vagrant]" pytest-testinfra python-vagrant
+
+      - name: Run molecule test
+        # Executes the full Molecule lifecycle against The Host provisioning
+        # playbook: create → converge → verify (Testinfra contract) → destroy.
+        # Intentionally NOT marked continue-on-error: an infrastructure test
+        # failure must fail the job.
+        id: molecule
+        run: molecule test
+        working-directory: .
+
+      - name: Upload infrastructure test report
+        # Persists the Testinfra JUnit XML report so engineers can inspect
+        # failures even when the Testinfra contract step above has failed.
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: infrastructure-report
+          path: infrastructure-report.xml
+          if-no-files-found: warn
