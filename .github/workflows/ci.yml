@@ -36,15 +36,20 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Install libvirt, QEMU and Vagrant
-        # System-level dependencies for the Vagrant/libvirt Molecule driver
-        # that provisions the ephemeral Host under test.
+      - name: Install Virtualization & HashiCorp Dependencies
         run: |
+          # 1. Install KVM and libvirt dependencies
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends \
-            libvirt-daemon-system \
-            qemu-kvm \
-            vagrant
+          sudo apt-get install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+          
+          # 2. Add HashiCorp GPG Key and APT Repository
+          wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          
+          # 3. Update APT cache again and install Vagrant + Plugin compilers
+          sudo apt-get update -qq
+          sudo apt-get install -y vagrant libvirt-dev ruby-libvirt libxml2-dev libxslt-dev zlib1g-dev
+          
           sudo systemctl enable --now libvirtd
           sudo usermod -aG libvirt,kvm "${USER}"
 

@@ -67,10 +67,10 @@ services:
     volumes:
       - ./appdata/jellyfin:/config
       - ./data:/data:ro
+{% if host_has_quicksync %}
     devices:
-      # Intel QuickSync hardware transcoding — CONSTITUTION.MD §2 Maxim 2
-      # Non-negotiable: ARCHITECTURE.md §3
       - /dev/dri/renderD128:/dev/dri/renderD128
+{% endif %}
     networks:
       - ingress_net
     restart: unless-stopped

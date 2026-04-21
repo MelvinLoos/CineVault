@@ -10,6 +10,19 @@
     mediasvc_gid: 1001
 
   tasks:
+    - name: Hardware Detection - Check if Intel QuickSync GPU is physically present
+      ansible.builtin.stat:
+        path: /dev/dri/renderD128
+      register: quicksync_device
+      tags:
+        - hardware
+
+    - name: Hardware Detection - Set QuickSync capability fact
+      ansible.builtin.set_fact:
+        host_has_quicksync: "{{ quicksync_device.stat.exists }}"
+      tags:
+        - hardware
+
     - name: System Preparation - Update apt package cache and upgrade all packages
       ansible.builtin.apt:
         update_cache: true
@@ -152,6 +165,33 @@
         daemon_reload: true
       tags:
         - docker-service
+
+    - name: Deploy Stack - Template dynamic docker-compose.yml to the host
+      ansible.builtin.template:
+        src: ../../docker-compose.yml.j2
+        dest: /opt/mediastack/docker-compose.yml
+        owner: mediasvc
+        group: mediasvc
+        mode: '0644'
+      tags:
+        - deploy
+
+    - name: Deploy Stack - Copy .env.example to .env
+      ansible.builtin.copy:
+        src: ../../.env.example
+        dest: /opt/mediastack/.env
+        owner: mediasvc
+        group: mediasvc
+        mode: '0600'
+      tags:
+        - deploy
+
+    - name: Deploy Stack - Spin up the Prosumer Media Hub
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: /opt/mediastack/
+      tags:
+        - deploy
 
   handlers:
     - name: Restart SSH
