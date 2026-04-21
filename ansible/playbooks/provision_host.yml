@@ -88,7 +88,6 @@
         state: directory
         owner: mediasvc
         group: mediasvc
-        mode: '0755'
       loop:
         - jellyfin
         - radarr
@@ -187,9 +186,9 @@
         - deploy
 
     - name: Deploy Stack - Spin up the Prosumer Media Hub
-      ansible.builtin.command:
-        cmd: docker compose up -d
-        chdir: /opt/mediastack/
+      community.docker.docker_compose_v2:
+        project_src: /opt/mediastack/
+        state: present
       tags:
         - deploy
 

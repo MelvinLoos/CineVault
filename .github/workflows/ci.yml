@@ -55,9 +55,11 @@ jobs:
 
       - name: Install Python Toolchain (Molecule & Plugins)
         run: |
-          # Move to home directory to prevent pathing collisions
           cd ~
+          # 1. Install Ansible explicitly so ansible-galaxy is on the $PATH
+          pipx install ansible-core
           
+          # 2. Pin to known stable versions
           pipx install molecule==25.1.0
           pipx inject molecule "molecule-plugins[vagrant]==23.7.0"
           pipx inject molecule pytest-testinfra
@@ -65,15 +67,14 @@ jobs:
 
       - name: Execute Infrastructure Validation
         run: |
-          # Start the hypervisor daemon and grant the runner user access to the socket
+          # Start the hypervisor daemon
           sudo systemctl start libvirtd
           sudo chmod 666 /var/run/libvirt/libvirt-sock
           
-          # Install the Ansible Community collection for the UFW Host Hardening tasks
-          # (We must use the direct pipx venv path to reach ansible-galaxy)
-          ~/.local/share/pipx/venvs/molecule/bin/ansible-galaxy collection install community.general
+          # Install the required community collections
+          ansible-galaxy collection install community.general community.docker
           
-          # Execute the Test-Driven Infrastructure pipeline!
+          # Execute the pipeline
           molecule test
 
       - name: Upload infrastructure test report

@@ -181,6 +181,8 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared
+    profiles:
+      - ingress
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     # No volumes: cloudflared is stateless compute — all tunnel state lives in Cloudflare's control plane.
     networks:
