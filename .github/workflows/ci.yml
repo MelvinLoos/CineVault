@@ -53,6 +53,8 @@ jobs:
           sudo systemctl enable --now libvirtd
           sudo usermod -aG libvirt,kvm "${USER}"
 
+          vagrant plugin install vagrant-libvirt
+
       - name: Install Python Toolchain (Molecule & Plugins)
         run: |
           cd ~
