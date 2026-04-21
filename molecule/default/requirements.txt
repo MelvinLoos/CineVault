@@ -1,0 +1,16 @@
+# Python dependencies for the Molecule verifier layer.
+# Install with: pip install -r requirements.txt
+#
+# Spec reference: AGENTS.md §2 — Spec-Driven Development; verifier = testinfra.
+
+# Core Molecule framework
+molecule
+
+# Vagrant driver plugin — required for driver: name: vagrant in molecule.yml
+molecule-vagrant
+
+# Testinfra pytest plugin — the verifier framework for all Group A–E tests
+pytest-testinfra
+
+# Python binding to Vagrant CLI — used internally by molecule-vagrant
+python-vagrant
