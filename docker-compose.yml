@@ -1,0 +1,129 @@
+
+# Docker Compose stack definition for the Prosumer Edge Media Hub
+# Implementing all five Bounded Contexts as per ARCHITECTURE.md and PRODUCT_SPECIFICATION.md
+
+networks:
+  ingress_net:
+    # Services attached: cloudflared, seerr, jellyfin
+    # Provides external access to selected services through The Ingress.
+    # No external routing between this and other internal networks.
+  internal_api:
+    # Services attached: seerr, radarr, sonarr
+    # Facilitates secure communication for internal API calls between services.
+    # No external routing between this and other internal networks.
+  acquisition_net:
+    # Services attached: radarr, sonarr, prowlarr, sabnzbd
+    # Dedicated network for The Acquisition context, isolating download and indexing activities.
+    # No external routing between this and other internal networks.
+
+services:
+  jellyfin:
+    # Delivery context: The Media Server
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID} # UID of mediasvc system user on The Host
+      - PGID=${PGID} # GID of mediasvc system user on The Host
+      - TZ=${TZ} # Timezone for the container
+    volumes:
+      - ./appdata/jellyfin:/config # Configuration and metadata for Jellyfin
+      - ./data/media:/data/media:ro # The Library media files (read-only)
+    ports:
+      - "8096:8096" # Standard Jellyfin web UI port
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128 # Hardware Acceleration (Intel QuickSync)
+    networks:
+      - ingress_net
+    restart: unless-stopped
+
+  radarr:
+    # Acquisition context: The Library (movies)
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=${PUID} # UID of mediasvc system user on The Host
+      - PGID=${PGID} # GID of mediasvc system user on The Host
+      - TZ=${TZ} # Timezone for the container
+    volumes:
+      - ./appdata/radarr:/config # Configuration for Radarr
+      - ./data:/data # Full data tree for Atomic Hardlinks between temporary downloads and The Library
+    networks:
+      - internal_api
+      - acquisition_net
+    restart: unless-stopped
+
+  sonarr:
+    # Acquisition context: The Library (tv)
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=${PUID} # UID of mediasvc system user on The Host
+      - PGID=${PGID} # GID of mediasvc system user on The Host
+      - TZ=${TZ} # Timezone for the container
+    volumes:
+      - ./appdata/sonarr:/config # Configuration for Sonarr
+      - ./data:/data # Full data tree for Atomic Hardlinks between temporary downloads and The Library
+    networks:
+      - internal_api
+      - acquisition_net
+    restart: unless-stopped
+
+  prowlarr:
+    # Acquisition context: The Indexer
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID} # UID of mediasvc system user on The Host
+      - PGID=${PGID} # GID of mediasvc system user on The Host
+      - TZ=${TZ} # Timezone for the container
+    volumes:
+      - ./appdata/prowlarr:/config # Configuration for Prowlarr
+    networks:
+      - acquisition_net
+    restart: unless-stopped
+
+  sabnzbd:
+    # Processing context: The Download Client
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=${PUID} # UID of mediasvc system user on The Host
+      - PGID=${PGID} # GID of mediasvc system user on The Host
+      - TZ=${TZ} # Timezone for the container
+    volumes:
+      - ./appdata/sabnzbd:/config # Configuration for SABnzbd
+      - ./data/usenet:/data/usenet # Temporary download directory for Usenet
+    networks:
+      - acquisition_net
+    # Resource Limits (MANDATORY per ARCHITECTURE.md) to prevent The Host starvation
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
+    restart: unless-stopped
+
+  seerr:
+    # Media Request + Identity & Access contexts
+    image: fallenbagel/jellyseerr:latest
+    container_name: seerr
+    environment:
+      - PUID=${PUID} # UID of mediasvc system user on The Host
+      - PGID=${PGID} # GID of mediasvc system user on The Host
+      - TZ=${TZ} # Timezone for the container
+    volumes:
+      - ./appdata/seerr:/app/config # Configuration for Seerr
+    networks:
+      - ingress_net
+      - internal_api
+    restart: unless-stopped
+
+  cloudflared:
+    # Ingress context: The Ingress / Zero-Trust tunnel
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    # cloudflared runs as its own internal user, PUID/PGID are not applicable.
+    networks:
+      - ingress_net
+    restart: unless-stopped
