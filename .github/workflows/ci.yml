@@ -55,26 +55,26 @@ jobs:
 
       - name: Install Python Toolchain (Molecule & Plugins)
         run: |
-          # Move to the home directory to prevent pipx from confusing the venv 
-          # name with the local 'molecule/' directory in our repository
+          # Move to home directory to prevent pathing collisions
           cd ~
           
-          # Install Molecule
-          pipx install molecule
-          
-          # Inject the required plugins
-          pipx inject molecule "molecule-plugins[vagrant]"
+          pipx install molecule==25.1.0
+          pipx inject molecule "molecule-plugins[vagrant]==23.7.0"
           pipx inject molecule pytest-testinfra
           pipx inject molecule python-vagrant
 
-      - name: Run molecule test
-        # Executes the full Molecule lifecycle against The Host provisioning
-        # playbook: create → converge → verify (Testinfra contract) → destroy.
-        # Intentionally NOT marked continue-on-error: an infrastructure test
-        # failure must fail the job.
-        id: molecule
-        run: molecule test
-        working-directory: .
+      - name: Execute Infrastructure Validation
+        run: |
+          # Start the hypervisor daemon and grant the runner user access to the socket
+          sudo systemctl start libvirtd
+          sudo chmod 666 /var/run/libvirt/libvirt-sock
+          
+          # Install the Ansible Community collection for the UFW Host Hardening tasks
+          # (We must use the direct pipx venv path to reach ansible-galaxy)
+          ~/.local/share/pipx/venvs/molecule/bin/ansible-galaxy collection install community.general
+          
+          # Execute the Test-Driven Infrastructure pipeline!
+          molecule test
 
       - name: Upload infrastructure test report
         # Persists the Testinfra JUnit XML report so engineers can inspect
