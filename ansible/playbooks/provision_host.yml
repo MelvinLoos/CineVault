@@ -1,0 +1,126 @@
+---
+- name: Provision The Host (Intel N100 Mini-PC running Debian 13 "Trixie")
+  hosts: the_host
+  become: yes
+  vars:
+    # PUID/PGID for the mediasvc user, as mandated by ARCHITECTURE.md for Zero Root Execution.
+    # These values are chosen to be outside the typical system reserved range and common
+    # default user IDs, ensuring a deterministic identity for all container operations.
+    mediasvc_uid: 1001
+    mediasvc_gid: 1001
+
+  tasks:
+    - name: System Preparation - Update apt package cache and upgrade all packages
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+        autoclean: yes
+        autoremove: yes
+      tags:
+        - system-preparation
+
+    - name: System Preparation - Install required system packages for Docker and Python
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-plugin
+          - python3-docker
+        state: present
+      tags:
+        - system-preparation
+
+    - name: Identity & Zero Root Execution - Create mediasvc group
+      ansible.builtin.group:
+        name: mediasvc
+        gid: "{{ mediasvc_gid }}"
+        state: present
+        system: yes # Mark as a system group
+      tags:
+        - identity
+
+    - name: Identity & Zero Root Execution - Create dedicated system user mediasvc (non-login, no home directory)
+      ansible.builtin.user:
+        name: mediasvc
+        uid: "{{ mediasvc_uid }}"
+        group: mediasvc
+        home: /nonexistent # No home directory
+        shell: /usr/sbin/nologin # Non-login shell
+        state: present
+        system: yes # Mark as a system user
+        create_home: no
+      tags:
+        - identity
+
+    - name: Identity & Zero Root Execution - Add ansible remote user to the docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      tags:
+        - identity
+
+    - name: File System Architecture - Create /opt/mediastack/ (root)
+      ansible.builtin.file:
+        path: /opt/mediastack/
+        state: directory
+        owner: mediasvc
+        group: mediasvc
+        mode: '0755'
+      tags:
+        - filesystem
+
+    - name: File System Architecture - Create appdata directories (Config state)
+      ansible.builtin.file:
+        path: "/opt/mediastack/appdata/{{ item }}/"
+        state: directory
+        owner: mediasvc
+        group: mediasvc
+        mode: '0755'
+      loop:
+        - jellyfin
+        - radarr
+        - sonarr
+        - prowlarr
+        - sabnzbd
+        - seerr
+      tags:
+        - filesystem
+
+    - name: File System Architecture - Create The Download Client scratch space (SABnzbd active downloads)
+      ansible.builtin.file:
+        path: /opt/mediastack/data/usenet/
+        state: directory
+        owner: mediasvc
+        group: mediasvc
+        mode: '0755'
+      tags:
+        - filesystem
+
+    - name: File System Architecture - Create The Library: movies (Final destination for Radarr)
+      ansible.builtin.file:
+        path: /opt/mediastack/data/media/movies/
+        state: directory
+        owner: mediasvc
+        group: mediasvc
+        mode: '0755'
+      tags:
+        - filesystem
+
+    - name: File System Architecture - Create The Library: tv (Final destination for Sonarr)
+      ansible.builtin.file:
+        path: /opt/mediastack/data/media/tv/
+        state: directory
+        owner: mediasvc
+        group: mediasvc
+        mode: '0755'
+      tags:
+        - filesystem
+
+    - name: Docker Service - Enable and start the docker systemd service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      tags:
+        - docker-service
