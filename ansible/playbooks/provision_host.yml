@@ -1,7 +1,7 @@
 ---
 - name: Provision The Host (Intel N100 Mini-PC running Debian 13 "Trixie")
   hosts: the_host
-  become: yes
+  become: true
   vars:
     # PUID/PGID for the mediasvc user, as mandated by ARCHITECTURE.md for Zero Root Execution.
     # These values are chosen to be outside the typical system reserved range and common
@@ -96,7 +96,7 @@
       tags:
         - filesystem
 
-    - name: File System Architecture - Create The Library: movies (Final destination for Radarr)
+    - name: File System Architecture - Create The Library -  movies (Final destination for Radarr)
       ansible.builtin.file:
         path: /opt/mediastack/data/media/movies/
         state: directory
@@ -106,7 +106,7 @@
       tags:
         - filesystem
 
-    - name: File System Architecture - Create The Library: tv (Final destination for Sonarr)
+    - name: File System Architecture - Create The Library -  tv (Final destination for Sonarr)
       ansible.builtin.file:
         path: /opt/mediastack/data/media/tv/
         state: directory
@@ -116,6 +116,34 @@
       tags:
         - filesystem
 
+    - name: Host Hardening - Install UFW firewall
+      ansible.builtin.apt:
+        name: ufw
+        state: present
+      tags: [security]
+
+    - name: Host Hardening - Configure UFW to allow SSH
+      community.general.ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+      tags: [security]
+
+    - name: Host Hardening - Enable UFW and drop default inbound
+      community.general.ufw:
+        state: enabled
+        default: deny
+        direction: incoming
+      tags: [security]
+
+    - name: Host Hardening - Disable password authentication for SSH
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: Restart SSH
+      tags: [security]
+
     - name: Docker Service - Enable and start the docker systemd service
       ansible.builtin.systemd:
         name: docker
@@ -124,3 +152,9 @@
         daemon_reload: yes
       tags:
         - docker-service
+
+  handlers:
+    - name: Restart SSH
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted

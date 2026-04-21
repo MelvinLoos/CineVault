@@ -58,7 +58,7 @@ services:
   # Delivery context — Intel QuickSync hardware transcoding via /dev/dri/renderD128
   # ---------------------------------------------------------------------------
   jellyfin:
-    image: jellyfin/jellyfin:latest
+    image: lscr.io/linuxserver/jellyfin:latest # Changed to LSIO
     container_name: jellyfin
     environment:
       - PUID=${PUID}
@@ -66,7 +66,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./appdata/jellyfin:/config
-      - ./data/media:/data/media:ro  # The Library is read by Jellyfin, not written
+      - ./data:/data:ro
     devices:
       # Intel QuickSync hardware transcoding — CONSTITUTION.MD §2 Maxim 2
       # Non-negotiable: ARCHITECTURE.md §3
@@ -143,7 +143,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./appdata/sabnzbd:/config
-      - ./data/usenet:/data/usenet  # The Download Client scratch space only — no library access
+      - ./data:/data
     networks:
       - acquisition_net
     # Non-negotiable resource limits — ARCHITECTURE.md §3

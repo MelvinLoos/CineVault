@@ -1,0 +1,3 @@
+---
+- name: Route Molecule to the production playbook
+  ansible.builtin.import_playbook: "../../ansible/playbooks/provision_host.yml"
