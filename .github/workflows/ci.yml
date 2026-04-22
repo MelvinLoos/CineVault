@@ -14,6 +14,12 @@ name: CI
     branches:
       - main
 
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+
 jobs:
   molecule-testinfra:
     runs-on: ubuntu-latest
@@ -85,6 +91,12 @@ jobs:
           
           # Execute the pipeline
           molecule test
+
+      - name: Publish Test Results Dashboard
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: "infrastructure-report.xml"
 
       - name: Upload infrastructure test report
         # Persists the Testinfra JUnit XML report so engineers can inspect
