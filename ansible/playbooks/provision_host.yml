@@ -38,6 +38,7 @@
           - docker.io
           - docker-compose
           - python3-docker
+          - avahi-daemon
         state: present
       tags:
         - system-preparation
@@ -95,6 +96,7 @@
         - prowlarr
         - sabnzbd
         - seerr
+        - homepage
       tags:
         - filesystem
 

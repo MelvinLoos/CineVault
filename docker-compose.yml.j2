@@ -74,6 +74,8 @@ services:
     networks:
       - ingress_net
     restart: unless-stopped
+    ports:
+      - "8096:8096"
 
   # ---------------------------------------------------------------------------
   # Acquisition Bounded Context — The Library: movies (PRODUCT_SPECIFICATION.md §2)
@@ -93,6 +95,8 @@ services:
       - internal_api
       - acquisition_net
     restart: unless-stopped
+    ports:
+      - "7878:7878"
 
   # ---------------------------------------------------------------------------
   # Acquisition Bounded Context — The Library: tv (PRODUCT_SPECIFICATION.md §2)
@@ -112,6 +116,8 @@ services:
       - internal_api
       - acquisition_net
     restart: unless-stopped
+    ports:
+      - "8989:8989"
 
   # ---------------------------------------------------------------------------
   # Acquisition Bounded Context — The Indexer (PRODUCT_SPECIFICATION.md §1 & §2)
@@ -129,6 +135,8 @@ services:
     networks:
       - acquisition_net
     restart: unless-stopped
+    ports:
+      - "9696:9696"
 
   # ---------------------------------------------------------------------------
   # Processing Bounded Context — The Download Client (PRODUCT_SPECIFICATION.md §1 & §2)
@@ -154,6 +162,8 @@ services:
           cpus: "2.0"
           memory: 2g
     restart: unless-stopped
+    ports:
+      - "8080:8080"
 
   # ---------------------------------------------------------------------------
   # Media Request + Identity & Access Bounded Contexts (PRODUCT_SPECIFICATION.md §2)
@@ -171,6 +181,22 @@ services:
     networks:
       - ingress_net
       - internal_api
+    restart: unless-stopped
+    ports:
+      - "5055:5055"
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "80:3000"
+    volumes:
+      - /opt/mediastack/appdata/homepage:/app/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
