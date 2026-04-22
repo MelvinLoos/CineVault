@@ -26,11 +26,15 @@
     - name: System Preparation - Update apt package cache and upgrade all packages
       ansible.builtin.apt:
         update_cache: true
-        upgrade: dist
+        upgrade: true
+        dpkg_options: 'force-confdef,force-confold'
         autoclean: true
         autoremove: true
+      environment:
+        DEBIAN_FRONTEND: noninteractive
       tags:
         - system-preparation
+        - update
 
     - name: System Preparation - Install required system packages for Docker and Python
       ansible.builtin.apt:
