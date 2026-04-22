@@ -84,7 +84,7 @@
 
     - name: File System Architecture - Create appdata directories (Config state)
       ansible.builtin.file:
-        path: "/opt/mediastack/appdata/{{ item }}/"
+        path: "/opt/mediastack/appdata/{{ item }}"
         state: directory
         owner: mediasvc
         group: mediasvc
@@ -182,6 +182,17 @@
         owner: mediasvc
         group: mediasvc
         mode: '0600'
+      tags:
+        - deploy
+
+    - name: Deploy Stack - Synchronize Container Identities with Host Identities
+      ansible.builtin.lineinfile:
+        path: /opt/mediastack/.env
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+      loop:
+        - { key: 'PUID', value: "{{ mediasvc_uid }}" }
+        - { key: 'PGID', value: "{{ mediasvc_gid }}" }
       tags:
         - deploy
 
