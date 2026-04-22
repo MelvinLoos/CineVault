@@ -58,18 +58,23 @@ jobs:
       - name: Install Python Toolchain (Molecule & Plugins)
         run: |
           cd ~
-          # 1. Install Ansible explicitly so ansible-galaxy is on the $PATH
+          # 1. Install Ansible explicitly
           pipx install ansible-core
-
           pipx inject ansible-core python-vagrant
           
-          # 2. Pin to known stable versions
+          pipx install pytest
+          pipx inject pytest pytest-testinfra
+          
           pipx install molecule==25.1.0
           pipx inject molecule "molecule-plugins[vagrant]==23.7.0"
           pipx inject molecule pytest-testinfra
           pipx inject molecule python-vagrant
 
       - name: Execute Infrastructure Validation
+        env:
+          # Force GitHub Actions to print raw TTY color logs so nothing is swallowed
+          ANSIBLE_FORCE_COLOR: '1'
+          PY_COLORS: '1'
         run: |
           # Start the hypervisor daemon
           sudo systemctl start libvirtd
