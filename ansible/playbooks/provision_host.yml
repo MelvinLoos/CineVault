@@ -158,6 +158,45 @@
       notify: Restart SSH
       tags: [security]
 
+    - name: Privacy - Configure Secure DNS (Cloudflare/Quad9) with DNS-over-TLS
+      ansible.builtin.lineinfile:
+        path: /etc/systemd/resolved.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^#?DNS=', line: 'DNS=1.1.1.1 1.0.0.1 9.9.9.9' }
+        - { regexp: '^#?DNSOverTLS=', line: 'DNSOverTLS=yes' }
+      tags:
+        - host
+        - dns
+
+    - name: Privacy - Ensure systemd-resolved is running and enabled
+      ansible.builtin.systemd:
+        name: systemd-resolved
+        state: restarted
+        enabled: true
+      tags:
+        - host
+        - dns
+
+    - name: Privacy - Symlink resolv.conf to use systemd-resolved
+      ansible.builtin.file:
+        src: /run/systemd/resolve/stub-resolv.conf
+        dest: /etc/resolv.conf
+        state: link
+        force: true
+      tags:
+        - host
+        - dns
+
+    - name: Host Maintenance - Install unattended-upgrades for background security patches
+      ansible.builtin.apt:
+        name: unattended-upgrades
+        state: present
+      tags:
+        - host
+        - updates
+
     - name: Docker Service - Enable and start the docker systemd service
       ansible.builtin.systemd:
         name: docker

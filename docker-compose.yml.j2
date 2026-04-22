@@ -218,3 +218,15 @@ services:
     networks:
       - ingress_net
     restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    environment:
+      - TZ=${TZ}
+      - WATCHTOWER_CLEANUP=true             # Deletes old images to save disk space
+      - WATCHTOWER_INCLUDE_STOPPED=true     # Updates containers even if they are currently off
+      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Cron schedule: 4:00 AM daily
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
