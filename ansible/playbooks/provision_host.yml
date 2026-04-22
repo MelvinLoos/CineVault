@@ -23,6 +23,18 @@
       tags:
         - hardware
 
+    - name: System Preparation - Pre-seed GRUB to bypass Legacy BIOS prompts in Vagrant
+      ansible.builtin.debconf:
+        name: grub-pc
+        question: "{{ item.question }}"
+        value: "{{ item.value }}"
+        vtype: "{{ item.vtype }}"
+      loop:
+        - { question: 'grub-pc/install_devices', value: '', vtype: 'multiselect' }
+        - { question: 'grub-pc/install_devices_empty', value: 'true', vtype: 'boolean' }
+      tags:
+        - system-preparation
+
     - name: System Preparation - Update apt package cache and upgrade all packages
       ansible.builtin.apt:
         update_cache: true
@@ -201,10 +213,27 @@
         - host
         - dns
 
-    - name: Host Maintenance - Install unattended-upgrades for background security patches
+    - name: Privacy - Restart Docker daemon to detect new systemd-resolved DNS
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+      tags:
+        - host
+        - dns
+
+    - name: Host Maintenance - Install unattended-upgrades
       ansible.builtin.apt:
         name: unattended-upgrades
         state: present
+      tags:
+        - host
+        - updates
+
+    - name: Host Maintenance - Ensure unattended-upgrades is enabled and running # FIXED: Ensures it stays on
+      ansible.builtin.systemd:
+        name: unattended-upgrades
+        state: started
+        enabled: yes
       tags:
         - host
         - updates
@@ -217,6 +246,55 @@
         daemon_reload: true
       tags:
         - docker-service
+
+    - name: Configuration - Ensure local credentials directory exists on control node
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/credentials"
+        state: directory
+      delegate_to: localhost
+      become: false
+      tags:
+        - config
+
+    - name: Configuration - Generate Idempotent API Keys
+      ansible.builtin.set_fact:
+        radarr_key: "{{ lookup('password', playbook_dir + '/../credentials/radarr.key chars=hexdigits length=32') }}"
+        sonarr_key: "{{ lookup('password', playbook_dir + '/../credentials/sonarr.key chars=hexdigits length=32') }}"
+        prowlarr_key: "{{ lookup('password', playbook_dir + '/../credentials/prowlarr.key chars=hexdigits length=32') }}"
+      tags:
+        - config
+
+    - name: Configuration - Inject dynamic API keys into host .env file
+      ansible.builtin.lineinfile:
+        path: /opt/mediastack/.env
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        create: true
+        owner: mediasvc
+        group: mediasvc
+        mode: '0600'
+      loop:
+        - { key: 'RADARR_API_KEY', value: "{{ radarr_key }}" }
+        - { key: 'SONARR_API_KEY', value: "{{ sonarr_key }}" }
+        - { key: 'PROWLARR_API_KEY', value: "{{ prowlarr_key }}" }
+        - { key: 'SABNZBD_API_KEY', value: "" }
+      tags:
+        - config
+
+    - name: Configuration - Pre-seed Servarr API Keys
+      ansible.builtin.template:
+        src: "../files/servarr/config.xml.j2"
+        dest: "/opt/mediastack/appdata/{{ item.app }}/config.xml"
+        owner: mediasvc
+        group: mediasvc
+        mode: '0644'
+        force: false
+      loop:
+        - { app: 'radarr', port: '7878', api_key: "{{ radarr_key }}" }
+        - { app: 'sonarr', port: '8989', api_key: "{{ sonarr_key }}" }
+        - { app: 'prowlarr', port: '9696', api_key: "{{ prowlarr_key }}" }
+      tags:
+        - config
 
     - name: Deploy Stack - Push Homepage Dashboard Configuration
       ansible.builtin.template:

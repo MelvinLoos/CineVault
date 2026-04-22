@@ -1,5 +1,8 @@
 /infrastructure-report.xml
 **/__pycache__/
+# Ignore Ansible generated local secrets
+ansible/credentials/
+
 # START Ruler Generated Files
 /.agent/rules/ruler.md
 /.agent/rules/ruler.md.bak

@@ -13,15 +13,16 @@
         container: seerr
 
 - The Acquisition Pipeline:
+    - The Acquisition Pipeline:
     - Radarr:
         icon: radarr
-        href: http://{{ ansible_host }}:7878
+        href: http://{{ ansible_host }}:7878 # Keep the href as ansible_host so your browser can click it
         description: Movie Manager
         server: local-docker
         container: radarr
         widget:
             type: radarr
-            url: http://radarr:7878
+            url: http://host.docker.internal:7878 # FIXED: Using internal Docker routing!
             key: "{{ '{{HOMEPAGE_VAR_RADARR_KEY}}' }}"
     - Sonarr:
         icon: sonarr
@@ -31,7 +32,7 @@
         container: sonarr
         widget:
             type: sonarr
-            url: http://sonarr:8989
+            url: http://host.docker.internal:8989
             key: "{{ '{{HOMEPAGE_VAR_SONARR_KEY}}' }}"
     - SABnzbd:
         icon: sabnzbd
@@ -41,5 +42,5 @@
         container: sabnzbd
         widget:
             type: sabnzbd
-            url: http://sabnzbd:8080
+            url: http://host.docker.internal:8080
             key: "{{ '{{HOMEPAGE_VAR_SABNZBD_KEY}}' }}"
