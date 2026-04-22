@@ -200,6 +200,10 @@
       community.docker.docker_compose_v2:
         project_src: /opt/mediastack/
         state: present
+      register: deploy_result
+      until: deploy_result is not failed
+      retries: 3
+      delay: 10
       tags:
         - deploy
 
