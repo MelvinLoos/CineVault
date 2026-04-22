@@ -193,6 +193,9 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
       - "HOMEPAGE_ALLOWED_HOSTS=*"
+      - HOMEPAGE_VAR_RADARR_KEY=${RADARR_API_KEY}
+      - HOMEPAGE_VAR_SONARR_KEY=${SONARR_API_KEY}
+      - HOMEPAGE_VAR_SABNZBD_KEY=${SABNZBD_API_KEY}
     ports:
       - "80:3000"
     volumes:

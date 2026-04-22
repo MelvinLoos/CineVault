@@ -167,6 +167,20 @@
       tags:
         - docker-service
 
+    - name: Deploy Stack - Push Homepage Dashboard Configuration
+      ansible.builtin.template:
+        src: "../files/homepage/{{ item }}.j2"
+        dest: "/opt/mediastack/appdata/homepage/{{ item }}"
+        owner: mediasvc
+        group: mediasvc
+        mode: '0644'
+      loop:
+        - docker.yaml
+        - widgets.yaml
+        - services.yaml
+      tags:
+        - deploy
+
     - name: Deploy Stack - Template dynamic docker-compose.yml to the host
       ansible.builtin.template:
         src: ../../docker-compose.yml.j2

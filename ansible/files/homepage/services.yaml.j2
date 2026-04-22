@@ -1,0 +1,45 @@
+- The Theater:
+    - Jellyfin:
+        icon: jellyfin
+        href: http://{{ ansible_host }}:8096
+        description: Watch Movies & TV
+        server: local-docker
+        container: jellyfin
+    - Seerr:
+        icon: overseerr
+        href: http://{{ ansible_host }}:5055
+        description: Request New Media
+        server: local-docker
+        container: seerr
+
+- The Acquisition Pipeline:
+    - Radarr:
+        icon: radarr
+        href: http://{{ ansible_host }}:7878
+        description: Movie Manager
+        server: local-docker
+        container: radarr
+        widget:
+            type: radarr
+            url: http://radarr:7878
+            key: "{{ '{{HOMEPAGE_VAR_RADARR_KEY}}' }}"
+    - Sonarr:
+        icon: sonarr
+        href: http://{{ ansible_host }}:8989
+        description: TV Show Manager
+        server: local-docker
+        container: sonarr
+        widget:
+            type: sonarr
+            url: http://sonarr:8989
+            key: "{{ '{{HOMEPAGE_VAR_SONARR_KEY}}' }}"
+    - SABnzbd:
+        icon: sabnzbd
+        href: http://{{ ansible_host }}:8080
+        description: Usenet Downloader
+        server: local-docker
+        container: sabnzbd
+        widget:
+            type: sabnzbd
+            url: http://sabnzbd:8080
+            key: "{{ '{{HOMEPAGE_VAR_SABNZBD_KEY}}' }}"
