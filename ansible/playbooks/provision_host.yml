@@ -190,6 +190,7 @@
       loop:
         - { regexp: '^#?DNS=', line: 'DNS=1.1.1.1 1.0.0.1 9.9.9.9' }
         - { regexp: '^#?DNSOverTLS=', line: 'DNSOverTLS=yes' }
+      register: dns_config
       tags:
         - host
         - dns
@@ -197,8 +198,20 @@
     - name: Privacy - Ensure systemd-resolved is running and enabled
       ansible.builtin.systemd:
         name: systemd-resolved
-        state: restarted
+        state: started
         enabled: true
+      tags:
+        - host
+        - dns
+
+    - name: Privacy - Restart DNS and Docker ONLY if DNS config changed
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop:
+        - systemd-resolved
+        - docker
+      when: dns_config.changed
       tags:
         - host
         - dns
@@ -209,14 +222,6 @@
         dest: /etc/resolv.conf
         state: link
         force: true
-      tags:
-        - host
-        - dns
-
-    - name: Privacy - Restart Docker daemon to detect new systemd-resolved DNS
-      ansible.builtin.systemd:
-        name: docker
-        state: restarted
       tags:
         - host
         - dns
@@ -233,7 +238,7 @@
       ansible.builtin.systemd:
         name: unattended-upgrades
         state: started
-        enabled: yes
+        enabled: true
       tags:
         - host
         - updates
@@ -327,6 +332,7 @@
         owner: mediasvc
         group: mediasvc
         mode: '0600'
+        force: false
       tags:
         - deploy
 
