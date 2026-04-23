@@ -87,7 +87,7 @@ jobs:
           sudo chmod 666 /var/run/libvirt/libvirt-sock
           
           # Install the required community collections
-          ansible-galaxy collection install community.general community.docker
+          ansible-galaxy collection install community.general community.docker ansible.posix
           
           # Execute the pipeline
           molecule test
