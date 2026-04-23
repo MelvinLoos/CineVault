@@ -8,6 +8,7 @@
     # default user IDs, ensuring a deterministic identity for all container operations.
     mediasvc_uid: 1001
     mediasvc_gid: 1001
+    media_drive_device: /dev/sda
 
   tasks:
     - name: Hardware Detection - Check if Intel QuickSync GPU is physically present
@@ -116,6 +117,40 @@
         - homepage
       tags:
         - filesystem
+
+    - name: Storage - Create partition on media drive
+      community.general.parted:
+        device: "{{ media_drive_device }}"
+        number: 1
+        state: present
+        fs_type: ext4
+        label: gpt
+      tags: [storage, filesystem]
+
+    - name: Storage - Format media partition to ext4
+      community.general.filesystem:
+        fstype: ext4
+        dev: "{{ media_drive_device }}1"
+        force: false
+      tags: [storage, filesystem]
+
+    - name: Storage - Mount media drive to /opt/mediastack/data
+      ansible.posix.mount:
+        path: /opt/mediastack/data
+        src: "{{ media_drive_device }}1"
+        fstype: ext4
+        opts: noexec,nosuid,nodev
+        state: mounted
+      tags: [storage, filesystem]
+
+    - name: Storage - Set ownership of /opt/mediastack/data
+      ansible.builtin.file:
+        path: /opt/mediastack/data
+        state: directory
+        owner: mediasvc
+        group: mediasvc
+        mode: '0755'
+      tags: [storage, filesystem]
 
     - name: File System Architecture - Create The Download Client scratch space (SABnzbd active downloads)
       ansible.builtin.file:
