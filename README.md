@@ -5,19 +5,18 @@ This repository contains the Infrastructure-as-Code (IaC) for deploying a self-h
 ## Table of Contents
 
 - [Prosumer Edge Media Hub](#prosumer-edge-media-hub)
-  - [Table of Contents](#table-of-contents)
   - [Architecture Overview](#architecture-overview)
   - [Technology Stack](#technology-stack)
   - [Core Principles](#core-principles)
   - [Components](#components)
   - [File System Layout](#file-system-layout)
-  - [Network Topography](#network-topography)
-  - [Hardware Acceleration & Resource Constraints](#hardware-acceleration--resource-constraints)
   - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Deployment](#deployment)
+    - [1. Preparing The Host](#1-preparing-the-host)
+    - [2. Prerequisites (Control Machine)](#2-prerequisites-control-machine)
+    - [3. Configuration](#3-configuration)
+    - [4. Deployment](#4-deployment)
+  - [Post-Deployment: Service Access](#post-deployment-service-access)
   - [Development & Testing](#development--testing)
-  - [Contributing](#contributing)
   - [License](#license)
 
 ## Architecture Overview
@@ -26,8 +25,8 @@ This project implements a robust, spec-driven media server solution designed for
 
 ## Technology Stack
 
-*   **Operating System:** Debian 13 "Trixie"
-*   **Hardware:** Intel N100 Mini-PC
+*   **Operating System:** Debian 13 "Trixie" (The Host)
+*   **Hardware:** Intel N100 Mini-PC (Intel QuickSync supported)
 *   **Container Engine:** Docker
 *   **Orchestration:** Docker Compose
 *   **Provisioning:** Ansible
@@ -36,10 +35,10 @@ This project implements a robust, spec-driven media server solution designed for
 
 ## Core Principles
 
-*   **Spec-Driven Development:** All infrastructure is defined and implemented based on detailed specifications (`CONSTITUTION.md`, `PRODUCT_SPECIFICATION.md`, `ARCHITECTURE.md`, `AGENTS.md`).
+*   **Spec-Driven Development:** All infrastructure is defined and implemented based on detailed specifications (`CONSTITUTION.md`, `PRODUCT_SPECIFICATION.md`, `ARCHITECTURE.md`).
 *   **Idempotency:** All deployment scripts and configurations are idempotent, ensuring consistent state regardless of how many times they are executed.
-*   **Zero Root Execution:** Docker containers never run as root, utilizing a dedicated `mediasvc` system user with specific PUID/PGID.
-*   **State vs. Compute Isolation:** Strict separation between stateless compute (Docker containers) and stateful data (volume mounts).
+*   **Zero Root Execution:** Docker containers never run as root, utilizing a dedicated `mediasvc` system user with UID/GID 1001.
+*   **State vs. Compute Isolation:** Strict separation between stateless compute (Docker containers) and stateful data (volume mounts). All state lives in `/opt/mediastack/appdata/`.
 *   **Zero-Trust Micro-segmentation:** Network traffic is strictly controlled between services using isolated bridge networks.
 *   **No Port Forwarding:** All external access is routed through a secure Cloudflare Tunnel.
 
@@ -48,21 +47,26 @@ This project implements a robust, spec-driven media server solution designed for
 The media stack consists of the following services, categorized by their Bounded Contexts:
 
 *   **Delivery:**
-    *   **Jellyfin:** Media server for streaming and organizing media, with Intel QuickSync hardware transcoding.
+    *   **Jellyfin:** Media server with Intel QuickSync hardware transcoding.
 *   **Acquisition:**
     *   **Radarr:** Movie collection manager.
     *   **Sonarr:** TV show collection manager.
     *   **Prowlarr:** Indexer manager for Usenet/Torrents.
+    *   **Recyclarr:** Automatically syncs TRaSH Guides quality profiles.
 *   **Processing:**
-    *   **SABnzbd:** Usenet download client, responsible for fetching, repairing, and unpacking media files.
+    *   **SABnzbd:** Usenet download client (Resource limited to 2 CPUs / 2GB RAM).
 *   **Media Request & Identity & Access:**
-    *   **Seerr:** User-facing UI for media discovery and requests, integrated with identity and access management.
+    *   **Seerr (Jellyseerr):** UI for media discovery and requests.
 *   **Ingress:**
-    *   **Cloudflared:** Establishes a secure Cloudflare Tunnel for zero-trust external access.
+    *   **Cloudflared:** Establish secure tunnel for zero-trust external access.
+*   **Dashboards & Maintenance:**
+    *   **Homepage:** Centralized dashboard for all services.
+    *   **Watchtower:** Automatic Docker image updates.
+    *   **Docker Socket Proxy:** Secure abstraction for the Docker socket.
 
 ## File System Layout
 
-The system mandates a single root directory (`/opt/mediastack/`) for all media data to enable atomic hardlinks. This structure ensures efficient storage and management of media files.
+The system mandates a single root directory (`/opt/mediastack/`) for all media data to enable **Atomic Hardlinks** (instant, zero-space moves).
 
 ```text
 /opt/mediastack/
@@ -71,10 +75,7 @@ The system mandates a single root directory (`/opt/mediastack/`) for all media d
 ├── appdata/                     <-- Config state (Must reside on fast SSD)
 │   ├── jellyfin/
 │   ├── radarr/
-│   ├── sonarr/
-│   ├── prowlarr/
-│   ├── sabnzbd/
-│   └── seerr/
+│   └── ...
 └── data/                        <-- The Media Payload (Resides on High-Capacity Drive)
     ├── usenet/                  <-- SABnzbd active downloads
     └── media/
@@ -82,74 +83,100 @@ The system mandates a single root directory (`/opt/mediastack/`) for all media d
         └── tv/                  <-- Final destination for Sonarr
 ```
 
-## Network Topography
-
-Three isolated bridge networks enforce zero-trust micro-segmentation:
-
-*   `ingress_net`: `cloudflared`, `seerr`, `jellyfin`
-*   `internal_api`: `seerr`, `radarr`, `sonarr`
-*   `acquisition_net`: `radarr`, `sonarr`, `prowlarr`, `sabnzbd`
-
-## Hardware Acceleration & Resource Constraints
-
-*   **Jellyfin:** Utilizes Intel QuickSync for hardware transcoding via `/dev/dri/renderD128`.
-*   **SABnzbd:** Resource-limited (max 2 CPUs, 2GB RAM) to prevent host starvation during unpacking operations.
-*   **All Containers:** Execute under a non-root `PUID` and `PGID` corresponding to a dedicated `mediasvc` system user.
-
 ## Getting Started
 
-### Prerequisites
+### 1. Preparing The Host
 
-*   An Intel N100 Mini-PC running Debian 13 "Trixie".
-*   Ansible installed on your control machine.
-*   A Cloudflare Zero Trust account and a generated tunnel token.
+Before running Ansible, the Intel N100 Mini-PC must be manually prepared:
 
-### Deployment
+1.  **Install Debian 13 "Trixie":** Use a minimal netinst image. Ensure the **SSH Server** is selected during the "Software selection" step.
+2.  **Create Ansible User:** Log in as root and create the user that Ansible will use:
+    ```bash
+    useradd -m -s /bin/bash ansible
+    passwd ansible
+    usermod -aG sudo ansible
+    ```
+3.  **Configure SSH Key Access:** From your control machine, copy your public SSH key to the host. **Password authentication will be disabled by the playbook.**
+    ```bash
+    ssh-copy-id ansible@<host-ip>
+    ```
+4.  **Identify Media Drive:** Plug in your high-capacity drive and find its device path:
+    ```bash
+    lsblk
+    # Note the path, e.g., /dev/sdb. This is used in the inventory.
+    ```
+5.  **Verify Hardware Acceleration:** Ensure the Intel GPU node is present:
+    ```bash
+    ls -l /dev/dri/renderD128
+    ```
+
+### 2. Prerequisites (Control Machine)
+
+Ensure your control machine has Ansible installed along with the required collections:
+
+```bash
+ansible-galaxy collection install community.general ansible.posix community.docker
+```
+
+### 3. Configuration
 
 1.  **Clone the repository:**
-
     ```bash
     git clone https://github.com/MelvinLoos/mediacenter.git
     cd mediacenter
     ```
 
-2.  **Configure environment variables:**
+2.  **Inventory:** Edit `ansible/inventory/hosts.ini`. Replace the IP and ensure `media_drive_device` matches your drive path from step 1.4.
+    ```ini
+    [the_host]
+    192.168.1.100 ansible_user=ansible media_drive_device=/dev/sdb
+    ```
 
-    Copy `.env.example` to `.env` and populate the variables, especially `PUID`, `PGID`, `TZ`, and `CLOUDFLARE_TUNNEL_TOKEN`.
-
+3.  **Environment Variables:** Copy `.env.example` to `.env` and set your `TZ` and `CLOUDFLARE_TUNNEL_TOKEN`.
     ```bash
     cp .env.example .env
-    # Edit .env with your specific values
     ```
 
-3.  **Update Ansible inventory:**
+### 4. Deployment
 
-    Edit `ansible/inventory/hosts.ini` to replace `192.168.1.100` with the actual IP address of your Intel N100 Mini-PC and set the `ansible_user`.
+Run the master provision playbook. This handles system updates, user creation, filesystem formatting, security hardening, and starts the media stack.
 
-4.  **Provision The Host:**
+```bash
+ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml
+```
 
-    Run the Ansible playbook to provision the host, install Docker, configure the file system, and set up the firewall.
+> **Note on Ingress:** By default, the Cloudflare Tunnel container is in the `ingress` profile. To ensure it starts if you run compose manually, use `docker compose --profile ingress up -d`. The Ansible playbook handles this automatically.
 
-    ```bash
-    ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml
-    ```
+## Post-Deployment: Service Access
 
-5.  **Deploy the media stack:**
+Once deployed, the following services are available on The Host:
 
-    After provisioning, deploy the Docker Compose stack.
-
-    ```bash
-    docker compose up -d
-    ```
+| Service | Port | Bounded Context | Ingress Access via Tunnel |
+| :--- | :--- | :--- | :--- |
+| **Homepage** | 80 | Dashboard | No (Local Only) |
+| **Seerr** | 5055 | Request / Identity | **Yes** |
+| **Jellyfin** | 8096 | Delivery | **Yes** |
+| **Radarr** | 7878 | Acquisition | No |
+| **Sonarr** | 8989 | Acquisition | No |
+| **Prowlarr** | 9696 | Indexers | No |
+| **SABnzbd** | 8080 | Processing | No |
 
 ## Development & Testing
 
-This project uses Molecule for testing Ansible playbooks. The `molecule/default/tests/test_host_provision.py` file contains Testinfra tests that validate the host provisioning against the architectural specifications.
+This project uses **Molecule** with **Testinfra** to validate the infrastructure against the specifications.
 
-## Contributing
+To run tests:
+```bash
+cd mediacenter
+molecule test
+```
 
-Contributions are welcome! Please adhere to the spec-driven development principles and ensure all changes align with the defined architecture and product specifications.
+Tests verify:
+- Non-root execution (`mediasvc` ownership)
+- UFW firewall rules (No leakage of internal ports)
+- Filesystem hierarchy requirements
+- Atomic hardlink capability (shared mount point)
 
 ## License
 
-[Specify your license here, e.g., MIT, Apache 2.0, etc.]
+This project is licensed under the MIT License - see the LICENSE file for details.
