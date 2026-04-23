@@ -377,6 +377,13 @@
       tags:
         - deploy
 
+
+    - name: Configure Backups - Integrate Backup Role
+      ansible.builtin.include_role:
+        name: backup
+      tags:
+        - backup
+
   handlers:
     - name: Restart SSH
       ansible.builtin.systemd:

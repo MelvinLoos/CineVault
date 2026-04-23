@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+# Load environment variables (optional)
+# source /etc/restic/env
+
+# Perform the backup
+restic -r {{ restic_repo }} -p {{ restic_password_file }} backup {{ restic_backup_source }}
+
+# Run maintenance/pruning
+restic -r {{ restic_repo }} -p {{ restic_password_file }} forget \
+    --keep-daily {{ restic_keep_daily }} \
+    --keep-weekly {{ restic_keep_weekly }} \
+    --keep-monthly {{ restic_keep_monthly }} \
+    --prune

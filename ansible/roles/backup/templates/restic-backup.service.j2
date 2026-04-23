@@ -1,0 +1,13 @@
+[Unit]
+Description=Daily Restic Backup for Mediacenter
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/bin/restic-backup.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
