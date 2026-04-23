@@ -41,6 +41,11 @@ networks:
     # Scoped to Acquisition and Processing bounded contexts.
     # The Indexer and The Download Client are isolated here.
 
+  socket_proxy_net:
+    driver: bridge
+    # Boundary: homepage / watchtower → docker-proxy
+    # Scoped to Docker socket abstraction for security.
+
 # ---------------------------------------------------------------------------
 # Service Definitions
 # Global rules applied to ALL services (unless an explicit exception is noted):
@@ -198,11 +203,13 @@ services:
       - HOMEPAGE_VAR_SABNZBD_KEY=${SABNZBD_API_KEY}
     ports:
       - "80:3000"
-    extra_hosts:                                    # <--- ADD THIS
-      - "host.docker.internal:host-gateway"         # <--- ADD THIS
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
-      - /opt/mediastack/appdata/homepage:/app/config
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./appdata/homepage:/app/config
+    networks:
+      - ingress_net
+      - socket_proxy_net
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
@@ -219,6 +226,22 @@ services:
     # No volumes: cloudflared is stateless compute — all tunnel state lives in Cloudflare's control plane.
     networks:
       - ingress_net
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)
+  # Security context — Docker Socket Proxy to avoid mounting /var/run/docker.sock in user-facing/app containers.
+  # ---------------------------------------------------------------------------
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: docker-proxy
+    environment:
+      - CONTAINERS=1
+      - IMAGES=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket_proxy_net
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
@@ -241,9 +264,10 @@ services:
     container_name: watchtower
     environment:
       - TZ=${TZ}
-      - WATCHTOWER_CLEANUP=true             # Deletes old images to save disk space
-      - WATCHTOWER_INCLUDE_STOPPED=true     # Updates containers even if they are currently off
-      - WATCHTOWER_SCHEDULE=0 0 4 * * * # Cron schedule: 4:00 AM daily
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_SCHEDULE=0 0 4 * * *
+      - DOCKER_HOST=tcp://docker-proxy:2375
+    networks:
+      - socket_proxy_net
     restart: unless-stopped
