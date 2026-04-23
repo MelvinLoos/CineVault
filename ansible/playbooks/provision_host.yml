@@ -107,6 +107,7 @@
         group: mediasvc
       loop:
         - jellyfin
+        - recyclarr
         - radarr
         - sonarr
         - prowlarr
@@ -322,6 +323,16 @@
         - services.yaml
       tags:
         - deploy
+    - name: Deploy Stack - Push Recyclarr Configuration
+      ansible.builtin.template:
+        src: "../files/recyclarr/recyclarr.yml.j2"
+        dest: "/opt/mediastack/appdata/recyclarr/recyclarr.yml"
+        owner: mediasvc
+        group: mediasvc
+        mode: "0644"
+      tags:
+        - deploy
+
 
     - name: Deploy Stack - Template dynamic docker-compose.yml to the host
       ansible.builtin.template:

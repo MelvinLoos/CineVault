@@ -1,0 +1,20 @@
+# Recyclarr configuration
+# Reference: https://recyclarr.dev/wiki/yaml/config-reference/
+
+sonarr:
+  - name: sonarr
+    base_url: http://sonarr:8989
+    api_key: {{ sonarr_key }}
+    include:
+      - template: sonarr-quality-definition-series
+      - template: sonarr-v3-quality-profile-web-dl-1080p
+      - template: sonarr-v3-custom-formats-web-dl
+
+radarr:
+  - name: radarr
+    base_url: http://radarr:7878
+    api_key: {{ radarr_key }}
+    include:
+      - template: radarr-quality-definition-movie
+      - template: radarr-quality-profile-hd-bluray-web
+      - template: radarr-custom-formats-hd-bluray-web

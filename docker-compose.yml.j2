@@ -221,6 +221,21 @@ services:
       - ingress_net
     restart: unless-stopped
 
+  # ---------------------------------------------------------------------------
+  # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)
+  # Maintenance context — keeps Radarr and Sonarr in sync with TRaSH Guides.
+  # ---------------------------------------------------------------------------
+  recyclarr:
+    image: ghcr.io/recyclarr/recyclarr:latest
+    container_name: recyclarr
+    user: ${PUID}:${PGID}
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./appdata/recyclarr:/config
+    networks:
+      - internal_api
+    restart: unless-stopped
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
