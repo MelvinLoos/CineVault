@@ -16,13 +16,13 @@
     - The Acquisition Pipeline:
     - Radarr:
         icon: radarr
-        href: http://{{ ansible_host }}:7878 # Keep the href as ansible_host so your browser can click it
+        href: http://{{ ansible_host }}:7878
         description: Movie Manager
         server: local-docker
         container: radarr
         widget:
             type: radarr
-            url: http://host.docker.internal:7878 # FIXED: Using internal Docker routing!
+            url: http://radarr:7878
             key: "{{ '{{HOMEPAGE_VAR_RADARR_KEY}}' }}"
     - Sonarr:
         icon: sonarr
@@ -32,7 +32,7 @@
         container: sonarr
         widget:
             type: sonarr
-            url: http://host.docker.internal:8989
+            url: http://sonarr:8989
             key: "{{ '{{HOMEPAGE_VAR_SONARR_KEY}}' }}"
     - Prowlarr:
         icon: prowlarr
@@ -42,7 +42,7 @@
         container: prowlarr
         widget:
             type: prowlarr
-            url: http://host.docker.internal:9696
+            url: http://prowlarr:9696
             key: "{{ '{{HOMEPAGE_VAR_PROWLARR_KEY}}' }}"
     - SABnzbd:
         icon: sabnzbd
@@ -52,5 +52,27 @@
         container: sabnzbd
         widget:
             type: sabnzbd
-            url: http://host.docker.internal:8080
+            url: http://sabnzbd:8080
             key: "{{ '{{HOMEPAGE_VAR_SABNZBD_KEY}}' }}"
+
+- Infrastructure:
+    - Cloudflared:
+        icon: cloudflare
+        description: Zero Trust Tunnel
+        server: local-docker
+        container: cloudflared
+    - Watchtower:
+        icon: watchtower
+        description: Auto Updater
+        server: local-docker
+        container: watchtower
+    - Recyclarr:
+        icon: recyclarr
+        description: Arr Config Sync
+        server: local-docker
+        container: recyclarr
+    - Docker Proxy:
+        icon: docker
+        description: Socket Proxy
+        server: local-docker
+        container: docker-proxy

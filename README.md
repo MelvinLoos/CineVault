@@ -132,7 +132,7 @@ ansible-galaxy collection install community.general ansible.posix community.dock
     192.168.1.100 ansible_user=ansible media_drive_device=/dev/sdb
     ```
 
-3.  **Environment Variables:** Copy `.env.example` to `.env` and set your `TZ` and `CLOUDFLARE_TUNNEL_TOKEN`.
+3.  **Environment Variables:** Copy `.env.example` to `.env` and set your `TZ` and `CLOUDFLARED_TOKEN`.
     ```bash
     cp .env.example .env
     ```
