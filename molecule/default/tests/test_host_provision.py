@@ -2,7 +2,7 @@
 test_host_provision.py — Testinfra test suite for "The Host"
 
 Spec-Driven contract for Molecule Card 1 (TDI).
-The Ansible playbook in Card 2 (../playbooks/deploy.yml) MUST satisfy every
+The Ansible playbook in Card 2 (../playbooks/provision_host.yml) MUST satisfy every
 assertion in this file before being considered complete.
 
 Ubiquitous Language (PRODUCT_SPECIFICATION.md §1):
@@ -28,8 +28,8 @@ import pytest
 
 MEDIASVC_USER = "mediasvc"
 MEDIASVC_GROUP = "mediasvc"
-MEDIASVC_UID = 1001   # As defined in provision_host.yml vars.mediasvc_uid
-MEDIASVC_GID = 1001   # As defined in provision_host.yml vars.mediasvc_gid
+MEDIASVC_UID = 5000   # As defined in provision_host.yml vars.mediasvc_uid
+MEDIASVC_GID = 5000   # As defined in provision_host.yml vars.mediasvc_gid
 
 MEDIASTACK_ROOT = "/opt/mediastack"
 

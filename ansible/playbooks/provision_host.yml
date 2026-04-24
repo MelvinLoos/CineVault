@@ -6,8 +6,8 @@
     # PUID/PGID for the mediasvc user, as mandated by ARCHITECTURE.md for Zero Root Execution.
     # These values are chosen to be outside the typical system reserved range and common
     # default user IDs, ensuring a deterministic identity for all container operations.
-    mediasvc_uid: 1001
-    mediasvc_gid: 1001
+    mediasvc_uid: 5000
+    mediasvc_gid: 5000
     media_drive_device: ""
 
   tasks:

@@ -34,6 +34,16 @@
             type: sonarr
             url: http://host.docker.internal:8989
             key: "{{ '{{HOMEPAGE_VAR_SONARR_KEY}}' }}"
+    - Prowlarr:
+        icon: prowlarr
+        href: http://{{ ansible_host }}:9696
+        description: Indexer Manager
+        server: local-docker
+        container: prowlarr
+        widget:
+            type: prowlarr
+            url: http://host.docker.internal:9696
+            key: "{{ '{{HOMEPAGE_VAR_PROWLARR_KEY}}' }}"
     - SABnzbd:
         icon: sabnzbd
         href: http://{{ ansible_host }}:8080

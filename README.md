@@ -142,7 +142,7 @@ ansible-galaxy collection install community.general ansible.posix community.dock
 Run the master provision playbook. This handles system updates, user creation, filesystem formatting, security hardening, and starts the media stack.
 
 ```bash
-ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml
+ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K
 ```
 
 > **Note on Ingress:** By default, the Cloudflare Tunnel container is in the `ingress` profile. To ensure it starts if you run compose manually, use `docker compose --profile ingress up -d`. The Ansible playbook handles this automatically.

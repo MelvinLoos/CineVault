@@ -50,7 +50,7 @@ networks:
 # Service Definitions
 # Global rules applied to ALL services (unless an explicit exception is noted):
 #   - PUID / PGID: ${PUID} / ${PGID} sourced from .env
-#     Canonical values: PUID=1001, PGID=1001 (mediasvc) — deploy.yml is authoritative
+#     Canonical values: PUID=1001, PGID=1001 (mediasvc) — provision_host.yml is authoritative
 #     Zero Root Execution — AGENTS.md §3, ARCHITECTURE.md §3
 #   - TZ: ${TZ} sourced from .env
 #   - restart: unless-stopped
@@ -69,6 +69,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - UMASK=002
     volumes:
       - ./appdata/jellyfin:/config
       - ./data:/data:ro
@@ -93,6 +94,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - UMASK=002
     volumes:
       - ./appdata/radarr:/config
       - ./data:/data  # Full /data subtree required for atomic hardlinks between usenet/ and media/
@@ -114,6 +116,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - UMASK=002
     volumes:
       - ./appdata/sonarr:/config
       - ./data:/data  # Full /data subtree required for atomic hardlinks between usenet/ and media/
@@ -135,6 +138,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - UMASK=002
     volumes:
       - ./appdata/prowlarr:/config
     networks:
@@ -154,6 +158,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - UMASK=002
     volumes:
       - ./appdata/sabnzbd:/config
       - ./data:/data
@@ -181,6 +186,7 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+      - UMASK=002
     volumes:
       - ./appdata/seerr:/app/config
     networks:
@@ -201,6 +207,8 @@ services:
       - HOMEPAGE_VAR_RADARR_KEY=${RADARR_API_KEY}
       - HOMEPAGE_VAR_SONARR_KEY=${SONARR_API_KEY}
       - HOMEPAGE_VAR_SABNZBD_KEY=${SABNZBD_API_KEY}
+      - HOMEPAGE_VAR_PROWLARR_KEY=${PROWLARR_API_KEY}
+      - UMASK=002
     ports:
       - "80:3000"
     extra_hosts:
@@ -268,6 +276,7 @@ services:
       - WATCHTOWER_INCLUDE_STOPPED=true
       - WATCHTOWER_SCHEDULE=0 0 4 * * *
       - DOCKER_HOST=tcp://docker-proxy:2375
+      - UMASK=002
     networks:
       - socket_proxy_net
     restart: unless-stopped
