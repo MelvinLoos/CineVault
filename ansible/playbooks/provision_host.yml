@@ -127,6 +127,7 @@
         - qbittorrent
         - tdarr/server
         - tdarr/configs
+        - wizarr
 
       tags:
         - filesystem
