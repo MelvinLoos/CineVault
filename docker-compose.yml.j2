@@ -176,6 +176,8 @@ services:
   gluetun:
     image: qmcgaw/gluetun:latest
     container_name: gluetun
+    profiles:
+      - vpn
     cap_add:
       - NET_ADMIN
     devices:
@@ -197,6 +199,8 @@ services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
+    profiles:
+      - vpn
     network_mode: "service:gluetun"
     environment:
       - PUID=${PUID}
@@ -355,6 +359,8 @@ services:
   recyclarr:
     image: ghcr.io/recyclarr/recyclarr:latest
     container_name: recyclarr
+    profiles:
+      - maintenance
     user: ${PUID}:${PGID}
     environment:
       - TZ=${TZ}
@@ -362,7 +368,7 @@ services:
       - ./appdata/recyclarr:/config
     networks:
       - internal_api
-    restart: unless-stopped
+    restart: "no"
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower

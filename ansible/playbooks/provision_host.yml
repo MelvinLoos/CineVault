@@ -154,7 +154,7 @@
         number: 1
         state: present
         fs_type: ext4
-      when: 
+      when:
         - media_drive_device != ""
         - media_drive_stat.stat is defined
         - media_drive_stat.stat.exists
@@ -166,7 +166,7 @@
       community.general.filesystem:
         fstype: ext4
         dev: "{{ media_drive_device }}1" # Adds '1' to target the first partition (e.g., /dev/sdb1)
-      when: 
+      when:
         - media_drive_device != ""
         - media_drive_stat.stat is defined
         - media_drive_stat.stat.exists
@@ -181,7 +181,7 @@
         fstype: ext4
         opts: defaults,noexec,nosuid,nodev
         state: mounted
-      when: 
+      when:
         - media_drive_device != ""
         - media_drive_stat.stat is defined
         - media_drive_stat.stat.exists
@@ -400,24 +400,6 @@
       tags:
         - config
 
-    - name: Configuration - Inject dynamic API keys into host .env file
-      ansible.builtin.lineinfile:
-        path: /opt/mediastack/.env
-        regexp: "^{{ item.key }}="
-        line: "{{ item.key }}={{ item.value }}"
-        create: true
-        owner: mediasvc
-        group: mediasvc
-        mode: '0600'
-      loop:
-        - { key: 'RADARR_API_KEY', value: "{{ radarr_key }}" }
-        - { key: 'SONARR_API_KEY', value: "{{ sonarr_key }}" }
-        - { key: 'PROWLARR_API_KEY', value: "{{ prowlarr_key }}" }
-        - { key: 'BAZARR_API_KEY', value: "{{ bazarr_key }}" }
-        - { key: 'SABNZBD_API_KEY', value: "" }
-      tags:
-        - config
-
     - name: Configuration - Pre-seed Servarr API Keys
       ansible.builtin.template:
         src: "../files/servarr/config.xml.j2"
@@ -456,7 +438,6 @@
       tags:
         - deploy
 
-
     - name: Deploy Stack - Template dynamic docker-compose.yml to the host
       ansible.builtin.template:
         src: ../../docker-compose.yml.j2
@@ -467,9 +448,9 @@
       tags:
         - deploy
 
-    - name: Deploy Stack - Copy .env.example to .env
+    - name: Deploy Stack - Seed host .env from local .env (first run only)
       ansible.builtin.copy:
-        src: ../../.env.example
+        src: ../../.env
         dest: /opt/mediastack/.env
         owner: mediasvc
         group: mediasvc
@@ -477,6 +458,24 @@
         force: false
       tags:
         - deploy
+
+    - name: Configuration - Inject dynamic API keys into host .env file
+      ansible.builtin.lineinfile:
+        path: /opt/mediastack/.env
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        create: true
+        owner: mediasvc
+        group: mediasvc
+        mode: '0600'
+      loop:
+        - { key: 'RADARR_API_KEY', value: "{{ radarr_key }}" }
+        - { key: 'SONARR_API_KEY', value: "{{ sonarr_key }}" }
+        - { key: 'PROWLARR_API_KEY', value: "{{ prowlarr_key }}" }
+        - { key: 'BAZARR_API_KEY', value: "{{ bazarr_key }}" }
+        - { key: 'SABNZBD_API_KEY', value: "" }
+      tags:
+        - config
 
     - name: Deploy Stack - Synchronize Container Identities with Host Identities
       ansible.builtin.lineinfile:
@@ -486,11 +485,6 @@
       loop:
         - { key: 'PUID', value: "{{ mediasvc_uid }}" }
         - { key: 'PGID', value: "{{ mediasvc_gid }}" }
-        - { key: 'VPN_SERVICE_PROVIDER', value: "{{ lookup('env', 'VPN_SERVICE_PROVIDER') | default('', true) }}" }
-        - { key: 'VPN_TYPE', value: "{{ lookup('env', 'VPN_TYPE') | default('wireguard', true) }}" }
-        - { key: 'WIREGUARD_PRIVATE_KEY', value: "{{ lookup('env', 'WIREGUARD_PRIVATE_KEY') | default('', true) }}" }
-        - { key: 'WIREGUARD_ADDRESSES', value: "{{ lookup('env', 'WIREGUARD_ADDRESSES') | default('', true) }}" }
-
       tags:
         - deploy
 
@@ -504,7 +498,6 @@
       delay: 10
       tags:
         - deploy
-
 
     - name: Backups - Install restic
       ansible.builtin.apt:
