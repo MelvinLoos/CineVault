@@ -450,12 +450,16 @@
 
     - name: Deploy Stack - Seed host .env from local .env (first run only)
       ansible.builtin.copy:
-        src: ../../.env
+        src: "{{ lookup('ansible.builtin.first_found', env_seed_candidates) }}"
         dest: /opt/mediastack/.env
         owner: mediasvc
         group: mediasvc
         mode: '0600'
         force: false
+      vars:
+        env_seed_candidates:
+          - "{{ playbook_dir }}/../../.env"
+          - "{{ playbook_dir }}/../../.env.example"
       tags:
         - deploy
 
