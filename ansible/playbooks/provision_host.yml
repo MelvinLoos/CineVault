@@ -80,14 +80,14 @@
         system: true # Mark as a system user
         create_home: false
       tags:
+        - identity
+
     - name: Hardware Detection - Default QuickSync capability to false
       ansible.builtin.set_fact:
         host_has_quicksync: false
       when: host_has_quicksync is not defined
       tags:
         - hardware
-
-        - identity
 
     - name: Identity & Zero Root Execution - Add ansible remote user to the docker group
       ansible.builtin.user:
