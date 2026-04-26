@@ -173,6 +173,44 @@ services:
   # Processing Bounded Context — The Download Client (PRODUCT_SPECIFICATION.md §1 & §2)
   # Processing context — The Download Client. Resource-limited to prevent host starvation during unpack.
   # ---------------------------------------------------------------------------
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - ./appdata/gluetun:/gluetun
+    networks:
+      - acquisition_net
+      - ingress_net
+    ports:
+      - "8090:8090" # qBittorrent WebUI
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8090
+      - UMASK=002
+    volumes:
+      - ./appdata/qbittorrent:/config
+      - ./data:/data
+    depends_on:
+      - gluetun
+    restart: unless-stopped
+
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
     container_name: sabnzbd

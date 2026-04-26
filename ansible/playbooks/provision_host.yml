@@ -116,6 +116,8 @@
         - seerr
         - homepage
         - bazarr
+        - gluetun
+        - qbittorrent
 
       tags:
         - filesystem
@@ -465,6 +467,11 @@
       loop:
         - { key: 'PUID', value: "{{ mediasvc_uid }}" }
         - { key: 'PGID', value: "{{ mediasvc_gid }}" }
+        - { key: 'VPN_SERVICE_PROVIDER', value: "{{ lookup('env', 'VPN_SERVICE_PROVIDER') | default('', true) }}" }
+        - { key: 'VPN_TYPE', value: "{{ lookup('env', 'VPN_TYPE') | default('wireguard', true) }}" }
+        - { key: 'WIREGUARD_PRIVATE_KEY', value: "{{ lookup('env', 'WIREGUARD_PRIVATE_KEY') | default('', true) }}" }
+        - { key: 'WIREGUARD_ADDRESSES', value: "{{ lookup('env', 'WIREGUARD_ADDRESSES') | default('', true) }}" }
+
       tags:
         - deploy
 

@@ -66,6 +66,17 @@
             url: http://sabnzbd:8080
             key: "{{ '{{HOMEPAGE_VAR_SABNZBD_KEY}}' }}"
 
+    - qBittorrent:
+        icon: qbittorrent
+        href: http://{{ ansible_host }}:8090
+        description: Torrent Downloader
+        server: local-docker
+        container: gluetun
+        widget:
+            type: qbittorrent
+            url: http://gluetun:8090
+
+
 - Infrastructure:
     - Cloudflared:
         icon: cloudflare

@@ -46,6 +46,8 @@ MEDIASTACK_DIRECTORIES = [
     "/opt/mediastack/appdata/prowlarr",
     "/opt/mediastack/appdata/sabnzbd",
     "/opt/mediastack/appdata/seerr",
+    "/opt/mediastack/appdata/gluetun",
+    "/opt/mediastack/appdata/qbittorrent",
     # Media Payload tree (data) — "Resides on High-Capacity Drive" per ARCHITECTURE.md
     "/opt/mediastack/data",
     # The Download Client scratch space — SABnzbd active Usenet downloads
