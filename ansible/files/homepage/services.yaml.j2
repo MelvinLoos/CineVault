@@ -77,6 +77,17 @@
             url: http://gluetun:8090
 
 
+    - Tdarr:
+        icon: tdarr
+        href: http://{{ ansible_host }}:8265
+        description: Media Transcoder
+        server: local-docker
+        container: tdarr
+        widget:
+            type: tdarr
+            url: http://tdarr:8265
+
+
 - Infrastructure:
     - Cloudflared:
         icon: cloudflare

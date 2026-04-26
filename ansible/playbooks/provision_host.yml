@@ -80,6 +80,13 @@
         system: true # Mark as a system user
         create_home: false
       tags:
+    - name: Hardware Detection - Default QuickSync capability to false
+      ansible.builtin.set_fact:
+        host_has_quicksync: false
+      when: host_has_quicksync is not defined
+      tags:
+        - hardware
+
         - identity
 
     - name: Identity & Zero Root Execution - Add ansible remote user to the docker group
@@ -118,6 +125,8 @@
         - bazarr
         - gluetun
         - qbittorrent
+        - tdarr/server
+        - tdarr/configs
 
       tags:
         - filesystem
@@ -218,6 +227,16 @@
         mode: '0755'
       tags:
         - filesystem
+    - name: Processing Bounded Context - Create Tdarr transcode cache
+      ansible.builtin.file:
+        path: /opt/mediastack/data/transcode_cache/
+        state: directory
+        owner: mediasvc
+        group: mediasvc
+        mode: '0755'
+      tags:
+        - filesystem
+
 
     - name: Host Hardening - Install UFW firewall
       ansible.builtin.apt:

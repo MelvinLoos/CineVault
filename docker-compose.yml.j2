@@ -236,6 +236,39 @@ services:
       - "8080:8080"
 
   # ---------------------------------------------------------------------------
+  # Processing Bounded Context — Media Optimization (PRODUCT_SPECIFICATION.md §2)
+  # Processing context — library media codec optimization.
+  # ---------------------------------------------------------------------------
+  tdarr:
+    image: ghcr.io/haveagitgat/tdarr:latest
+    container_name: tdarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - serverIP=0.0.0.0
+      - serverPort=8266
+      - webUIPort=8265
+      - internalNode=true
+      - nodeID=MyInternalNode
+    volumes:
+      - ./appdata/tdarr/server:/app/server
+      - ./appdata/tdarr/configs:/app/configs
+      - ./data:/data
+      - ./data/transcode_cache:/temp
+{% if host_has_quicksync %}
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+{% endif %}
+    networks:
+      - acquisition_net
+      - ingress_net
+    restart: unless-stopped
+    ports:
+      - "8265:8265"
+
+
+  # ---------------------------------------------------------------------------
   # Media Request + Identity & Access Bounded Contexts (PRODUCT_SPECIFICATION.md §2)
   # Media Request + Identity & Access contexts — the user-facing discovery and request UI.
   # ---------------------------------------------------------------------------
