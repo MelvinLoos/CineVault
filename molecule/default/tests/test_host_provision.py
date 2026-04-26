@@ -171,8 +171,8 @@ def test_mediastack_directory_exists_and_is_owned_by_mediasvc(host, directory):
     Every directory in the /opt/mediastack/ tree must:
       - Exist on The Host filesystem
       - Be a real directory (not a file, symlink, or device)
-      - Be owned by user  'mediasvc' (UID 1001)
-      - Be owned by group 'mediasvc' (GID 1001)
+      - Be owned by user  'mediasvc' (UID 5000)
+      - Be owned by group 'mediasvc' (GID 5000)
       - Have mode 0o755
 
     ARCHITECTURE.md §1: The system mandates a single root directory for all

@@ -37,7 +37,7 @@ This project implements a robust, spec-driven media server solution designed for
 
 *   **Spec-Driven Development:** All infrastructure is defined and implemented based on detailed specifications (`CONSTITUTION.md`, `PRODUCT_SPECIFICATION.md`, `ARCHITECTURE.md`).
 *   **Idempotency:** All deployment scripts and configurations are idempotent, ensuring consistent state regardless of how many times they are executed.
-*   **Zero Root Execution:** Docker containers never run as root, utilizing a dedicated `mediasvc` system user with UID/GID 1001.
+*   **Zero Root Execution:** Docker containers never run as root, utilizing a dedicated `mediasvc` system user with UID/GID 5000.
 *   **State vs. Compute Isolation:** Strict separation between stateless compute (Docker containers) and stateful data (volume mounts). All state lives in `/opt/mediastack/appdata/`.
 *   **Zero-Trust Micro-segmentation:** Network traffic is strictly controlled between services using isolated bridge networks.
 *   **No Port Forwarding:** All external access is routed through a secure Cloudflare Tunnel.
