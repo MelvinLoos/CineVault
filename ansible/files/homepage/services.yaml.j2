@@ -44,6 +44,17 @@
             type: prowlarr
             url: http://prowlarr:9696
             key: "{{ '{{HOMEPAGE_VAR_PROWLARR_KEY}}' }}"
+    - Bazarr:
+        icon: bazarr
+        href: http://{{ ansible_host }}:6767
+        description: Subtitle Manager
+        server: local-docker
+        container: bazarr
+        widget:
+            type: bazarr
+            url: http://bazarr:6767
+            key: "{{ '{{HOMEPAGE_VAR_BAZARR_KEY}}' }}"
+
     - SABnzbd:
         icon: sabnzbd
         href: http://{{ ansible_host }}:8080

@@ -115,6 +115,8 @@
         - sabnzbd
         - seerr
         - homepage
+        - bazarr
+
       tags:
         - filesystem
 
@@ -373,6 +375,7 @@
         radarr_key: "{{ lookup('password', playbook_dir + '/../credentials/radarr.key chars=hexdigits length=32') }}"
         sonarr_key: "{{ lookup('password', playbook_dir + '/../credentials/sonarr.key chars=hexdigits length=32') }}"
         prowlarr_key: "{{ lookup('password', playbook_dir + '/../credentials/prowlarr.key chars=hexdigits length=32') }}"
+        bazarr_key: "{{ lookup('password', playbook_dir + '/../credentials/bazarr.key chars=hexdigits length=32') }}"
       tags:
         - config
 
@@ -389,6 +392,7 @@
         - { key: 'RADARR_API_KEY', value: "{{ radarr_key }}" }
         - { key: 'SONARR_API_KEY', value: "{{ sonarr_key }}" }
         - { key: 'PROWLARR_API_KEY', value: "{{ prowlarr_key }}" }
+        - { key: 'BAZARR_API_KEY', value: "{{ bazarr_key }}" }
         - { key: 'SABNZBD_API_KEY', value: "" }
       tags:
         - config
