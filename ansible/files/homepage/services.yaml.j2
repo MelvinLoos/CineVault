@@ -11,6 +11,12 @@
         description: Request New Media
         server: local-docker
         container: seerr
+    - Wizarr:
+        icon: wizarr
+        href: http://{{ ansible_host }}:5690
+        description: User Invitations
+        server: local-docker
+        container: wizarr
 
 - The Acquisition Pipeline:
     - The Acquisition Pipeline:
