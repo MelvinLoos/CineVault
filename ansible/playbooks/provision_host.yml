@@ -320,6 +320,36 @@
         - host
         - updates
 
+    - name: Host Maintenance - Configure automatic updates (20auto-upgrades)
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
+          APT::Periodic::Download-Upgradeable-Packages "1";
+          APT::Periodic::AutocleanInterval "7";
+      tags:
+        - host
+        - updates
+
+    - name: Host Maintenance - Configure automatic reboots and cleanup (50unattended-upgrades)
+      ansible.builtin.lineinfile:
+        path: /etc/apt/apt.conf.d/50unattended-upgrades
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - { regexp: '^//?Unattended-Upgrade::Automatic-Reboot ', line: 'Unattended-Upgrade::Automatic-Reboot "true";' }
+        - { regexp: '^//?Unattended-Upgrade::Automatic-Reboot-Time ', line: 'Unattended-Upgrade::Automatic-Reboot-Time "04:00";' }
+        - { regexp: '^//?Unattended-Upgrade::Remove-Unused-Kernel-Packages ', line: 'Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";' }
+        - { regexp: '^//?Unattended-Upgrade::Remove-Unused-Dependencies ', line: 'Unattended-Upgrade::Remove-Unused-Dependencies "true";' }
+      tags:
+        - host
+        - updates
+
     - name: Docker Service - Enable and start the docker systemd service
       ansible.builtin.systemd:
         name: docker
