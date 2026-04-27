@@ -497,10 +497,12 @@
       community.docker.docker_compose_v2:
         project_src: /opt/mediastack/
         state: present
+      environment:
+        COMPOSE_PARALLEL_LIMIT: "2"
       register: deploy_result
       until: deploy_result is not failed
-      retries: 3
-      delay: 10
+      retries: 5
+      delay: 60
       tags:
         - deploy
 
