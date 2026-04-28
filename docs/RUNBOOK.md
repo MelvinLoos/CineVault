@@ -2,6 +2,7 @@
 
 ## 1. Bare-Metal Provisioning (Debian 13 "Trixie")
 The host is an Intel N100 Mini-PC. It must be provisioned with a minimal, headless OS.
+
 - **Boot Menu:** Insert the bootable USB and tap `F7` (or `Delete` for BIOS) on startup to boot from the drive.
 - **Installer Choice:** Select the standard, text-based **Install** (Do NOT use Graphical or Expert).
 - **Network Firmware Prompt:** If prompted for missing non-free firmware (usually for Wi-Fi), select **No** and proceed with the wired Ethernet connection.
@@ -36,6 +37,7 @@ The following configurations must be set manually via the web UIs. These are sto
 
 ### A. Internal Docker Networking (DNS)
 Do not use `localhost` or the host IP to connect services. Use the zero-trust bridge network hostnames:
+
 - **Jellyseerr to Jellyfin:** `http://jellyfin:8096`
 - **Radarr to SABnzbd:** `http://sabnzbd:8080`
 - **Sonarr to SABnzbd:** `http://sabnzbd:8080`
@@ -46,16 +48,19 @@ Do not use `localhost` or the host IP to connect services. Use the zero-trust br
 To maintain atomic hardlinks and prevent cross-volume copying, configure the paths exactly as follows:
 
 **Radarr & Sonarr (The Library):**
+
 - Radarr Root Folder: `/data/media/movies`
 - Sonarr Root Folder: `/data/media/tv`
 
 **SABnzbd (The Scratch Space):**
+
 - Base Completed Folder: `/data/usenet`
 - Movies Category Folder: `movies` *(Resolves to `/data/usenet/movies`)*
 - TV Category Folder: `tv` *(Resolves to `/data/usenet/tv`)*
 
 ### C. Indexer Synchronization
 Do not add indexers (e.g., NZBFinder) directly to Radarr or Sonarr.
+
 1. Add the indexer inside **Prowlarr**.
 2. Add Radarr and Sonarr as "Apps" inside Prowlarr.
 3. Prowlarr will automatically perform a "Full Sync" and push the API configurations down to the respective applications.
