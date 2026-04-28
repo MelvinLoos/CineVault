@@ -1,0 +1,157 @@
+{% extends "main.html" %}
+
+{% block extrahead %}
+<meta property="og:title" content="CineVault | Self-Hosted Media Hub">
+<meta property="og:description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+<meta property="og:image" content="https://melvinloos.github.io/cinevault/assets/dashboard-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    tailwind.config = {
+        // Disabling preflight prevents Tailwind from breaking the MkDocs header CSS
+        corePlugins: { preflight: false },
+        theme: {
+            extend: {
+                colors: {
+                    surface: '#0d1516',
+                    'surface-low': '#161d1e',
+                    'surface-high': '#242b2d',
+                    'on-surface': '#dde4e5',
+                    'on-surface-variant': '#bac9cc',
+                    'outline-variant': '#3b494c',
+                    primary: '#9cf1ff',
+                    'primary-container': '#0ddbf2',
+                    'on-primary-container': '#005c66',
+                    secondary: '#a4c9ff',
+                },
+                boxShadow: {
+                    'neon': '0 0 15px rgba(8, 218, 241, 0.15)',
+                    'neon-hover': '0 0 25px rgba(8, 218, 241, 0.3)',
+                }
+            }
+        }
+    }
+</script>
+<style>
+    /* Force MkDocs Content Block to go Full Width */
+    .md-main__inner { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+    .md-content { max-width: none !important; }
+    
+    .glass-panel {
+        background-color: rgba(26, 33, 34, 0.6);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(59, 73, 76, 0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="antialiased w-full font-sans" style="background-color: #0d1516; color: #dde4e5; background-image: radial-gradient(circle at 50% 0%, #161d1e 0%, #0d1516 70%); margin-top: -1.5rem;">
+    
+    <main class="pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+        <div class="max-w-4xl mx-auto">
+            
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-outline-variant/50 bg-surface-low/50 mb-6">
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <span class="text-xs font-medium text-on-surface-variant tracking-wide uppercase">IaC v2.0 Deployed</span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-white mb-4">
+                Deploy <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">CineVault</span>
+            </h1>
+            
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <img src="https://github.com/MelvinLoos/cinevault/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+                <img src="https://img.shields.io/github/license/MelvinLoos/cinevault?color=0ddbf2" alt="License">
+            </div>
+
+            <p class="text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
+                The complete self-hosted hub to automatically retrieve, manage, and stream your favorite movies and TV shows.
+            </p>
+
+            <div class="max-w-3xl mx-auto bg-[#080f11] rounded-lg border border-outline-variant/50 overflow-hidden shadow-2xl text-left mb-16">
+                <div class="flex items-center px-4 py-3 bg-[#161d1e] border-b border-outline-variant/30">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <span class="ml-4 text-xs font-mono text-on-surface-variant">deploy-cinevault.sh</span>
+                </div>
+                <div class="p-5 overflow-x-auto font-mono text-sm leading-8 whitespace-pre">
+<span class="text-primary">$</span> <span class="text-white">git clone https://github.com/MelvinLoos/cinevault.git</span>
+<span class="text-primary">$</span> <span class="text-white">cd cinevault</span>
+<span class="text-primary">$</span> <span class="text-white">cp .env.example .env && nano .env</span> <span class="text-gray-500"># Set TZ and Tunnel Token</span>
+<span class="text-primary">$</span> <span class="text-white">nano ansible/inventory/hosts.ini</span>  <span class="text-gray-500"># Define your host IP & Drive</span>
+<span class="text-primary">$</span> <span class="text-white">ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K</span></div>
+            </div>
+
+            <div class="max-w-5xl mx-auto relative group">
+                <div class="aspect-[16/9] w-full rounded-xl border border-outline-variant/50 bg-[#161d1e] shadow-2xl flex flex-col items-center justify-center overflow-hidden relative">
+                    
+                    <div class="flex flex-col items-center opacity-50">
+                        <i data-lucide="image" class="w-16 h-16 mb-4 text-primary"></i>
+                        <p class="font-mono text-sm">Dashboard Screenshot Placeholder</p>
+                    </div>
+
+                    </div>
+                <div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 blur-2xl -z-10 opacity-50"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <section class="py-20 border-t border-outline-variant/30 bg-[#080f11]/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Engineering Principles</h2>
+                <p class="text-on-surface-variant max-w-2xl mx-auto">Built on strict DevOps constitutions for maximum reliability and security.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-6 rounded-lg">
+                    <i data-lucide="shield-alert" class="text-primary w-8 h-8 mb-4"></i>
+                    <h3 class="text-xl font-bold text-white mb-2">Zero-Trust Segmentation</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Three isolated bridge networks. No service communicates across a boundary unless explicitly attached.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-lg">
+                    <i data-lucide="cpu" class="text-primary w-8 h-8 mb-4"></i>
+                    <h3 class="text-xl font-bold text-white mb-2">State vs. Compute</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Strict separation between stateless compute (Docker) and stateful configuration for instant disaster recovery.</p>
+                </div>
+                <div class="glass-panel p-6 rounded-lg">
+                    <i data-lucide="hard-drive" class="text-primary w-8 h-8 mb-4"></i>
+                    <h3 class="text-xl font-bold text-white mb-2">Atomic Hardlinks</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">A unified filesystem hierarchy allows media to move from scratchpads to libraries instantly using zero extra I/O.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 border-t border-outline-variant/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">The Software Stack</h2>
+                <p class="text-on-surface-variant max-w-2xl mx-auto">A modular ecosystem of best-in-class open-source tools working in perfect harmony.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">Jellyfin</h3><p class="text-xs text-on-surface-variant">The core media server.</p></div>
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">Radarr</h3><p class="text-xs text-on-surface-variant">Movie collection manager.</p></div>
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">Sonarr</h3><p class="text-xs text-on-surface-variant">TV show collection manager.</p></div>
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">SABnzbd</h3><p class="text-xs text-on-surface-variant">Usenet download client.</p></div>
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">Prowlarr</h3><p class="text-xs text-on-surface-variant">Indexer proxy and sync.</p></div>
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">Seerr</h3><p class="text-xs text-on-surface-variant">Media discovery & requests.</p></div>
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">Wizarr</h3><p class="text-xs text-on-surface-variant">Automated user onboarding.</p></div>
+                <div class="glass-panel p-5 rounded-md"><h3 class="font-bold text-white mb-1">Homepage</h3><p class="text-xs text-on-surface-variant">Central admin dashboard.</p></div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>lucide.createIcons();</script>
+{% endblock %}

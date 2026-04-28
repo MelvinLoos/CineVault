@@ -1,0 +1,25 @@
+site_name: CineVault
+site_description: Automate and secure your home infrastructure with a declarative, zero-trust container stack.
+site_url: https://MelvinLoos.github.io/cinevault/
+repo_url: https://github.com/MelvinLoos/cinevault
+repo_name: MelvinLoos/cinevault
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  palette:
+    - scheme: slate
+      primary: cyan
+      accent: cyan
+  features:
+    - navigation.tabs
+    - navigation.top
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Runbook: RUNBOOK.md
+  - Architecture: ARCHITECTURE.md
+  - Constitution: CONSTITUTION.MD
+  - Agents: AGENTS.md
