@@ -255,6 +255,8 @@ services:
       - webUIPort=8265
       - internalNode=true
       - nodeID=MyInternalNode
+      - inContainer=true
+      - nodeName=MyInternalNode
     volumes:
       - ./appdata/tdarr/server:/app/server
       - ./appdata/tdarr/configs:/app/configs
