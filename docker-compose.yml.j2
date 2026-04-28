@@ -331,6 +331,8 @@ services:
     networks:
       - ingress_net
       - socket_proxy_net
+      - internal_api
+      - acquisition_net
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
@@ -384,6 +386,7 @@ services:
     networks:
       - internal_api
     restart: "no"
+
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
