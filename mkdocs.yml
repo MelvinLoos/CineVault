@@ -20,6 +20,7 @@ theme:
 nav:
   - Home: index.md
   - Deployment:
+      - Setting up the host: deployment/bare-metal-provisioning.md
       - Initial Setup: deployment/initial-setup.md
   - Configuration:
       - Homepage Dashboard: configuration/homepage.md
@@ -27,7 +28,3 @@ nav:
       - Tdarr Transcoding: configuration/tdarr.md
   - Maintenance:
       - Storage Cleanup: maintenance/storage-cleanup.md
-  # Runbook section: add entries here once docs/runbook/*.md files are created.
-  # Example:
-  #   - Runbook:
-  #       - Overview: runbook/index.md
