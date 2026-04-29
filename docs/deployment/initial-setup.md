@@ -62,9 +62,15 @@ Set a valid [IANA timezone string](https://en.wikipedia.org/wiki/List_of_tz_data
 TZ=Europe/Amsterdam
 ```
 
-## 3. Configure Gluetun VPN Variables
+## 3. Configure Gluetun VPN Variables (Optional)
 
-The `qbittorrent` traffic is tunnelled through **Gluetun**. The following `VPN_*` variables in `.env` must be set to match your VPN provider's account.
+!!! info "Optional — BitTorrent only"
+    **The VPN is optional.** It is only required when you intend to run the **BitTorrent client** (`qbittorrent`), whose traffic is tunnelled through **Gluetun**. If you are running a Usenet-only stack (SABnzbd) or have disabled the `qbittorrent` and `gluetun` services in your compose configuration, you can **skip this entire section** and leave every `VPN_*` variable blank in `.env`.
+
+!!! warning "If qBittorrent is active, VPN is mandatory"
+    When the `qbittorrent` service **is** enabled, Gluetun must come up successfully or qBittorrent will have no network path (it shares Gluetun's network namespace). In that case, the variables below become **required**.
+
+The following `VPN_*` variables in `.env` must be populated to match your VPN provider's account **when** the BitTorrent client is active:
 
 | Variable | Description | Example |
 | --- | --- | --- |
