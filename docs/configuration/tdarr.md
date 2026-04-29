@@ -50,11 +50,12 @@ per file, and Tdarr will hammer this path constantly while the queue is busy.
 In the CineVault compose file `/temp` is mounted to a fast scratch volume
 (tmpfs / SSD) — **not** the spinning media array. Pointing the cache there:
 
-- **Keeps writes off the HDDs.** The media array only sees the final atomic
-  rename of the completed file, dramatically reducing wear and seek thrash.
-- **Eliminates the transcode bottleneck.** QSV can saturate spinning rust on
+- **Keeps writes off the spinning HDDs.** The media array only sees the final
+  atomic rename of the completed file, dramatically reducing wear and seek
+  thrash on the rust.
+- **Uses tmpfs/SSD for scratch work.** QSV can saturate spinning rust on
   write IOPS long before the iGPU runs out of encode bandwidth; tmpfs/SSD
-  removes that ceiling.
+  removes that ceiling and keeps the encode pipeline fed.
 - **Survives library reshuffles.** The cache is ephemeral by design, so
   putting it on a non-persistent mount is the correct topology.
 
@@ -67,9 +68,10 @@ avoid.
 ## B. Disabling Flows
 
 Tdarr ships with two pipeline systems: the legacy **Plugins** (a linear chain
-of plugin steps) and the newer **Flows** (a node-graph editor). CineVault uses
-the proven Plugins pipeline because the QSV plugin chain below is battle-tested
-and trivially reproducible across rebuilds.
+of plugin steps) and the newer **Flows** (a node-graph editor). Flows is the
+new system, but the CineVault pipeline uses the proven **Plugins** chain
+because it is battle-tested, easy to reason about, and trivially reproducible
+across rebuilds.
 
 1. Open the library you just created and click **Transcode Options** (or
    **Edit Library**).
@@ -96,33 +98,32 @@ the downstream transcoder never wastes a QSV session on a 200×200 JPEG cover.
 
 ### 2. Migz-Clean audio streams
 
-Removes commentary tracks, foreign-language dubs and other unwanted audio
-streams according to its configured language/codec rules. Doing this **before**
-transcoding shrinks the file (and the QSV workload) instead of re-encoding
-audio you are about to throw away.
+Removes unwanted audio tracks — commentary tracks, foreign-language dubs and
+other streams that the configured language/codec rules reject. Doing this
+**before** transcoding shrinks the file (and the QSV workload) instead of
+re-encoding audio you are about to throw away.
 
 ### 3. Boosh-Transcode using QSV GPU & FFMPEG
 
 The actual encoder. This plugin builds an FFmpeg command that targets
-`qsv_h264` / `hevc_qsv` against `/dev/dri/renderD128`.
+`hevc_qsv` / `h264_qsv` against `/dev/dri/renderD128`.
 
-!!! danger "You must enable GPU workers inside the plugin"
-    Open the plugin's settings panel (click the gear icon on the plugin card
-    once it is in the Selected list) and toggle **Enable GPU workers** to
-    **ON**.
+**Use the plugin's default settings** — drop it onto the stack and leave its
+configuration alone. The defaults are correct for the N100 iGPU.
 
-    Without this option Tdarr will happily schedule the Boosh-QSV plugin
-    onto a **CPU worker**, which falls back to software encoding — you will
-    see jobs complete, the file will be smaller, and you will wonder why
-    `intel_gpu_top` is flat. This single toggle is the most common
-    misconfiguration.
+!!! note "GPU workers are now the default"
+    Previous versions of this plugin required a separate **Enable GPU
+    workers** toggle inside the plugin's settings panel. This is now the
+    default behaviour and no longer needs to be set. If you read older
+    guides telling you to flip that toggle, ignore them — the plugin will
+    request a GPU worker on its own.
 
 The final **Selected plugins** column should look like this, top-to-bottom:
 
 ```text
 1. Migz-Remove image formats from video
 2. Migz-Clean audio streams
-3. Boosh-Transcode using QSV GPU & FFMPEG   (Enable GPU workers: ON)
+3. Boosh-Transcode using QSV GPU & FFMPEG   (default settings)
 ```
 
 Click **Save** at the bottom of the library settings.
@@ -131,32 +132,58 @@ Click **Save** at the bottom of the library settings.
 
 ## D. Node Configuration
 
-Even with the plugin asking for a GPU worker, Tdarr will not actually allocate
-one until the **Internal Node** has at least one GPU worker slot. Out of the
-box the internal node ships with **0** GPU workers, which is why a freshly
-configured stack appears to "do nothing on the GPU".
+The plugin stack alone is not enough — the **Internal Node** must also have
+worker slots allocated for both worker types the pipeline will use. Out of
+the box the internal node ships with **0 CPU workers** and **0 GPU workers**,
+which is why a freshly configured stack appears to "do nothing".
+
+You must enable **BOTH** worker types together:
+
+- **CPU worker** — runs the first two Migz plugins (image-format removal and
+  audio-stream cleaning), which are stream-mux operations that do not need
+  the GPU.
+- **GPU worker** — runs the Boosh QSV transcode step on the Intel iGPU.
+
+Without a CPU worker the pipeline stalls on plugin #1 and never reaches the
+GPU step. Without a GPU worker the Boosh transcode queues forever waiting
+for a slot that will never appear. Both are required.
+
+### Steps
 
 1. In the left sidebar click the **Nodes** tab.
 2. Locate the **Internal Node** card (it is the only node in a single-host
    CineVault deployment) and click its header to expand it.
-3. Find the **GPU worker count** row.
-4. Click the **+** button **once** to increment the count from `0` to `1`.
+3. Find the **CPU worker count** row and click the **+** button **once** to
+   increment the count from `0` to `1`. **This is REQUIRED** — without it,
+   the first two Migz plugins (image-format removal and audio-stream
+   cleaning) have no worker to run on, and the pipeline will stall before
+   ever reaching the GPU step.
+4. Find the **GPU worker count** row and click the **+** button **once** to
+   increment the count from `0` to `1`. **This is REQUIRED** — without it,
+   the Boosh QSV transcode step queues indefinitely instead of running on
+   the Intel iGPU.
 
 ```text
 Internal Node
-├── CPU worker count:        <leave at default>
-├── GPU worker count:    0  →  1   ← click + once
+├── CPU worker count:        0  →  1   ← click + once  (REQUIRED for Migz plugins)
+├── GPU worker count:        0  →  1   ← click + once  (REQUIRED for Boosh QSV)
 └── Health check worker count: <leave at default>
 ```
+
+!!! danger "Both workers must be enabled together"
+    The pipeline is not "CPU **or** GPU" — it is **CPU then GPU**. The CPU
+    worker handles the prep plugins (Migz image/audio cleanup) and the GPU
+    worker handles the QSV transcode. Enabling only one of them produces a
+    pipeline that silently jams half-way through.
 
 A single GPU worker is the correct value for the N100. The iGPU has exactly
 one QSV encode engine, so adding a second GPU worker simply causes both jobs
 to time-slice on the same hardware — it does **not** double throughput and it
 significantly increases per-file latency.
 
-The change is live immediately; no restart is required. The new GPU worker
-slot will appear at the top of the **Tdarr** dashboard and will pick up the
-next queued job.
+The change is live immediately; no restart is required. The new worker slots
+will appear at the top of the **Tdarr** dashboard and will pick up the next
+queued job.
 
 ---
 
@@ -166,19 +193,21 @@ Once the queue starts processing, confirm that QSV is actually doing the work:
 
 ### 1. Check the active worker in the Tdarr dashboard
 
-On the main **Tdarr** dashboard, the running worker card should show:
+On the main **Tdarr** dashboard, the running worker card for the transcode
+stage should show:
 
 - **Worker type:** `Transcode GPU` (not `Transcode CPU`).
 - **Plugin:** `Boosh-Transcode using QSV GPU & FFMPEG`.
 
-If the worker type says `Transcode CPU`, revisit step **C.3** (the
-**Enable GPU workers** toggle inside the Boosh plugin) and step **D**
-(GPU worker count on the Internal Node).
+You should also see a `Transcode CPU` worker pick up the earlier Migz stages
+in the same job's timeline — that confirms the CPU worker slot from step
+**D.3** is alive and feeding the GPU stage.
 
 ### 2. Inspect the FFmpeg command
 
 Click the running worker card to expand it and look at the FFmpeg command
-Tdarr generated. A correctly configured QSV job will contain:
+Tdarr generated. A correctly configured QSV job will contain QSV / VAAPI
+hardware acceleration flags, e.g.:
 
 ```text
 -hwaccel qsv -hwaccel_output_format qsv ... -c:v hevc_qsv
