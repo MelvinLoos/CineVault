@@ -3,7 +3,7 @@
 This guide walks through the **day-zero** steps required to bring a fresh CineVault server online. By the end you will have cloned the repository, populated environment secrets, configured the Gluetun VPN client, set the Ansible inventory, and run the master provisioning playbook against **The Host**.
 
 !!! note "Prerequisites"
-    A freshly installed Debian 13 "Trixie" host with SSH enabled and an `ansible` service account is assumed. See the [RUNBOOK](../RUNBOOK.md) for bare-metal provisioning details.
+    A freshly installed Debian 13 "Trixie" host with SSH enabled and an `ansible` service account is assumed. See the [Setting up the host](bare-metal-provisioning.md) for bare-metal provisioning details.
 
 ## 1. Clone the Repository
 

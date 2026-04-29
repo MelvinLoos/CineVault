@@ -12,11 +12,13 @@ name: CI
       - main
     paths-ignore:
       - 'docs/**'
+      - 'mkdocs.yml'
   pull_request:
     branches:
       - main
     paths-ignore:
       - 'docs/**'
+      - 'mkdocs.yml'
 
 
 env:
