@@ -1,7 +1,7 @@
 # Setting up the host
 
 ## 1. Bare-Metal Provisioning (Debian 13 "Trixie")
-The host is an Intel N100 Mini-PC. It must be provisioned with a minimal, headless OS.
+The recommended host is an Intel N100 Mini-PC. It must be provisioned with a minimal, headless OS.
 
 - **Boot Menu:** Insert the bootable USB and tap `F7` (or `Delete` for BIOS) on startup to boot from the drive.
 - **Installer Choice:** Select the standard, text-based **Install** (Do NOT use Graphical or Expert).

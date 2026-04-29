@@ -20,8 +20,8 @@ theme:
 nav:
   - Home: index.md
   - Deployment:
-      - Setting up the host: deployment/bare-metal-provisioning.md
       - Initial Setup: deployment/initial-setup.md
+      - Setting up the host: deployment/bare-metal-provisioning.md
   - Configuration:
       - Homepage Dashboard: configuration/homepage.md
       - Wizarr Onboarding: configuration/wizarr.md
