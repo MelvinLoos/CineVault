@@ -21,10 +21,13 @@ nav:
   - Home: index.md
   - Deployment:
       - Initial Setup: deployment/initial-setup.md
-      - Setting up the host: deployment/bare-metal-provisioning.md
   - Configuration:
       - Homepage Dashboard: configuration/homepage.md
       - Wizarr Onboarding: configuration/wizarr.md
       - Tdarr Transcoding: configuration/tdarr.md
   - Maintenance:
       - Storage Cleanup: maintenance/storage-cleanup.md
+  # - Runbook:
+  #     Future operational runbook entries belong here, e.g.:
+  #     - Overview: runbook/index.md
+  #     Add this section once docs/runbook/ exists with at least an index.md.
