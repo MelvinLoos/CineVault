@@ -128,6 +128,8 @@
         - tdarr/server
         - tdarr/configs
         - wizarr
+        - spotweb
+        - spotweb-db
 
       tags:
         - filesystem
