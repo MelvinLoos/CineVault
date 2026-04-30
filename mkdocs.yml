@@ -24,6 +24,7 @@ nav:
       - Setting up the host: deployment/bare-metal-provisioning.md
   - Configuration:
       - Homepage Dashboard: configuration/homepage.md
+      - Spotweb Integration: configuration/spotweb.md
       - Wizarr Onboarding: configuration/wizarr.md
       - Tdarr Transcoding: configuration/tdarr.md
   - Maintenance:
