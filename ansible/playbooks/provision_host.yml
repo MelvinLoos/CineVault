@@ -508,6 +508,31 @@
       tags:
         - deploy
 
+    - name: Spotweb DB - Wait for MariaDB to finish initializing
+      ansible.builtin.pause:
+        seconds: 20
+      tags:
+        - deploy
+
+    - name: Spotweb DB - Grant spotweb user access from any host inside acquisition_net
+      ansible.builtin.shell: |
+        set -a
+        . /opt/mediastack/.env
+        set +a
+        docker exec spotweb-db mysql \
+          -u root -p"$SPOTWEB_DB_ROOT_PASSWORD" \
+          -e "CREATE USER IF NOT EXISTS \"$SPOTWEB_DB_USER\"@'%' IDENTIFIED BY \"$SPOTWEB_DB_PASSWORD\"; GRANT ALL PRIVILEGES ON \`$SPOTWEB_DB_NAME\`.* TO \"$SPOTWEB_DB_USER\"@'%'; FLUSH PRIVILEGES;"
+      args:
+        executable: /bin/bash
+      register: grant_result
+      until: grant_result is success
+      retries: 10
+      delay: 5
+      changed_when: false
+      no_log: true
+      tags:
+        - deploy
+
     - name: Backups - Install restic
       ansible.builtin.apt:
         name: restic
