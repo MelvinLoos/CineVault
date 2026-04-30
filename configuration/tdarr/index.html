@@ -1,0 +1,1481 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+      
+      
+      
+        <link rel="canonical" href="https://MelvinLoos.github.io/CineVault/configuration/tdarr/">
+      
+      
+        <link rel="prev" href="../wizarr/">
+      
+      
+        <link rel="next" href="../../maintenance/storage-cleanup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Tdarr Transcoding - CineVault</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tdarr-intel-n100-quicksync-qsv-configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CineVault" class="md-header__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CineVault
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tdarr Transcoding
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../deployment/initial-setup/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../homepage/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../maintenance/storage-cleanup/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CineVault" class="md-nav__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CineVault
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/bare-metal-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up the host
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../homepage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spotweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotweb Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wizarr Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a-libraries-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Libraries Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A. Libraries Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#movies-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Movies library
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tv-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TV library
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-temp-for-the-transcode-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why /temp for the transcode cache?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b-disabling-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Disabling Flows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c-the-plugin-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. The Plugin Stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C. The Plugin Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-migz-remove-image-formats-from-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Migz-Remove image formats from video
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-migz-clean-audio-streams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Migz-Clean audio streams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-boosh-transcode-using-qsv-gpu-ffmpeg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Boosh-Transcode using QSV GPU &amp; FFMPEG
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#d-node-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Node Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="D. Node Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-check-the-active-worker-in-the-tdarr-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Check the active worker in the Tdarr dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-inspect-the-ffmpeg-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Inspect the FFmpeg command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-confirm-gpu-utilisation-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Confirm GPU utilisation on the host
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintenance/storage-cleanup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a-libraries-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Libraries Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="A. Libraries Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#movies-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Movies library
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tv-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TV library
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-temp-for-the-transcode-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why /temp for the transcode cache?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b-disabling-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Disabling Flows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c-the-plugin-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. The Plugin Stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="C. The Plugin Stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-migz-remove-image-formats-from-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Migz-Remove image formats from video
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-migz-clean-audio-streams" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Migz-Clean audio streams
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-boosh-transcode-using-qsv-gpu-ffmpeg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Boosh-Transcode using QSV GPU &amp; FFMPEG
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#d-node-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Node Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="D. Node Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-check-the-active-worker-in-the-tdarr-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Check the active worker in the Tdarr dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-inspect-the-ffmpeg-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Inspect the FFmpeg command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-confirm-gpu-utilisation-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Confirm GPU utilisation on the host
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="tdarr-intel-n100-quicksync-qsv-configuration">Tdarr — Intel N100 QuickSync (QSV) Configuration</h1>
+<p>Tdarr is the post-processing transcoder in the CineVault stack. On the Intel
+N100 Mini-PC we offload all encoding work to the integrated <strong>QuickSync (QSV)</strong>
+chip rather than the CPU. The container is already wired up with <code>/dev/dri</code>
+passthrough by Ansible, but the application itself ships with a Flow-based
+default pipeline that <strong>does not</strong> use the GPU until you wire it up by hand.</p>
+<p>This page documents the exact UI clicks required to make a fresh Tdarr
+deployment actually transcode on the N100 iGPU.</p>
+<p>!!! warning "Stateful configuration"
+    Everything on this page lives inside Tdarr's own SQLite database
+    (<code>/opt/mediastack/data/tdarr/</code>). It is <strong>not</strong> managed by Ansible — these
+    steps must be performed once via the web UI after the container is up.</p>
+<hr />
+<h2 id="a-libraries-setup">A. Libraries Setup</h2>
+<p>Tdarr scans content per-library, so the Movies and TV trees are kept separate.
+This matches the Radarr/Sonarr root folder split documented in the runbook and
+keeps the queue, statistics and plugin stacks independent.</p>
+<p>Navigate to <strong>Libraries</strong> in the left sidebar and click <strong>+ Add Library</strong> twice
+to create the following two libraries:</p>
+<h3 id="movies-library">Movies library</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name</td>
+<td><code>Movies</code></td>
+</tr>
+<tr>
+<td>Source folder</td>
+<td><code>/data/media/movies</code></td>
+</tr>
+<tr>
+<td>Transcode cache folder</td>
+<td><code>/temp</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="tv-library">TV library</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name</td>
+<td><code>TV</code></td>
+</tr>
+<tr>
+<td>Source folder</td>
+<td><code>/data/media/tv</code></td>
+</tr>
+<tr>
+<td>Transcode cache folder</td>
+<td><code>/temp</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-temp-for-the-transcode-cache">Why <code>/temp</code> for the transcode cache?</h3>
+<p>The transcode cache is where Tdarr writes the <strong>partial output file</strong> while
+FFmpeg is encoding. A 4K HEVC remux can write tens of gigabytes of scratch data
+per file, and Tdarr will hammer this path constantly while the queue is busy.</p>
+<p>In the CineVault compose file <code>/temp</code> is mounted to a fast scratch volume
+(tmpfs / SSD) — <strong>not</strong> the spinning media array. Pointing the cache there:</p>
+<ul>
+<li><strong>Keeps writes off the spinning HDDs.</strong> The media array only sees the final
+  atomic rename of the completed file, dramatically reducing wear and seek
+  thrash on the rust.</li>
+<li><strong>Uses tmpfs/SSD for scratch work.</strong> QSV can saturate spinning rust on
+  write IOPS long before the iGPU runs out of encode bandwidth; tmpfs/SSD
+  removes that ceiling and keeps the encode pipeline fed.</li>
+<li><strong>Survives library reshuffles.</strong> The cache is ephemeral by design, so
+  putting it on a non-persistent mount is the correct topology.</li>
+</ul>
+<p>If you leave this field blank Tdarr defaults to writing the cache <strong>next to
+the source file</strong> on the media array — which is exactly what we are trying to
+avoid.</p>
+<hr />
+<h2 id="b-disabling-flows">B. Disabling Flows</h2>
+<p>Tdarr ships with two pipeline systems: the legacy <strong>Plugins</strong> (a linear chain
+of plugin steps) and the newer <strong>Flows</strong> (a node-graph editor). Flows is the
+new system, but the CineVault pipeline uses the proven <strong>Plugins</strong> chain
+because it is battle-tested, easy to reason about, and trivially reproducible
+across rebuilds.</p>
+<ol>
+<li>Open the library you just created and click <strong>Transcode Options</strong> (or
+   <strong>Edit Library</strong>).</li>
+<li>Locate the <strong>Flows</strong> toggle at the top of the transcode settings.</li>
+<li>Set <strong>Flows</strong> to <strong>OFF</strong>.</li>
+<li>The UI will switch back to the classic <strong>Plugins</strong> view, exposing the
+   <strong>Transcode plugins</strong> drag-and-drop list and the <strong>Filter plugins</strong> list.</li>
+</ol>
+<p>Repeat for both the Movies and the TV library.</p>
+<hr />
+<h2 id="c-the-plugin-stack">C. The Plugin Stack</h2>
+<p>In the <strong>Transcode plugins</strong> section of each library, search the <strong>Community
+plugins</strong> browser and drag the following three plugins into the right-hand
+<strong>Selected plugins</strong> column <strong>in this exact order</strong>:</p>
+<h3 id="1-migz-remove-image-formats-from-video">1. Migz-Remove image formats from video</h3>
+<p>Strips embedded thumbnails, cover art and other still-image streams that
+Plex/Jellyfin frequently misidentify as video tracks. Running this first means
+the downstream transcoder never wastes a QSV session on a 200×200 JPEG cover.</p>
+<h3 id="2-migz-clean-audio-streams">2. Migz-Clean audio streams</h3>
+<p>Removes unwanted audio tracks — commentary tracks, foreign-language dubs and
+other streams that the configured language/codec rules reject. Doing this
+<strong>before</strong> transcoding shrinks the file (and the QSV workload) instead of
+re-encoding audio you are about to throw away.</p>
+<h3 id="3-boosh-transcode-using-qsv-gpu-ffmpeg">3. Boosh-Transcode using QSV GPU &amp; FFMPEG</h3>
+<p>The actual encoder. This plugin builds an FFmpeg command that targets
+<code>hevc_qsv</code> / <code>h264_qsv</code> against <code>/dev/dri/renderD128</code>.</p>
+<p><strong>Use the plugin's default settings</strong> — drop it onto the stack and leave its
+configuration alone. The defaults are correct for the N100 iGPU.</p>
+<p>!!! note "GPU workers are now the default"
+    Previous versions of this plugin required a separate <strong>Enable GPU
+    workers</strong> toggle inside the plugin's settings panel. This is now the
+    default behaviour and no longer needs to be set. If you read older
+    guides telling you to flip that toggle, ignore them — the plugin will
+    request a GPU worker on its own.</p>
+<p>The final <strong>Selected plugins</strong> column should look like this, top-to-bottom:</p>
+<pre><code class="language-text">1. Migz-Remove image formats from video
+2. Migz-Clean audio streams
+3. Boosh-Transcode using QSV GPU &amp; FFMPEG   (default settings)
+</code></pre>
+<p>Click <strong>Save</strong> at the bottom of the library settings.</p>
+<hr />
+<h2 id="d-node-configuration">D. Node Configuration</h2>
+<p>The plugin stack alone is not enough — the <strong>Internal Node</strong> must also have
+worker slots allocated for both worker types the pipeline will use. Out of
+the box the internal node ships with <strong>0 CPU workers</strong> and <strong>0 GPU workers</strong>,
+which is why a freshly configured stack appears to "do nothing".</p>
+<p>You must enable <strong>BOTH</strong> worker types together:</p>
+<ul>
+<li><strong>CPU worker</strong> — runs the first two Migz plugins (image-format removal and
+  audio-stream cleaning), which are stream-mux operations that do not need
+  the GPU.</li>
+<li><strong>GPU worker</strong> — runs the Boosh QSV transcode step on the Intel iGPU.</li>
+</ul>
+<p>Without a CPU worker the pipeline stalls on plugin #1 and never reaches the
+GPU step. Without a GPU worker the Boosh transcode queues forever waiting
+for a slot that will never appear. Both are required.</p>
+<h3 id="steps">Steps</h3>
+<ol>
+<li>In the left sidebar click the <strong>Nodes</strong> tab.</li>
+<li>Locate the <strong>Internal Node</strong> card (it is the only node in a single-host
+   CineVault deployment) and click its header to expand it.</li>
+<li>Find the <strong>CPU worker count</strong> row and click the <strong>+</strong> button <strong>once</strong> to
+   increment the count from <code>0</code> to <code>1</code>. <strong>This is REQUIRED</strong> — without it,
+   the first two Migz plugins (image-format removal and audio-stream
+   cleaning) have no worker to run on, and the pipeline will stall before
+   ever reaching the GPU step.</li>
+<li>Find the <strong>GPU worker count</strong> row and click the <strong>+</strong> button <strong>once</strong> to
+   increment the count from <code>0</code> to <code>1</code>. <strong>This is REQUIRED</strong> — without it,
+   the Boosh QSV transcode step queues indefinitely instead of running on
+   the Intel iGPU.</li>
+</ol>
+<pre><code class="language-text">Internal Node
+├── CPU worker count:        0  →  1   ← click + once  (REQUIRED for Migz plugins)
+├── GPU worker count:        0  →  1   ← click + once  (REQUIRED for Boosh QSV)
+└── Health check worker count: &lt;leave at default&gt;
+</code></pre>
+<p>!!! danger "Both workers must be enabled together"
+    The pipeline is not "CPU <strong>or</strong> GPU" — it is <strong>CPU then GPU</strong>. The CPU
+    worker handles the prep plugins (Migz image/audio cleanup) and the GPU
+    worker handles the QSV transcode. Enabling only one of them produces a
+    pipeline that silently jams half-way through.</p>
+<p>A single GPU worker is the correct value for the N100. The iGPU has exactly
+one QSV encode engine, so adding a second GPU worker simply causes both jobs
+to time-slice on the same hardware — it does <strong>not</strong> double throughput and it
+significantly increases per-file latency.</p>
+<p>The change is live immediately; no restart is required. The new worker slots
+will appear at the top of the <strong>Tdarr</strong> dashboard and will pick up the next
+queued job.</p>
+<hr />
+<h2 id="verification">Verification</h2>
+<p>Once the queue starts processing, confirm that QSV is actually doing the work:</p>
+<h3 id="1-check-the-active-worker-in-the-tdarr-dashboard">1. Check the active worker in the Tdarr dashboard</h3>
+<p>On the main <strong>Tdarr</strong> dashboard, the running worker card for the transcode
+stage should show:</p>
+<ul>
+<li><strong>Worker type:</strong> <code>Transcode GPU</code> (not <code>Transcode CPU</code>).</li>
+<li><strong>Plugin:</strong> <code>Boosh-Transcode using QSV GPU &amp; FFMPEG</code>.</li>
+</ul>
+<p>You should also see a <code>Transcode CPU</code> worker pick up the earlier Migz stages
+in the same job's timeline — that confirms the CPU worker slot from step
+<strong>D.3</strong> is alive and feeding the GPU stage.</p>
+<h3 id="2-inspect-the-ffmpeg-command">2. Inspect the FFmpeg command</h3>
+<p>Click the running worker card to expand it and look at the FFmpeg command
+Tdarr generated. A correctly configured QSV job will contain QSV / VAAPI
+hardware acceleration flags, e.g.:</p>
+<pre><code class="language-text">-hwaccel qsv -hwaccel_output_format qsv ... -c:v hevc_qsv
+</code></pre>
+<p>or, depending on the target codec:</p>
+<pre><code class="language-text">-hwaccel vaapi -vaapi_device /dev/dri/renderD128 ... -c:v h264_qsv
+</code></pre>
+<p>If you see <code>libx264</code> or <code>libx265</code> in the <code>-c:v</code> slot, the job has fallen
+back to software encoding.</p>
+<h3 id="3-confirm-gpu-utilisation-on-the-host">3. Confirm GPU utilisation on the host</h3>
+<p>SSH to the host and run:</p>
+<pre><code class="language-bash">sudo intel_gpu_top
+</code></pre>
+<p>While a Tdarr job is active you should see steady utilisation on the
+<strong>Video</strong> and <strong>Render/3D</strong> engines. Idle is <code>0%</code> across the board; an
+active QSV transcode typically sits between <strong>40–80%</strong> on the <strong>Video</strong>
+engine for HEVC encodes on the N100.</p>
+<p>If <code>intel_gpu_top</code> reports <code>0%</code> while a job is supposedly running on a
+"GPU worker", the container is not actually reaching <code>/dev/dri</code> — that is
+a host/Docker problem (device passthrough, <code>render</code> group GID mapping)
+rather than a Tdarr UI problem, and is out of scope for this page.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

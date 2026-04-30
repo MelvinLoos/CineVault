@@ -1,0 +1,1321 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+      
+      
+      
+        <link rel="canonical" href="https://MelvinLoos.github.io/CineVault/deployment/initial-setup/">
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../bare-metal-provisioning/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Initial Setup - CineVault</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#initial-setup" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CineVault" class="md-header__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CineVault
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Initial Setup
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../configuration/homepage/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../maintenance/storage-cleanup/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CineVault" class="md-nav__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CineVault
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Clone the Repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-create-and-populate-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Create and Populate .env
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Create and Populate .env">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-tunnel_token-cloudflare-zero-trust-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1. TUNNEL_TOKEN — Cloudflare Zero Trust (REQUIRED)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-puid-and-pgid-host-user-group-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2. PUID and PGID — Host User &amp; Group IDs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-tz-timezone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3. TZ — Timezone
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configure-gluetun-vpn-variables-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configure Gluetun VPN Variables (Optional)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configure Gluetun VPN Variables (Optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-wireguard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. WireGuard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-openvpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2. OpenVPN
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-configure-the-ansible-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Configure the Ansible Inventory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configure the Ansible Inventory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-set-the-host-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Set the Host IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-set-the-media_drive-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Set the media_drive Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-run-the-provisioning-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Run the Provisioning Playbook
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bare-metal-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up the host
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/homepage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/spotweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotweb Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/wizarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wizarr Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintenance/storage-cleanup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Clone the Repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-create-and-populate-env" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Create and Populate .env
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Create and Populate .env">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-tunnel_token-cloudflare-zero-trust-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1. TUNNEL_TOKEN — Cloudflare Zero Trust (REQUIRED)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-puid-and-pgid-host-user-group-ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2. PUID and PGID — Host User &amp; Group IDs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-tz-timezone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3. TZ — Timezone
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configure-gluetun-vpn-variables-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configure Gluetun VPN Variables (Optional)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configure Gluetun VPN Variables (Optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-wireguard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. WireGuard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-openvpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2. OpenVPN
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-configure-the-ansible-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Configure the Ansible Inventory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Configure the Ansible Inventory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-set-the-host-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Set the Host IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-set-the-media_drive-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Set the media_drive Path
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-run-the-provisioning-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Run the Provisioning Playbook
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="initial-setup">Initial Setup</h1>
+<p>This guide walks through the <strong>day-zero</strong> steps required to bring a fresh CineVault server online. By the end you will have cloned the repository, populated environment secrets, configured the Gluetun VPN client, set the Ansible inventory, and run the master provisioning playbook against <strong>The Host</strong>.</p>
+<p>!!! note "Prerequisites"
+    A freshly installed Debian 13 "Trixie" host with SSH enabled and an <code>ansible</code> service account is assumed. See the <a href="../bare-metal-provisioning/">Setting up the host</a> for bare-metal provisioning details.</p>
+<h2 id="1-clone-the-repository">1. Clone the Repository</h2>
+<p>Clone CineVault onto your <strong>workstation</strong> (not The Host — Ansible will push from your workstation to The Host over SSH).</p>
+<pre><code class="language-bash">git clone https://github.com/your-org/CineVault.git
+cd CineVault
+</code></pre>
+<h2 id="2-create-and-populate-env">2. Create and Populate <code>.env</code></h2>
+<p>Copy the template and open the resulting <code>.env</code> file in your editor of choice.</p>
+<pre><code class="language-bash">cp .env.example .env
+</code></pre>
+<p>The following variables <strong>must</strong> be populated before the stack can come up.</p>
+<h3 id="21-tunnel_token-cloudflare-zero-trust-required">2.1. <code>TUNNEL_TOKEN</code> — Cloudflare Zero Trust (REQUIRED)</h3>
+<p>!!! danger "Absolutely Required"
+    <code>TUNNEL_TOKEN</code> is the <strong>sole credential</strong> that authorises <code>cloudflared</code> to establish The Ingress. Without it, the stack has <strong>no remote access path</strong> and the Cloudflare tunnel container will refuse to start.</p>
+<p>To obtain the token:</p>
+<ol>
+<li>Log in to the <strong>Cloudflare Zero Trust</strong> dashboard.</li>
+<li>Navigate to <strong>Networks → Tunnels</strong>.</li>
+<li>Click <strong>Create a tunnel</strong> (or select an existing one).</li>
+<li>Choose <strong>Cloudflared</strong> as the connector type and click <strong>Save tunnel</strong>.</li>
+<li>On the <strong>Install and run a connector</strong> screen, copy the long token string from the displayed <code>cloudflared service install &lt;TOKEN&gt;</code> command.</li>
+<li>Paste it into <code>.env</code>:</li>
+</ol>
+<pre><code class="language-bash">TUNNEL_TOKEN=eyJhIjoi...your-very-long-token-here...
+</code></pre>
+<h3 id="22-puid-and-pgid-host-user-group-ids">2.2. <code>PUID</code> and <code>PGID</code> — Host User &amp; Group IDs</h3>
+<p>These IDs map every container's internal user to the <code>mediasvc</code> service account on The Host, ensuring file permissions on bind-mounted volumes are correct and that <strong>no container ever runs as root</strong>.</p>
+<pre><code class="language-bash">PUID=5000
+PGID=5000
+</code></pre>
+<p>!!! warning "Must Match <code>mediasvc</code>"
+    The default values <code>5000</code>/<code>5000</code> correspond to the <code>mediasvc</code> user provisioned by <code>ansible/playbooks/provision_host.yml</code>. If you change these, you <strong>must</strong> also change the canonical values in the playbook, or file ownership will break.</p>
+<h3 id="23-tz-timezone">2.3. <code>TZ</code> — Timezone</h3>
+<p>Set a valid <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">IANA timezone string</a>. This drives log timestamps and scheduler behaviour for every container.</p>
+<pre><code class="language-bash">TZ=Europe/Amsterdam
+</code></pre>
+<h2 id="3-configure-gluetun-vpn-variables-optional">3. Configure Gluetun VPN Variables (Optional)</h2>
+<p>!!! info "Optional — BitTorrent only"
+    <strong>The VPN is optional.</strong> It is only required when you intend to run the <strong>BitTorrent client</strong> (<code>qbittorrent</code>), whose traffic is tunnelled through <strong>Gluetun</strong>. If you are running a Usenet-only stack (SABnzbd) or have disabled the <code>qbittorrent</code> and <code>gluetun</code> services in your compose configuration, you can <strong>skip this entire section</strong> and leave every <code>VPN_*</code> variable blank in <code>.env</code>.</p>
+<p>!!! warning "If qBittorrent is active, VPN is mandatory"
+    When the <code>qbittorrent</code> service <strong>is</strong> enabled, Gluetun must come up successfully or qBittorrent will have no network path (it shares Gluetun's network namespace). In that case, the variables below become <strong>required</strong>.</p>
+<p>The following <code>VPN_*</code> variables in <code>.env</code> must be populated to match your VPN provider's account <strong>when</strong> the BitTorrent client is active:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VPN_SERVICE_PROVIDER</code></td>
+<td>Provider slug recognised by Gluetun (e.g. <code>mullvad</code>, <code>protonvpn</code>, <code>nordvpn</code>, <code>private internet access</code>).</td>
+<td><code>mullvad</code></td>
+</tr>
+<tr>
+<td><code>VPN_TYPE</code></td>
+<td>Either <code>wireguard</code> or <code>openvpn</code>.</td>
+<td><code>wireguard</code></td>
+</tr>
+<tr>
+<td><code>OPENVPN_USER</code></td>
+<td>Provider account username (OpenVPN only).</td>
+<td><code>p1234567</code></td>
+</tr>
+<tr>
+<td><code>OPENVPN_PASSWORD</code></td>
+<td>Provider account password (OpenVPN only).</td>
+<td><code>s3cr3t!</code></td>
+</tr>
+<tr>
+<td><code>SERVER_COUNTRIES</code></td>
+<td>Comma-separated list of countries to constrain server selection.</td>
+<td><code>Netherlands,Switzerland</code></td>
+</tr>
+<tr>
+<td><code>SERVER_HOSTNAMES</code></td>
+<td>(Optional) Pin to specific server hostnames. Overrides <code>SERVER_COUNTRIES</code>.</td>
+<td><code>nl-ams-wg-001</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="31-wireguard">3.1. WireGuard</h3>
+<p>If <code>VPN_TYPE=wireguard</code>, populate the WireGuard-specific keys instead of the OpenVPN credentials:</p>
+<pre><code class="language-bash">VPN_SERVICE_PROVIDER=mullvad
+VPN_TYPE=wireguard
+WIREGUARD_PRIVATE_KEY=YOUR_WG_PRIVATE_KEY_HERE=
+WIREGUARD_ADDRESSES=10.64.0.2/32
+SERVER_COUNTRIES=Netherlands
+</code></pre>
+<h3 id="32-openvpn">3.2. OpenVPN</h3>
+<p>If <code>VPN_TYPE=openvpn</code>, populate user/password instead:</p>
+<pre><code class="language-bash">VPN_SERVICE_PROVIDER=protonvpn
+VPN_TYPE=openvpn
+OPENVPN_USER=your-vpn-username
+OPENVPN_PASSWORD=your-vpn-password
+SERVER_COUNTRIES=Switzerland
+</code></pre>
+<p>!!! tip "Provider-specific keys"
+    Consult the <a href="https://github.com/qdm12/gluetun-wiki">Gluetun wiki</a> for the exact provider slug and any provider-specific environment variables (e.g. <code>OPENVPN_PASSWORD</code> is sometimes a token rather than the account password — ProtonVPN being the canonical example).</p>
+<h2 id="4-configure-the-ansible-inventory">4. Configure the Ansible Inventory</h2>
+<p>Edit <strong><code>ansible/inventory/hosts.ini</code></strong> to point at your physical host and the block device that will become the media drive.</p>
+<pre><code class="language-ini"># ansible/inventory/hosts.ini
+[the_host]
+192.168.1.50 ansible_user=ansible media_drive=/dev/sda1
+</code></pre>
+<h3 id="41-set-the-host-ip">4.1. Set the Host IP</h3>
+<p>Replace the placeholder IP with the <strong>LAN IP address of The Host</strong>. This is the address your workstation will SSH into when running the playbook.</p>
+<pre><code class="language-ini">192.168.1.50 ansible_user=ansible media_drive=/dev/sda1
+</code></pre>
+<h3 id="42-set-the-media_drive-path">4.2. Set the <code>media_drive</code> Path</h3>
+<p><code>media_drive</code> must point to the block device or filesystem path that will be mounted as the bulk media volume on The Host (typically the large secondary disk, <strong>not</strong> the OS disk).</p>
+<pre><code class="language-ini">media_drive=/dev/sda1
+</code></pre>
+<p>!!! danger "Verify before running"
+    Ansible will format and/or mount whatever device you specify here. Double-check with <code>lsblk</code> on The Host to confirm you are <strong>not</strong> pointing at the OS disk.</p>
+<h2 id="5-run-the-provisioning-playbook">5. Run the Provisioning Playbook</h2>
+<p>With <code>.env</code> populated and <code>hosts.ini</code> configured, execute the master playbook from the repository root on your <strong>workstation</strong>:</p>
+<pre><code class="language-bash">ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K
+</code></pre>
+<p>The <code>-K</code> flag prompts for the <code>BECOME password</code> — enter the password of the <code>ansible</code> user on The Host. The playbook will:</p>
+<ul>
+<li>Install Docker and required system packages.</li>
+<li>Create the <code>mediasvc</code> service account (<code>UID=5000</code>, <code>GID=5000</code>).</li>
+<li>Mount <code>media_drive</code> at <code>/data</code>.</li>
+<li>Render <code>docker-compose.yml</code> from <code>docker-compose.yml.j2</code> using your <code>.env</code>.</li>
+<li>Bring the entire CineVault stack online.</li>
+</ul>
+<p>When the play finishes with <code>failed=0 unreachable=0</code>, your CineVault server is online. Proceed to the <a href="../RUNBOOK.md">RUNBOOK</a> <strong>Post-Deployment Application Configuration</strong> section to wire up the *arr stack via the web UIs.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

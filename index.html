@@ -1,0 +1,1232 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+      
+      
+      
+        <link rel="canonical" href="https://MelvinLoos.github.io/CineVault/">
+      
+      
+      
+        <link rel="next" href="deployment/initial-setup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Home - CineVault</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+<!-- Open Graph / Twitter Meta Tags -->
+<meta property="og:title" content="CineVault | Self-Hosted Media Hub">
+<meta property="og:description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+<meta property="og:image" content="https://melvinloos.github.io/cinevault/assets/dashboard-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Tailwind Configuration (Implementing DESIGN.md) -->
+<script>
+    tailwind.config = {
+        // Disabling preflight prevents Tailwind from breaking the MkDocs header CSS
+        corePlugins: { preflight: false },
+        theme: {
+            extend: {
+                colors: {
+                    surface: '#0d1516',
+                    'surface-dim': '#0d1516',
+                    'surface-bright': '#333a3c',
+                    'surface-lowest': '#080f11',
+                    'surface-low': '#161d1e',
+                    'surface-container': '#1a2122',
+                    'surface-high': '#242b2d',
+                    'surface-highest': '#2f3637',
+                    'on-surface': '#dde4e5',
+                    'on-surface-variant': '#bac9cc',
+                    outline: '#859396',
+                    'outline-variant': '#3b494c',
+                    primary: '#9cf1ff',
+                    'on-primary': '#00363d',
+                    'primary-container': '#0ddbf2',
+                    'on-primary-container': '#005c66',
+                    secondary: '#a4c9ff',
+                    'on-secondary': '#00315d',
+                    'secondary-container': '#0267b8',
+                    'on-secondary-container': '#d6e5ff',
+                },
+                boxShadow: {
+                    'neon': '0 0 15px rgba(8, 218, 241, 0.15)',
+                    'neon-hover': '0 0 25px rgba(8, 218, 241, 0.3)',
+                },
+                fontFamily: {
+                    sans: ['Inter', 'system-ui', 'sans-serif'],
+                    mono: ['JetBrains Mono', 'monospace'],
+                }
+            }
+        }
+    }
+</script>
+
+<style>
+    /* Force MkDocs Content Block to go Full Width */
+    .md-main__inner { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+    .md-content { max-width: none !important; }
+    
+    /* Cyber-Glass Base Utilities */
+    .glass-panel {
+        background-color: rgba(26, 33, 34, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(59, 73, 76, 0.5);
+    }
+
+    .glass-panel-strong {
+        background-color: rgba(36, 43, 45, 0.85);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(8, 218, 241, 0.3);
+    }
+
+    /* Hide scrollbar for clean horizontal scrolls */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="CineVault" class="md-header__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CineVault
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="deployment/initial-setup/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="configuration/homepage/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="maintenance/storage-cleanup/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="CineVault" class="md-nav__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CineVault
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="deployment/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="deployment/bare-metal-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up the host
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configuration/homepage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configuration/spotweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotweb Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configuration/wizarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wizarr Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="configuration/tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="maintenance/storage-cleanup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+                
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" hidden>
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+<!-- Wrapper div replicating the body styles and flex layout of the standalone HTML -->
+<div class="antialiased w-full font-sans flex flex-col relative" style="background-color: #0d1516; color: #dde4e5; background-image: radial-gradient(circle at 50% 0%, #161d1e 0%, #0d1516 70%); margin-top: -1.5rem; min-height: 100vh;">
+
+    <!-- Hero Section -->
+    <main class="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative z-0">
+        <div class="max-w-4xl mx-auto text-center">
+            
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-outline-variant/50 bg-surface-low/50 mb-8 backdrop-blur-md">
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <span class="text-xs font-medium text-on-surface-variant tracking-wide uppercase">IaC v2.0 Deployed</span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
+                Deploy <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">CineVault</span>
+            </h1>
+            
+            <!-- GitHub Status Badges -->
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <img src="https://github.com/MelvinLoos/cinevault/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+                <img src="https://img.shields.io/github/license/MelvinLoos/cinevault?color=0ddbf2" alt="License">
+            </div>
+
+            <p class="mt-4 text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
+                The complete self-hosted hub to automatically retrieve, manage, and stream your favorite movies and TV shows.
+            </p>
+            
+            <!-- Quick Start Terminal Block -->
+            <div class="max-w-3xl mx-auto bg-surface-lowest rounded-lg border border-outline-variant/50 overflow-hidden shadow-2xl text-left mb-16">
+                <div class="flex items-center px-4 py-3 bg-surface-low border-b border-outline-variant/30">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <span class="ml-4 text-xs font-mono text-on-surface-variant">deploy-cinevault.sh</span>
+                </div>
+                <div class="p-5 overflow-x-auto font-mono text-sm leading-8 whitespace-pre"><span class="text-primary">$</span> <span class="text-white">git clone https://github.com/MelvinLoos/cinevault.git</span>
+<span class="text-primary">$</span> <span class="text-white">cd cinevault</span>
+<span class="text-primary">$</span> <span class="text-white">cp .env.example .env && nano .env</span> <span class="text-on-surface-variant"># Set TZ and Tunnel Token</span>
+<span class="text-primary">$</span> <span class="text-white">nano ansible/inventory/hosts.ini</span>  <span class="text-on-surface-variant"># Define your host IP & Drive</span>
+<span class="text-primary">$</span> <span class="text-white">ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K</span></div>
+            </div>
+
+            <!-- Interface / Dashboard Screenshot Placeholder -->
+            <div class="max-w-5xl mx-auto relative group mt-16">
+                <div class="aspect-[16/9] w-full rounded-xl border border-outline-variant/50 bg-surface-low shadow-2xl flex flex-col items-center justify-center overflow-hidden relative z-0">
+                    <div class="flex flex-col items-center opacity-50">
+                        <i data-lucide="image" class="w-16 h-16 mb-4 text-primary"></i>
+                        <p class="font-mono text-sm">Dashboard Screenshot Placeholder</p>
+                    </div>
+                </div>
+                <!-- Ambient Glow -->
+                <div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 blur-2xl z-0 opacity-50"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Architecture & Principles -->
+    <section id="features" class="py-20 relative z-0 border-t border-outline-variant/30 bg-surface-lowest/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Engineering Principles</h2>
+                <p class="text-on-surface-variant max-w-2xl mx-auto">Built on strict DevOps constitutions for maximum reliability and security.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="glass-panel p-6 rounded-lg hover:border-primary/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-surface-high border border-outline-variant flex items-center justify-center mb-4 group-hover:shadow-neon transition-shadow">
+                        <i data-lucide="shield-alert" class="text-primary w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">Zero-Trust Segmentation</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Three isolated bridge networks. No service communicates across a boundary unless explicitly attached. All external access is gated by Cloudflare Tunnels.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-panel p-6 rounded-lg hover:border-primary/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-surface-high border border-outline-variant flex items-center justify-center mb-4 group-hover:shadow-neon transition-shadow">
+                        <i data-lucide="cpu" class="text-primary w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">State vs. Compute</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Strict separation between stateless compute (Docker) and stateful data. All configuration resides in `/appdata/` to enable instantaneous disaster recovery.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel p-6 rounded-lg hover:border-primary/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-surface-high border border-outline-variant flex items-center justify-center mb-4 group-hover:shadow-neon transition-shadow">
+                        <i data-lucide="hard-drive" class="text-primary w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">Atomic Hardlinks</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">A unified filesystem hierarchy allows media to move from download scratchpads to final library destinations instantly, using zero extra disk I/O.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Software Stack Section -->
+    <section id="stack" class="py-20 relative z-0 border-t border-outline-variant/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">The Software Stack</h2>
+                <p class="text-on-surface-variant max-w-2xl mx-auto">A modular ecosystem of best-in-class open-source tools working in perfect harmony.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Jellyfin -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Jellyfin</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">The core media server. Delivers your content to any device with hardware-accelerated transcoding.</p>
+                </div>
+
+                <!-- Radarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="film" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Radarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Movie collection manager. Monitors feeds and completely automates movie acquisition.</p>
+                </div>
+
+                <!-- Sonarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="tv" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Sonarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">TV show manager. Automatically tracks, downloads, and organizes episodes as they air.</p>
+                </div>
+
+                <!-- SABnzbd -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="download-cloud" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">SABnzbd</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Resource-constrained Usenet download client. Securely unpacks media without starving the host.</p>
+                </div>
+
+                <!-- Prowlarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Prowlarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Indexer proxy. Translates tracker APIs and syncs them directly to your acquisition apps.</p>
+                </div>
+
+                <!-- Seerr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="clapperboard" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Seerr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Media discovery UI. Allows end-users to securely request new content without accessing the backend.</p>
+                </div>
+
+                <!-- Wizarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Wizarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Advanced user onboarding. Automates Jellyfin account creation via secure invite links.</p>
+                </div>
+
+                <!-- Homepage -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Homepage</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Centralized administrative dashboard aggregating APIs, metrics, and quick-links across the stack.</p>
+                </div>
+
+                <!-- Cloudflared -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="cloud" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Cloudflared</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Zero-trust ingress tunnel. Exposes public-facing services securely without port forwarding.</p>
+                </div>
+
+                <!-- Recyclarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Recyclarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Automated configuration sync. Keeps Radarr and Sonarr quality profiles aligned with TRaSH Guides.</p>
+                </div>
+
+                <!-- Watchtower -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="package-check" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Watchtower</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Automated dependency lifecycle management. Safely updates Docker images during maintenance windows.</p>
+                </div>
+
+                <!-- Docker Proxy -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="shield" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Docker Proxy</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Socket security abstraction. Prevents user-facing containers from gaining root host access.</p>
+                </div>
+
+                <!-- Bazarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="languages" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Bazarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Subtitle management. Automatically downloads and syncs perfectly timed subtitles in your preferred languages.</p>
+                </div>
+
+                <!-- Gluetun -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Gluetun</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">VPN Gateway. Enforces a strict network kill-switch for processing traffic to ensure absolute privacy.</p>
+                </div>
+
+                <!-- qBittorrent -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">qBittorrent</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Secure torrent fallback client. Acquires secondary media through peer-to-peer networks via the VPN.</p>
+                </div>
+
+                <!-- Tdarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="cpu" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Tdarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Automated transcoding pipeline. Re-encodes library media using Intel QuickSync to maximize storage efficiency.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-outline-variant/30 glass-panel relative z-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <i data-lucide="server" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">CineVault</span>
+            </div>
+            <div class="text-xs text-outline flex items-center gap-4">
+                <span>Deployed via Ansible</span>
+                <span>•</span>
+                <span>Powered by Docker</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/MelvinLoos/cinevault" target="_blank" class="text-on-surface-variant hover:text-primary transition-colors">
+                    <i data-lucide="github" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-on-surface-variant hover:text-primary transition-colors">
+                    <i data-lucide="terminal" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</div>
+
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
