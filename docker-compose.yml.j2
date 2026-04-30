@@ -149,6 +149,51 @@ services:
 
 
   # ---------------------------------------------------------------------------
+  # Acquisition Bounded Context — Spotweb (Dutch Usenet Indexer)
+  # ---------------------------------------------------------------------------
+  spotweb-db:
+    image: lscr.io/linuxserver/mariadb:latest
+    container_name: spotweb-db
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - MYSQL_ROOT_PASSWORD=${SPOTWEB_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${SPOTWEB_DB_NAME}
+      - MYSQL_USER=${SPOTWEB_DB_USER}
+      - MYSQL_PASSWORD=${SPOTWEB_DB_PASSWORD}
+    volumes:
+      - ./appdata/spotweb-db:/config
+    networks:
+      - acquisition_net
+
+  spotweb:
+    image: jgeusebroek/spotweb:latest
+    container_name: spotweb
+    restart: unless-stopped
+    depends_on:
+      - spotweb-db
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - SPOTWEB_DB_TYPE=pdo_mysql
+      - SPOTWEB_DB_HOST=spotweb-db
+      - SPOTWEB_DB_PORT=3306
+      - SPOTWEB_DB_NAME=${SPOTWEB_DB_NAME}
+      - SPOTWEB_DB_USER=${SPOTWEB_DB_USER}
+      - SPOTWEB_DB_PASS=${SPOTWEB_DB_PASSWORD}
+      - SPOTWEB_CRON_RETRIEVE=*/15 * * * *
+    ports:
+      - "8085:80"
+    volumes:
+      - ./appdata/spotweb:/config
+    networks:
+      - acquisition_net
+
+
+  # ---------------------------------------------------------------------------
   # Acquisition Bounded Context — Subtitle Sync (PRODUCT_SPECIFICATION.md §2)
   # ---------------------------------------------------------------------------
   bazarr:
