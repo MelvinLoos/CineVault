@@ -508,6 +508,20 @@
       tags:
         - deploy
 
+    - name: Spotweb - Wait for container to generate initial config files
+      ansible.builtin.pause:
+        seconds: 15
+      tags:
+        - deploy
+
+    - name: Spotweb - Remove dummy dbsettings.inc.php so web installer can run
+      ansible.builtin.file:
+        path: /opt/mediastack/appdata/spotweb/dbsettings.inc.php
+        state: absent
+      tags:
+        - deploy
+
+
     - name: Backups - Install restic
       ansible.builtin.apt:
         name: restic
