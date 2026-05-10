@@ -27,5 +27,6 @@ nav:
       - Spotweb Integration: configuration/spotweb.md
       - Wizarr Onboarding: configuration/wizarr.md
       - Tdarr Transcoding: configuration/tdarr.md
+      - Bazarr Configuration: configuration/bazarr.md
   - Maintenance:
       - Storage Cleanup: maintenance/storage-cleanup.md
