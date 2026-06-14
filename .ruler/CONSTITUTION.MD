@@ -17,6 +17,9 @@
 * **Host OS:** Debian 13 "Trixie" (Bare Metal).
 * **Media Server:** Jellyfin.
 * **The "Arr" Stack:** Sonarr, Radarr, Prowlarr.
-* **Request & AI Entry:** Seerr (Jellyseerr/Overseerr merged).
+* **Request & AI Entry:** Seerr.
 * **Secure Ingress:** Cloudflare Tunnels (cloudflared) + Cloudflare Access.
 * **Provisioning & Container Engine:** Ansible + Docker Compose.
+
+## Infrastructure TDD Invariant
+*Rule:* All infrastructure configuration modifications (Ansible `.j2` templates, Docker Compose files) MUST be validated by a corresponding Python Testinfra script within `molecule/default/tests/`. Changes to the infrastructure codebase without a passing test asserting the new state are strictly prohibited.
