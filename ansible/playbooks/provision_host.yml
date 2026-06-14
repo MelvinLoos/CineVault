@@ -466,6 +466,45 @@
       tags:
         - deploy
 
+    - name: Configuration - Check if host .env file exists
+      ansible.builtin.stat:
+        path: /opt/mediastack/.env
+      register: host_env_stat
+      tags:
+        - config
+
+    - name: Configuration - Extract existing BAZARR_API_KEY from host .env
+      ansible.builtin.shell:
+        cmd: awk -F '=' '/^BAZARR_API_KEY=/ {print $2}' /opt/mediastack/.env
+      register: existing_bazarr_key_cmd
+      changed_when: false
+      when: host_env_stat.stat.exists
+      tags:
+        - config
+
+    - name: Configuration - Extract existing SABNZBD_API_KEY from host .env
+      ansible.builtin.shell:
+        cmd: awk -F '=' '/^SABNZBD_API_KEY=/ {print $2}' /opt/mediastack/.env
+      register: existing_sabnzbd_key_cmd
+      changed_when: false
+      when: host_env_stat.stat.exists
+      tags:
+        - config
+
+    - name: Configuration - Set existing API key facts
+      ansible.builtin.set_fact:
+        current_bazarr_key: "{{ existing_bazarr_key_cmd.stdout | trim if (host_env_stat.stat.exists and existing_bazarr_key_cmd.stdout is defined) else '' }}"
+        current_sabnzbd_key: "{{ existing_sabnzbd_key_cmd.stdout | trim if (host_env_stat.stat.exists and existing_sabnzbd_key_cmd.stdout is defined) else '' }}"
+      tags:
+        - config
+
+    - name: Configuration - Determine final BAZARR and SABnzbd keys
+      ansible.builtin.set_fact:
+        final_bazarr_key: "{{ current_bazarr_key if (current_bazarr_key | length > 0) else bazarr_key }}"
+        final_sabnzbd_key: "{{ current_sabnzbd_key if (current_sabnzbd_key | length > 0) else '' }}"
+      tags:
+        - config
+
     - name: Configuration - Inject dynamic API keys into host .env file
       ansible.builtin.lineinfile:
         path: /opt/mediastack/.env
@@ -479,8 +518,8 @@
         - { key: 'RADARR_API_KEY', value: "{{ radarr_key }}" }
         - { key: 'SONARR_API_KEY', value: "{{ sonarr_key }}" }
         - { key: 'PROWLARR_API_KEY', value: "{{ prowlarr_key }}" }
-        - { key: 'BAZARR_API_KEY', value: "{{ bazarr_key }}" }
-        - { key: 'SABNZBD_API_KEY', value: "" }
+        - { key: 'BAZARR_API_KEY', value: "{{ final_bazarr_key }}" }
+        - { key: 'SABNZBD_API_KEY', value: "{{ final_sabnzbd_key }}" }
       tags:
         - config
 
