@@ -4,4 +4,13 @@
   <ApiKey>{{ item.api_key }}</ApiKey>
   <AuthenticationMethod>None</AuthenticationMethod>
   <UpdateMechanism>Docker</UpdateMechanism>
+{% if item.app == 'sonarr' %}
+  <DownloadClients>
+    <DownloadClient>
+      <Name>sabnzbd</Name>
+      <Implementation>Sabnzbd</Implementation>
+      <Category>tv-sonarr</Category>
+    </DownloadClient>
+  </DownloadClients>
+{% endif %}
 </Config>
