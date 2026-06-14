@@ -324,13 +324,11 @@ services:
   # Media Request + Identity & Access contexts — the user-facing discovery and request UI.
   # ---------------------------------------------------------------------------
   seerr:
-    image: fallenbagel/jellyseerr:latest
+    image: ghcr.io/seerr-team/seerr:latest
     container_name: seerr
+    user: ${PUID}:${PGID}
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
       - TZ=${TZ}
-      - UMASK=002
     volumes:
       - ./appdata/seerr:/app/config
     networks:
