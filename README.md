@@ -56,7 +56,7 @@ The media stack consists of the following services, categorized by their Bounded
 *   **Processing:**
     *   **SABnzbd:** Usenet download client (Resource limited to 2 CPUs / 2GB RAM).
 *   **Media Request & Identity & Access:**
-    *   **Seerr (Jellyseerr):** UI for media discovery and requests.
+    *   **Seerr:** UI for media discovery and requests.
 *   **Ingress:**
     *   **Cloudflared:** Establish secure tunnel for zero-trust external access.
 *   **Dashboards & Maintenance:**

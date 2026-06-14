@@ -94,7 +94,7 @@ Using the internal name `jellyfin` is mandatory because:
   so a round-trip out and back in just to reach a neighbouring container
   wastes CPU on the host.
 - **It is consistent with the rest of the stack.** All inter-service URLs
-  (Radarr → SABnzbd, Prowlarr → Sonarr, Jellyseerr → Jellyfin) use the
+  (Radarr → SABnzbd, Prowlarr → Sonarr, Seerr → Jellyfin) use the
   internal Docker DNS name. See the inter-service URL table in the
   [Runbook](../RUNBOOK.md#a-internal-docker-networking-dns).
 
@@ -162,7 +162,7 @@ where a new user can drop off.
 | Page             | Recommendation                                       |
 | ---------------- | ---------------------------------------------------- |
 | **Discord**      | Enable only if you operate a community Discord.      |
-| **Requests**     | Enable — links the user to Jellyseerr.               |
+| **Requests**     | Enable — links the user to Seerr.                    |
 | **Downloads**    | Disable unless you actively support offline viewing. |
 | **Custom HTML**  | Use for house rules, ToS, or contact info.           |
 | **Final / Done** | Always enabled — confirms account creation.          |
