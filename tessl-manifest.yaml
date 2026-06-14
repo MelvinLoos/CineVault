@@ -1,0 +1,7 @@
+required_packages:
+  - package: tessl-ansible-core
+    purpose: "Lints and dry-runs ansible/files/recyclarr/recyclarr.yml.j2 and config.xml.j2 ensuring idempotency."
+  - package: tessl-molecule-runner
+    purpose: "Executes the existing Molecule testing framework located in molecule/default/ to enforce the TDD mandate."
+  - package: tessl-docker-compose
+    purpose: "Safely parses docker-compose.yml.j2 to resolve container networking aliases between Sonarr and SABnzbd."
