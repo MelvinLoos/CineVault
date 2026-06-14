@@ -14,3 +14,6 @@ pytest-testinfra
 
 # Python binding to Vagrant CLI — used internally by molecule-vagrant
 python-vagrant
+
+# YAML parser for test_sonarr_sabnzbd_category_sync.py
+PyYAML
