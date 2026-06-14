@@ -79,12 +79,13 @@ jobs:
           pipx inject ansible-core python-vagrant
           
           pipx install pytest
-          pipx inject pytest pytest-testinfra
+          pipx inject pytest pytest-testinfra PyYAML
           
           pipx install molecule==25.1.0
           pipx inject molecule "molecule-plugins[vagrant]==23.7.0"
           pipx inject molecule pytest-testinfra
           pipx inject molecule python-vagrant
+          pipx inject molecule PyYAML
 
       - name: Execute Infrastructure Validation
         env:
