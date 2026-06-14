@@ -26,40 +26,48 @@
         description: Movie Manager
         server: local-docker
         container: radarr
+{% if radarr_key is defined and radarr_key | length > 0 %}
         widget:
             type: radarr
             url: http://radarr:7878
             key: "{{ '{{HOMEPAGE_VAR_RADARR_KEY}}' }}"
+{% endif %}
     - Sonarr:
         icon: sonarr
         href: http://{{ ansible_host }}:8989
         description: TV Show Manager
         server: local-docker
         container: sonarr
+{% if sonarr_key is defined and sonarr_key | length > 0 %}
         widget:
             type: sonarr
             url: http://sonarr:8989
             key: "{{ '{{HOMEPAGE_VAR_SONARR_KEY}}' }}"
+{% endif %}
     - Prowlarr:
         icon: prowlarr
         href: http://{{ ansible_host }}:9696
         description: Indexer Manager
         server: local-docker
         container: prowlarr
+{% if prowlarr_key is defined and prowlarr_key | length > 0 %}
         widget:
             type: prowlarr
             url: http://prowlarr:9696
             key: "{{ '{{HOMEPAGE_VAR_PROWLARR_KEY}}' }}"
+{% endif %}
     - Bazarr:
         icon: bazarr
         href: http://{{ ansible_host }}:6767
         description: Subtitle Manager
         server: local-docker
         container: bazarr
+{% if final_bazarr_key is defined and final_bazarr_key | length > 0 %}
         widget:
             type: bazarr
             url: http://bazarr:6767
             key: "{{ '{{HOMEPAGE_VAR_BAZARR_KEY}}' }}"
+{% endif %}
 
     - SABnzbd:
         icon: sabnzbd
@@ -67,10 +75,12 @@
         description: Usenet Downloader
         server: local-docker
         container: sabnzbd
+{% if final_sabnzbd_key is defined and final_sabnzbd_key | length > 0 %}
         widget:
             type: sabnzbd
             url: http://sabnzbd:8080
             key: "{{ '{{HOMEPAGE_VAR_SABNZBD_KEY}}' }}"
+{% endif %}
 
     - qBittorrent:
         icon: qbittorrent
