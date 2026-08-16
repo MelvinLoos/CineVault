@@ -9,6 +9,10 @@
     mediasvc_uid: 5000
     mediasvc_gid: 5000
     media_drive_device: ""
+    # Local subnet permitted to mount The Library via NFS (media offloading)
+    # and to reach the Tdarr Server control plane (8266). Scoped strictly to
+    # enforce zero-trust micro-segmentation (ARCHITECTURE.md §2).
+    media_subnet_cidr: "192.168.2.0/24"
 
   tasks:
     - name: Hardware Detection - Check if Intel QuickSync GPU is physically present
@@ -254,12 +258,50 @@
         proto: tcp
       tags: [security]
 
+    - name: Zero Trust Micro-segmentation - Allow NFS (2049) from local subnet only
+      community.general.ufw:
+        rule: allow
+        port: '2049'
+        proto: "{{ item }}"
+        from_ip: "{{ media_subnet_cidr }}"
+      loop: [tcp, udp]
+      tags: [security]
+
+    - name: Zero Trust Micro-segmentation - Allow Tdarr Server control plane (8266) from local subnet only
+      community.general.ufw:
+        rule: allow
+        port: '8266'
+        proto: tcp
+        from_ip: "{{ media_subnet_cidr }}"
+      tags: [security]
+
     - name: Host Hardening - Enable UFW and drop default inbound
       community.general.ufw:
         state: enabled
         default: deny
         direction: incoming
       tags: [security]
+
+    - name: Media Offloading - Install NFS kernel server
+      ansible.builtin.apt:
+        name: nfs-kernel-server
+        state: present
+      tags: [nfs, filesystem]
+
+    - name: Media Offloading - Configure NFS export of The Library (zero-trust UID/GID parity)
+      ansible.builtin.lineinfile:
+        path: /etc/exports
+        regexp: '^/opt/mediastack/data'
+        line: '/opt/mediastack/data {{ media_subnet_cidr }}(rw,sync,no_subtree_check,all_squash,anonuid={{ mediasvc_uid }},anongid={{ mediasvc_gid }},fsid=1)'
+      notify: Restart NFS Server
+      tags: [nfs, filesystem]
+
+    - name: Media Offloading - Ensure NFS server is running and enabled
+      ansible.builtin.systemd:
+        name: nfs-server
+        state: started
+        enabled: true
+      tags: [nfs, filesystem]
 
     - name: Host Hardening - Disable password authentication for SSH
       ansible.builtin.lineinfile:
@@ -677,6 +719,11 @@
     - name: Restart SSH
       ansible.builtin.systemd:
         name: sshd
+        state: restarted
+
+    - name: Restart NFS Server
+      ansible.builtin.systemd:
+        name: nfs-server
         state: restarted
 
     - name: Reload systemd

@@ -316,7 +316,8 @@ services:
       - ingress_net
     restart: unless-stopped
     ports:
-      - "8265:8265"
+      - "8265:8265"   # Web UI
+      - "8266:8266"   # Server control plane — external Tdarr nodes (on-demand laptop GPU offload). UFW-scoped to {{ media_subnet_cidr | default('the local subnet') }} by the provision playbook.
 
 
   # ---------------------------------------------------------------------------
