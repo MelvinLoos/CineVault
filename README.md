@@ -55,6 +55,8 @@ The media stack consists of the following services, categorized by their Bounded
     *   **Recyclarr:** Automatically syncs TRaSH Guides quality profiles.
 *   **Processing:**
     *   **SABnzbd:** Usenet download client (Resource limited to 2 CPUs / 2GB RAM).
+    *   **Tdarr:** Automated media transcoding (Intel QuickSync on-host).
+    *   **On-Demand GPU Workload Offloading:** A transient laptop node with an AMD Radeon RX 7600M XT can join the Tdarr cluster over NFSv4 + the Tdarr control plane to offload GPU encoding on demand. The export and control port are strictly scoped to `192.168.2.0/24` via UFW with zero-trust UID/GID squashing (see [Distributed Tdarr Node](docs/configuration/distributed-tdarr.md)).
 *   **Media Request & Identity & Access:**
     *   **Seerr:** UI for media discovery and requests.
 *   **Ingress:**
@@ -160,6 +162,7 @@ Once deployed, the following services are available on The Host:
 | **Sonarr** | 8989 | Acquisition | No |
 | **Prowlarr** | 9696 | Indexers | No |
 | **SABnzbd** | 8080 | Processing | No |
+| **Tdarr Server** | 8266 | Processing | No (Local `/24` only — laptop GPU node control plane) |
 
 ## Development & Testing
 

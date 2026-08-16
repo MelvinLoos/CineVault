@@ -502,3 +502,148 @@ def test_ufw_does_not_expose_jellyfin_port_externally(host):
         "Jellyfin is accessed exclusively through The Ingress (cloudflared) "
         "per CONSTITUTION.md §2 Maxim 4 (No Port Forwarding)"
     )
+
+
+# ===========================================================================
+# Group F — On-Demand GPU Workload Offloading (Distributed Tdarr Node)
+# Spec: distributed-tdarr topology — NFS export of The Library plus the
+#       Tdarr Server control plane, both strictly scoped to the local
+#       subnet (192.168.2.0/24) per zero-trust micro-segmentation.
+#
+# The export must enforce identity parity via all_squash + anonuid/anongid
+# mapping to mediasvc (UID/GID 5000) — AGENTS.md §3 Zero Root Execution.
+# ===========================================================================
+
+MEDIA_SUBNET_CIDR = "192.168.2.0/24"
+NFS_EXPORT_PATH = "/opt/mediastack/data"
+
+
+def test_nfs_kernel_server_package_installed(host):
+    """
+    The nfs-kernel-server package must be installed on The Host to serve
+    The Library over NFS for the transient laptop GPU node.
+    """
+    nfs_pkg = host.package("nfs-kernel-server")
+    assert nfs_pkg.is_installed, (
+        "'nfs-kernel-server' package must be installed on The Host; "
+        "required to export The Library (/opt/mediastack/data) to the "
+        "distributed Tdarr laptop node"
+    )
+
+
+def test_nfs_export_line_configured(host):
+    """
+    /etc/exports must contain an export line for /opt/mediastack/data that:
+      - Restricts access to the local subnet (192.168.2.0/24)
+      - Squashes ALL clients to mediasvc identity (all_squash)
+      - Maps anonuid/anongid to UID/GID 5000 (zero-trust UID/GID parity)
+      - Includes fsid=1 (required: the export is the root of the media
+        filesystem as mounted by provision_host.yml)
+
+    AGENTS.md §3: Zero Root Execution via all_squash squashing to the
+    canonical mediasvc identity.
+    """
+    exports_file = host.file("/etc/exports")
+    assert exports_file.exists, (
+        "/etc/exports must exist on The Host"
+    )
+    exports_content = exports_file.content_string
+
+    assert NFS_EXPORT_PATH in exports_content, (
+        f"/etc/exports must export '{NFS_EXPORT_PATH}' "
+        "(The Library) for the distributed Tdarr node"
+    )
+    assert MEDIA_SUBNET_CIDR in exports_content, (
+        f"NFS export must be restricted to subnet '{MEDIA_SUBNET_CIDR}'; "
+        "a wider scope would violate zero-trust micro-segmentation"
+    )
+    assert "all_squash" in exports_content, (
+        "NFS export must use 'all_squash' to squash every remote client "
+        "to the mediasvc identity (zero-trust UID/GID parity)"
+    )
+    assert "anonuid=5000" in exports_content, (
+        "NFS export must map anonuid=5000, matching the mediasvc UID "
+        "provisioned by provision_host.yml"
+    )
+    assert "anongid=5000" in exports_content, (
+        "NFS export must map anongid=5000, matching the mediasvc GID "
+        "provisioned by provision_host.yml"
+    )
+    assert "fsid=1" in exports_content, (
+        "NFS export must include 'fsid=1'; /opt/mediastack/data is the root "
+        "of the media filesystem and NFSv4 requires an explicit fsid to "
+        "export a filesystem root"
+    )
+
+
+def test_ufw_allows_nfs_from_local_subnet(host):
+    """
+    UFW must allow inbound NFS (port 2049) from the local subnet ONLY.
+
+    The distributed Tdarr laptop node mounts The Library over NFSv4, which
+    uses port 2049 exclusively. The allow rule must be scoped to
+    192.168.2.0/24 — not exposed to Anywhere — per zero-trust
+    micro-segmentation (ARCHITECTURE.md §2).
+    """
+    ufw_status = host.run("sudo ufw status verbose")
+    assert ufw_status.rc == 0, "ufw status verbose must succeed"
+    output = ufw_status.stdout
+
+    assert "2049" in output, (
+        "UFW must have an ALLOW rule for port 2049 (NFS) to serve the "
+        "distributed Tdarr node"
+    )
+    assert MEDIA_SUBNET_CIDR in output, (
+        f"UFW NFS rule must reference subnet '{MEDIA_SUBNET_CIDR}'; "
+        "the export is scoped to the local subnet per the approved plan"
+    )
+
+
+def test_ufw_allows_tdarr_control_from_local_subnet(host):
+    """
+    UFW must allow inbound Tdarr Server control-plane traffic (port 8266/tcp)
+    from the local subnet ONLY.
+
+    The transient laptop node registers with the Tdarr Server on 8266. The
+    rule must be scoped to 192.168.2.0/24 — the control plane is never
+    exposed beyond the local subnet (CONSTITUTION.md §2 Maxim 4).
+    """
+    ufw_status = host.run("sudo ufw status verbose")
+    assert ufw_status.rc == 0, "ufw status verbose must succeed"
+    output = ufw_status.stdout
+
+    assert "8266" in output, (
+        "UFW must have an ALLOW rule for port 8266 (Tdarr Server control "
+        "plane) so the external node can register"
+    )
+    assert MEDIA_SUBNET_CIDR in output, (
+        f"UFW Tdarr control-plane rule must reference subnet "
+        f"'{MEDIA_SUBNET_CIDR}'; the control port is scoped to the local "
+        "subnet per the approved plan"
+    )
+
+
+def test_ufw_does_not_expose_nfs_or_tdarr_to_anywhere(host):
+    """
+    UFW must NOT have open (Anywhere-scoped) rules for NFS (2049) or the
+    Tdarr Server control plane (8266).
+
+    Zero-trust micro-segmentation (ARCHITECTURE.md §2): offload ports are
+    reachable only from the local subnet. An 'Anywhere' scope on either
+    port would indicate the subnet restriction was lost.
+    """
+    ufw_status = host.run("sudo ufw status verbose")
+    assert ufw_status.rc == 0, "ufw status verbose must succeed"
+
+    lines = ufw_status.stdout.splitlines()
+    for line in lines:
+        if ("2049" in line or "8266" in line) and "Anywhere" in line:
+            # A line like "2049/tcp  ALLOW   Anywhere" is a leak; a line
+            # like "2049/tcp  ALLOW   192.168.2.0/24" is correct and is
+            # validated by the positive tests above.
+            pytest.fail(
+                f"UFW rule is scoped to 'Anywhere' for an offload port: "
+                f"'{line.strip()}'. NFS (2049) and the Tdarr control plane "
+                f"(8266) must be restricted to {MEDIA_SUBNET_CIDR} "
+                "(zero-trust micro-segmentation)."
+            )
