@@ -17,3 +17,7 @@ python-vagrant
 
 # YAML parser for test_sonarr_sabnzbd_category_sync.py
 PyYAML
+
+# Required by the ansible.utils ipaddr filter used in provision_host.yml
+# for automatic LAN subnet CIDR detection.
+netaddr
