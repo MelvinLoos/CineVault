@@ -78,6 +78,9 @@ jobs:
           # 1. Install Ansible explicitly
           pipx install ansible-core
           pipx inject ansible-core python-vagrant
+          # netaddr is required by the ansible.utils ipaddr filter, which
+          # provision_host.yml uses for automatic LAN subnet detection.
+          pipx inject ansible-core netaddr
           
           pipx install pytest
           pipx inject pytest pytest-testinfra PyYAML
@@ -87,6 +90,9 @@ jobs:
           pipx inject molecule pytest-testinfra
           pipx inject molecule python-vagrant
           pipx inject molecule PyYAML
+          # netaddr for the ansible.utils ipaddr filter: the Molecule
+          # provisioner runs the production playbook (subnet detection).
+          pipx inject molecule netaddr
 
       - name: Execute Infrastructure Validation
         env:
@@ -98,8 +104,10 @@ jobs:
           sudo systemctl start libvirtd
           sudo chmod 666 /var/run/libvirt/libvirt-sock
           
-          # Install the required community collections
-          ansible-galaxy collection install community.general community.docker ansible.posix
+          # Install the required community collections.
+          # ansible.utils provides the ipaddr filter used by provision_host.yml
+          # to auto-detect the LAN subnet CIDR from host network facts.
+          ansible-galaxy collection install community.general community.docker ansible.posix ansible.utils
           
           # Execute the pipeline
           molecule test
