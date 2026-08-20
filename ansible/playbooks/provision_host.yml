@@ -9,12 +9,47 @@
     mediasvc_uid: 5000
     mediasvc_gid: 5000
     media_drive_device: ""
+    # Canonical role-based hostname for The Host. Set on first run; avahi-daemon
+    # advertises it on the LAN so The Host resolves as mediacenter.local
+    # regardless of its DHCP-assigned IP address (mDNS).
+    mediacenter_hostname: "mediacenter"
+    # Hostname used in user-facing Homepage dashboard links and in the
+    # distributed Tdarr node script. Override via inventory host vars when a
+    # non-default DNS suffix/label is in use.
+    web_hostname: "mediacenter.local"
     # Local subnet permitted to mount The Library via NFS (media offloading)
-    # and to reach the Tdarr Server control plane (8266). Scoped strictly to
-    # enforce zero-trust micro-segmentation (ARCHITECTURE.md §2).
-    media_subnet_cidr: "192.168.2.0/24"
+    # and to reach the Tdarr Server control plane (8266). Auto-detected from
+    # The Host's default-route network facts; optionally overridden per-host
+    # via inventory (media_subnet_cidr=...). Scoped strictly to enforce
+    # zero-trust micro-segmentation (ARCHITECTURE.md §2).
+    media_subnet_cidr: ""
 
   tasks:
+    - name: Ensure system hostname is set to role-based name
+      ansible.builtin.hostname:
+        name: "{{ mediacenter_hostname | default('mediacenter') }}"
+      tags:
+        - identity
+
+    - name: Calculate LAN Subnet CIDR from host network facts
+      # Compose the address/netmask pair and let the ipaddr filter derive the
+      # canonical network/prefix form (e.g. 192.168.2.42/255.255.255.0 ->
+      # "192.168.2.0/24"). Applying ipaddr('prefix') to a bare netmask would
+      # yield the no-bits-count default (32), so the pair must be composed.
+      ansible.builtin.set_fact:
+        media_subnet_cidr: "{{ (ansible_default_ipv4.address ~ '/' ~ ansible_default_ipv4.netmask) | ansible.utils.ipaddr('network/prefix') }}"
+      when: media_subnet_cidr is not defined or media_subnet_cidr == ""
+      tags:
+        - security
+        - nfs
+
+    - name: Display detected Media Subnet CIDR
+      ansible.builtin.debug:
+        msg: "Configuring NFS and UFW rules for subnet: {{ media_subnet_cidr }}"
+      tags:
+        - security
+        - nfs
+
     - name: Hardware Detection - Check if Intel QuickSync GPU is physically present
       ansible.builtin.stat:
         path: /dev/dri/renderD128
