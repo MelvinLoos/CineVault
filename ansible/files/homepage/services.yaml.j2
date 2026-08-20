@@ -1,19 +1,19 @@
 - The Theater:
     - Jellyfin:
         icon: jellyfin
-        href: http://mediacenter.local:8096
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8096"
         description: Watch Movies & TV
         server: local-docker
         container: jellyfin
     - Seerr:
         icon: seerr
-        href: http://mediacenter.local:5055
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:5055"
         description: Request New Media
         server: local-docker
         container: seerr
     - Wizarr:
         icon: wizarr
-        href: http://mediacenter.local:5690
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:5690"
         description: User Invitations
         server: local-docker
         container: wizarr
@@ -22,7 +22,7 @@
     - The Acquisition Pipeline:
     - Radarr:
         icon: radarr
-        href: http://mediacenter.local:7878
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:7878"
         description: Movie Manager
         server: local-docker
         container: radarr
@@ -34,7 +34,7 @@
 {% endif %}
     - Sonarr:
         icon: sonarr
-        href: http://mediacenter.local:8989
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8989"
         description: TV Show Manager
         server: local-docker
         container: sonarr
@@ -46,7 +46,7 @@
 {% endif %}
     - Prowlarr:
         icon: prowlarr
-        href: http://mediacenter.local:9696
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:9696"
         description: Indexer Manager
         server: local-docker
         container: prowlarr
@@ -58,7 +58,7 @@
 {% endif %}
     - Bazarr:
         icon: bazarr
-        href: http://mediacenter.local:6767
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:6767"
         description: Subtitle Manager
         server: local-docker
         container: bazarr
@@ -71,7 +71,7 @@
 
     - SABnzbd:
         icon: sabnzbd
-        href: http://mediacenter.local:8080
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8080"
         description: Usenet Downloader
         server: local-docker
         container: sabnzbd
@@ -84,7 +84,7 @@
 
     - qBittorrent:
         icon: qbittorrent
-        href: http://mediacenter.local:8090
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8090"
         description: Torrent Downloader
         server: local-docker
         container: gluetun
@@ -95,7 +95,7 @@
 
     - Tdarr:
         icon: tdarr
-        href: http://mediacenter.local:8265
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8265"
         description: Media Transcoder
         server: local-docker
         container: tdarr
