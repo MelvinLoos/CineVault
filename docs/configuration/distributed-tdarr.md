@@ -25,8 +25,8 @@ cleanly when the work is done.
 │  └── :8266  Control plane ←───────────────────────────┐                │
 │                                                        │                │
 └────────────────────────────────────────────────────────┼────────────────┘
-                                                         │ NFSv4.2 (2049) + TCP 8266
-                                      restricted to 192.168.2.0/24 (UFW)
+                                                          │ NFSv4.2 (2049) + TCP 8266
+                                       restricted to the auto-detected LAN subnet (UFW)
                                                          │
 ┌────────────────────── Transient AMD Laptop Node ───────┼────────────────┐
 │                                                        │                │
@@ -40,8 +40,8 @@ automatically on The Host (see [Bare-Metal Provisioning](../deployment/bare-meta
 
 | Component | Port / Path | Restriction |
 |---|---|---|
-| NFS export | `:2049` (tcp+udp) | `192.168.2.0/24` only, `all_squash` → `anonuid=5000,anongid=5000` |
-| Tdarr control plane | `:8266` (tcp) | `192.168.2.0/24` only |
+| NFS export | `:2049` (tcp+udp) | LAN subnet only (auto-detected), `all_squash` → `anonuid=5000,anongid=5000` |
+| Tdarr control plane | `:8266` (tcp) | LAN subnet only (auto-detected) |
 | NFS payload | `/opt/mediastack/data` | `rw,sync,no_subtree_check,all_squash,anonuid=5000,anongid=5000,fsid=1` |
 
 **Zero-trust UID/GID parity:** every NFS client is squashed to the
@@ -61,11 +61,15 @@ host configuration is required:
 2. **Export** — `/etc/exports` contains:
 
    ```text
-   /opt/mediastack/data 192.168.2.0/24(rw,sync,no_subtree_check,all_squash,anonuid=5000,anongid=5000,fsid=1)
+   /opt/mediastack/data <auto-detected-subnet>(rw,sync,no_subtree_check,all_squash,anonuid=5000,anongid=5000,fsid=1)
    ```
 
-3. **Firewall** — UFW allows `2049/tcp`, `2049/udp` and `8266/tcp` from
-   `192.168.2.0/24` only. The default deny-inbound policy remains untouched.
+   The subnet is derived from The Host's own network facts at play time; no
+   IP is hardcoded in the playbook.
+
+3. **Firewall** — UFW allows `2049/tcp`, `2049/udp` and `8266/tcp` from the
+   auto-detected LAN subnet only. The default deny-inbound policy remains
+   untouched.
 
 Re-run the playbook if any of these are missing:
 
@@ -85,12 +89,13 @@ ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host
 ### Start the node
 
 ```bash
-sudo scripts/laptop-node/run-tdarr-node.sh --server-ip 192.168.2.22
+sudo scripts/laptop-node/run-tdarr-node.sh
 ```
 
 The script is fully self-contained and idempotent:
 
-1. Mounts `192.168.2.22:/opt/mediastack/data` to `/mnt/n100_data`
+1. Resolves `mediacenter.local` via mDNS and mounts
+   `<resolved-ip>:/opt/mediastack/data` to `/mnt/n100_data`
    (NFSv4.2 — only port 2049 is used, no rpcbind/mountd ports).
 2. Creates a laptop-local scratch cache `/var/tmp/tdarr-node-cache`
    (transcode intermediates never traverse the network).
@@ -100,9 +105,11 @@ The script is fully self-contained and idempotent:
    Tdarr server connection parameters (`serverIP`, `serverPort=8266`,
    `nodeID=AMD-Laptop-Node`).
 
-If `--server-ip` is omitted the script tries mDNS resolution (`n100.local`,
-thanks to `avahi-daemon` on The Host) before falling back to
-`192.168.2.22`.
+If `--server-ip` is omitted the script resolves `mediacenter.local` via mDNS
+(thanks to `avahi-daemon` on The Host). There is **no stale-IP fallback**:
+if resolution fails — e.g. a router isolating Wi-Fi multicast traffic — the
+script exits with an actionable error and asks for an explicit
+`--server-ip <THE_HOST_LAN_IP>`.
 
 ### Stop / tear down
 
@@ -193,7 +200,7 @@ its own mount namespace correctly.
 
 | Symptom | Likely cause | Resolution |
 |---|---|---|
-| Node never registers in the UI | TCP 8266 blocked | Check UFW on The Host: `sudo ufw status numbered` — the rule must scope `192.168.2.0/24`, not `Anywhere`. |
+| Node never registers in the UI | TCP 8266 blocked | Check UFW on The Host: `sudo ufw status numbered` — the rule must scope the LAN subnet, not `Anywhere`. |
 | NFS mount hangs or dies mid-session | Network stall | The script already mounts `soft,timeo=30,retrans=3`; avoid moving the laptop between APs mid-job. |
 | "Permission denied" writing to `/data` | Squash mapping wrong | Verify `/etc/exports` contains `all_squash,anonuid=5000,anongid=5000`. |
 | GPU node starts, jobs use CPU | Group/devices not passed | Confirm the container was launched by the script (it includes `--device /dev/dri`, `--device /dev/kfd`, `--group-add render`). |
