@@ -18,8 +18,9 @@
 #   containers are removed before launch, and teardown tolerates missing state.
 #
 # Usage:
-#   sudo ./run-tdarr-node.sh --server-ip 192.168.2.22
-#   sudo ./run-tdarr-node.sh --server-ip 192.168.2.22 --node-id AMD-Laptop-Node
+#   sudo ./run-tdarr-node.sh
+#   sudo ./run-tdarr-node.sh --node-id AMD-Laptop-Node
+#   sudo ./run-tdarr-node.sh --server-ip <THE_HOST_LAN_IP>   # only if mDNS fails
 #   sudo ./run-tdarr-node.sh --stop
 # =============================================================================
 
@@ -28,7 +29,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
-DEFAULT_SERVER_IP="192.168.2.22"
+DEFAULT_HOSTNAME="mediacenter.local"
 DEFAULT_NODE_ID="AMD-Laptop-Node"
 DEFAULT_MOUNT_POINT="/mnt/n100_data"
 NFS_EXPORT="/opt/mediastack/data"
@@ -50,7 +51,8 @@ Usage: $0 [--server-ip <ip>] [--node-id <id>] [--mount-point <path>] [--stop]
 
 Options:
   --server-ip <ip>   IP address of The Host (N100). Auto-detects via mDNS
-                     (n100.local) when omitted; falls back to ${DEFAULT_SERVER_IP}.
+                     (${DEFAULT_HOSTNAME}) when omitted; fails fast with an
+                     actionable error if resolution fails (no stale-IP fallback).
   --node-id <id>     Tdarr nodeID/nodeName (default: ${DEFAULT_NODE_ID}).
   --mount-point <p>  Local NFS mountpoint (default: ${DEFAULT_MOUNT_POINT}).
   --stop             Graceful teardown: stop/remove the container, unmount
@@ -101,18 +103,39 @@ if ! command -v mount.nfs >/dev/null 2>&1; then
 fi
 
 # ---------------------------------------------------------------------------
-# Resolve The Host IP: explicit flag > mDNS auto-detect (avahi on The Host) > default
+# Resolve The Host IP: explicit flag > mDNS auto-detect (avahi on The Host) > fail fast
+# No stale-IP fallback: if resolution fails the script exits with an
+# actionable error instead of mounting against a possibly-outdated address.
 # ---------------------------------------------------------------------------
 resolve_server_ip() {
     if [[ -n "${SERVER_IP}" ]]; then
         echo "${SERVER_IP}"
         return
     fi
-    if command -v getent >/dev/null 2>&1 && getent hosts n100.local >/dev/null 2>&1; then
-        getent hosts n100.local | awk '{print $1}' | head -n 1
-        return
+
+    local detected=""
+    echo "Attempting to resolve ${DEFAULT_HOSTNAME} via mDNS..." >&2
+
+    if command -v getent >/dev/null 2>&1; then
+        detected="$(getent ahostsv4 "${DEFAULT_HOSTNAME}" 2>/dev/null | awk '{print $1}' | head -n 1 || true)"
     fi
-    echo "${DEFAULT_SERVER_IP}"
+
+    if [[ -z "${detected}" ]] && command -v ping >/dev/null 2>&1; then
+        detected="$(ping -c 1 -W 2 "${DEFAULT_HOSTNAME}" 2>/dev/null | head -n 1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' || true)"
+    fi
+
+    if [[ -z "${detected}" ]]; then
+        cat >&2 <<EOF
+-----------------------------------------------------------------
+ERROR: Failed to resolve ${DEFAULT_HOSTNAME} and no --server-ip specified.
+If your router isolates Wi-Fi multicast traffic, mDNS may fail.
+Please rerun the script with: $0 --server-ip <THE_HOST_LAN_IP>
+-----------------------------------------------------------------
+EOF
+        exit 1
+    fi
+
+    echo "${detected}"
 }
 
 # ---------------------------------------------------------------------------
