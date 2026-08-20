@@ -1,0 +1,426 @@
+{% extends "main.html" %}
+
+{% block extrahead %}
+<!-- Open Graph / Twitter Meta Tags -->
+<meta property="og:title" content="CineVault | Self-Hosted Media Hub">
+<meta property="og:description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+<meta property="og:image" content="https://melvinloos.github.io/cinevault/assets/dashboard-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Tailwind Configuration (Implementing DESIGN.md) -->
+<script>
+    tailwind.config = {
+        // Disabling preflight prevents Tailwind from breaking the MkDocs header CSS
+        corePlugins: { preflight: false },
+        theme: {
+            extend: {
+                colors: {
+                    surface: '#0d1516',
+                    'surface-dim': '#0d1516',
+                    'surface-bright': '#333a3c',
+                    'surface-lowest': '#080f11',
+                    'surface-low': '#161d1e',
+                    'surface-container': '#1a2122',
+                    'surface-high': '#242b2d',
+                    'surface-highest': '#2f3637',
+                    'on-surface': '#dde4e5',
+                    'on-surface-variant': '#bac9cc',
+                    outline: '#859396',
+                    'outline-variant': '#3b494c',
+                    primary: '#9cf1ff',
+                    'on-primary': '#00363d',
+                    'primary-container': '#0ddbf2',
+                    'on-primary-container': '#005c66',
+                    secondary: '#a4c9ff',
+                    'on-secondary': '#00315d',
+                    'secondary-container': '#0267b8',
+                    'on-secondary-container': '#d6e5ff',
+                },
+                boxShadow: {
+                    'neon': '0 0 15px rgba(8, 218, 241, 0.15)',
+                    'neon-hover': '0 0 25px rgba(8, 218, 241, 0.3)',
+                },
+                fontFamily: {
+                    sans: ['Inter', 'system-ui', 'sans-serif'],
+                    mono: ['JetBrains Mono', 'monospace'],
+                }
+            }
+        }
+    }
+</script>
+
+<style>
+    /* Force MkDocs Content Block to go Full Width */
+    .md-main__inner { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+    .md-content { max-width: none !important; }
+    
+    /* Cyber-Glass Base Utilities */
+    .glass-panel {
+        background-color: rgba(26, 33, 34, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(59, 73, 76, 0.5);
+    }
+
+    .glass-panel-strong {
+        background-color: rgba(36, 43, 45, 0.85);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(8, 218, 241, 0.3);
+    }
+
+    /* Hide scrollbar for clean horizontal scrolls */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Wrapper div replicating the body styles and flex layout of the standalone HTML -->
+<div class="antialiased w-full font-sans flex flex-col relative" style="background-color: #0d1516; color: #dde4e5; background-image: radial-gradient(circle at 50% 0%, #161d1e 0%, #0d1516 70%); margin-top: -1.5rem; min-height: 100vh;">
+
+    <!-- Hero Section -->
+    <main class="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative z-0">
+        <div class="max-w-4xl mx-auto text-center">
+            
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-outline-variant/50 bg-surface-low/50 mb-8 backdrop-blur-md">
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <span class="text-xs font-medium text-on-surface-variant tracking-wide uppercase">IaC v2.0 Deployed</span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6">
+                Deploy <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">CineVault</span>
+            </h1>
+            
+            <!-- GitHub Status Badges -->
+            <div class="flex items-center justify-center gap-3 mb-6">
+                <img src="https://github.com/MelvinLoos/cinevault/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+                <img src="https://img.shields.io/github/license/MelvinLoos/cinevault?color=0ddbf2" alt="License">
+            </div>
+
+            <p class="mt-4 text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
+                The complete self-hosted hub to automatically retrieve, manage, and stream your favorite movies and TV shows.
+            </p>
+            
+            <!-- Quick Start Terminal Block -->
+            <div class="max-w-3xl mx-auto bg-surface-lowest rounded-lg border border-outline-variant/50 overflow-hidden shadow-2xl text-left mb-16">
+                <div class="flex items-center px-4 py-3 bg-surface-low border-b border-outline-variant/30">
+                    <div class="flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <span class="ml-4 text-xs font-mono text-on-surface-variant">deploy-cinevault.sh</span>
+                </div>
+                <div class="p-5 overflow-x-auto font-mono text-sm leading-8 whitespace-pre"><span class="text-primary">$</span> <span class="text-white">git clone https://github.com/MelvinLoos/cinevault.git</span>
+<span class="text-primary">$</span> <span class="text-white">cd cinevault</span>
+<span class="text-primary">$</span> <span class="text-white">cp .env.example .env && nano .env</span> <span class="text-on-surface-variant"># Set TZ and Tunnel Token</span>
+<span class="text-primary">$</span> <span class="text-white">nano ansible/inventory/hosts.ini</span>  <span class="text-on-surface-variant"># Define your host IP & Drive</span>
+<span class="text-primary">$</span> <span class="text-white">ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K</span></div>
+            </div>
+
+            <!-- Interface / Dashboard Screenshot Placeholder -->
+            <div class="max-w-5xl mx-auto relative group mt-16">
+                <div class="aspect-[16/9] w-full rounded-xl border border-outline-variant/50 bg-surface-low shadow-2xl flex flex-col items-center justify-center overflow-hidden relative z-0">
+                    <div class="flex flex-col items-center opacity-50">
+                        <i data-lucide="image" class="w-16 h-16 mb-4 text-primary"></i>
+                        <p class="font-mono text-sm">Dashboard Screenshot Placeholder</p>
+                    </div>
+                </div>
+                <!-- Ambient Glow -->
+                <div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 blur-2xl z-0 opacity-50"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Architecture & Principles -->
+    <section id="features" class="py-20 relative z-0 border-t border-outline-variant/30 bg-surface-lowest/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Engineering Principles</h2>
+                <p class="text-on-surface-variant max-w-2xl mx-auto">Built on strict DevOps constitutions for maximum reliability and security.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="glass-panel p-6 rounded-lg hover:border-primary/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-surface-high border border-outline-variant flex items-center justify-center mb-4 group-hover:shadow-neon transition-shadow">
+                        <i data-lucide="shield-alert" class="text-primary w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">Zero-Trust Segmentation</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Three isolated bridge networks. No service communicates across a boundary unless explicitly attached. All external access is gated by Cloudflare Tunnels.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-panel p-6 rounded-lg hover:border-primary/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-surface-high border border-outline-variant flex items-center justify-center mb-4 group-hover:shadow-neon transition-shadow">
+                        <i data-lucide="cpu" class="text-primary w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">State vs. Compute</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">Strict separation between stateless compute (Docker) and stateful data. All configuration resides in `/appdata/` to enable instantaneous disaster recovery.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-panel p-6 rounded-lg hover:border-primary/30 transition-colors group">
+                    <div class="w-12 h-12 rounded-lg bg-surface-high border border-outline-variant flex items-center justify-center mb-4 group-hover:shadow-neon transition-shadow">
+                        <i data-lucide="hard-drive" class="text-primary w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-on-surface mb-2">Atomic Hardlinks</h3>
+                    <p class="text-sm text-on-surface-variant leading-relaxed">A unified filesystem hierarchy allows media to move from download scratchpads to final library destinations instantly, using zero extra disk I/O.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Software Stack Section -->
+    <section id="stack" class="py-20 relative z-0 border-t border-outline-variant/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">The Software Stack</h2>
+                <p class="text-on-surface-variant max-w-2xl mx-auto">A modular ecosystem of best-in-class open-source tools working in perfect harmony.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- Jellyfin -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Jellyfin</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">The core media server. Delivers your content to any device with hardware-accelerated transcoding.</p>
+                </div>
+
+                <!-- Radarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="film" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Radarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Movie collection manager. Monitors feeds and completely automates movie acquisition.</p>
+                </div>
+
+                <!-- Sonarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="tv" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Sonarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">TV show manager. Automatically tracks, downloads, and organizes episodes as they air.</p>
+                </div>
+
+                <!-- SABnzbd -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="download-cloud" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">SABnzbd</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Resource-constrained Usenet download client. Securely unpacks media without starving the host.</p>
+                </div>
+
+                <!-- Prowlarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Prowlarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Indexer proxy. Translates tracker APIs and syncs them directly to your acquisition apps.</p>
+                </div>
+
+                <!-- Seerr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="clapperboard" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Seerr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Media discovery UI. Allows end-users to securely request new content without accessing the backend.</p>
+                </div>
+
+                <!-- Wizarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Wizarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Advanced user onboarding. Automates Jellyfin account creation via secure invite links.</p>
+                </div>
+
+                <!-- Homepage -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Homepage</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Centralized administrative dashboard aggregating APIs, metrics, and quick-links across the stack.</p>
+                </div>
+
+                <!-- Cloudflared -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="cloud" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Cloudflared</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Zero-trust ingress tunnel. Exposes public-facing services securely without port forwarding.</p>
+                </div>
+
+                <!-- Recyclarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Recyclarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Automated configuration sync. Keeps Radarr and Sonarr quality profiles aligned with TRaSH Guides.</p>
+                </div>
+
+                <!-- Watchtower -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="package-check" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Watchtower</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Automated dependency lifecycle management. Safely updates Docker images during maintenance windows.</p>
+                </div>
+
+                <!-- Docker Proxy -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="shield" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Docker Proxy</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Socket security abstraction. Prevents user-facing containers from gaining root host access.</p>
+                </div>
+
+                <!-- Bazarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="languages" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Bazarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Subtitle management. Automatically downloads and syncs perfectly timed subtitles in your preferred languages.</p>
+                </div>
+
+                <!-- Gluetun -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Gluetun</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">VPN Gateway. Enforces a strict network kill-switch for processing traffic to ensure absolute privacy.</p>
+                </div>
+
+                <!-- qBittorrent -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">qBittorrent</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Secure torrent fallback client. Acquires secondary media through peer-to-peer networks via the VPN.</p>
+                </div>
+
+                <!-- Tdarr -->
+                <div class="glass-panel p-5 rounded-md hover:border-primary/50 transition-colors group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors"></div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded bg-surface-high border border-outline-variant flex items-center justify-center text-primary">
+                            <i data-lucide="cpu" class="w-4 h-4"></i>
+                        </div>
+                        <h3 class="font-bold text-on-surface">Tdarr</h3>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Automated transcoding pipeline. Re-encodes library media using Intel QuickSync to maximize storage efficiency.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-outline-variant/30 glass-panel relative z-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-on-surface-variant">
+                <i data-lucide="server" class="w-5 h-5"></i>
+                <span class="text-sm font-medium">CineVault</span>
+            </div>
+            <div class="text-xs text-outline flex items-center gap-4">
+                <span>Deployed via Ansible</span>
+                <span>•</span>
+                <span>Powered by Docker</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="https://github.com/MelvinLoos/cinevault" target="_blank" class="text-on-surface-variant hover:text-primary transition-colors">
+                    <i data-lucide="github" class="w-5 h-5"></i>
+                </a>
+                <a href="#" class="text-on-surface-variant hover:text-primary transition-colors">
+                    <i data-lucide="terminal" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+</div>
+{% endblock %}
