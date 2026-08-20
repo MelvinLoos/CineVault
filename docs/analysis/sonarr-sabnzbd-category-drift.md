@@ -137,7 +137,7 @@ and these defaults do **not** match Sonarr/Radarr's out-of-the-box expectations 
 
 ```ini
 [the_host]
-192.168.2.22 ansible_user=ansible media_drive_device=
+mediacenter.local ansible_user=ansible media_drive_device=
 ```
 
 No host-level or group-level category variable.

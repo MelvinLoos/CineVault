@@ -112,18 +112,52 @@ SERVER_COUNTRIES=Switzerland
 
 Edit **`ansible/inventory/hosts.ini`** to point at your physical host and the block device that will become the media drive.
 
+!!! info "Bootstrapping — Day 1 vs. Day 2"
+    The stack now relies on **role-based mDNS resolution** instead of hardcoded
+    IP addresses. This creates two distinct deployment phases:
+
+    *   **Day 1 (Bootstrap):** The Host does not yet run Avahi/mDNS (it is
+        installed by the playbook itself), so `mediacenter.local` cannot
+        resolve. For the **first run only**, target the N100's DHCP-assigned
+        IP directly:
+
+        ```bash
+        ansible-playbook -i "192.168.1.150," -u ansible ansible/playbooks/provision_host.yml -K
+        ```
+
+    *   **Day 2 (Normal Ops):** After provisioning, the playbook has set the
+        role-based hostname and Avahi advertises it on the LAN. Update the
+        inventory to point at the mDNS name for all future runs — resilient
+        to DHCP address changes:
+
+        ```bash
+        ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K
+        ```
+
+        ```ini
+        # ansible/inventory/hosts.ini
+        [the_host]
+        mediacenter.local ansible_user=ansible media_drive_device=/dev/sda1
+        ```
+
+        !!! note "Control machine mDNS support"
+            The workstation running Ansible must resolve `.local` names,
+            which requires Avahi/nss-mdns (Linux) or Bonjour (macOS).
+
+The canonical inventory template (`ansible/inventory/hosts.ini`) ships with
+`mediacenter.local` plus commented examples covering the Day 1 IP form and
+optional `media_subnet_cidr` / `web_hostname` overrides.
+
+### 4.1. Set the Host
+
+The inventory targets The Host by its role-based mDNS name
+(`mediacenter.local`) after Day 1. The NFS/UFW subnet is auto-detected from
+The Host's own network facts; pin it explicitly only for unusual topologies:
+
 ```ini
-# ansible/inventory/hosts.ini
-[the_host]
-192.168.1.50 ansible_user=ansible media_drive=/dev/sda1
-```
-
-### 4.1. Set the Host IP
-
-Replace the placeholder IP with the **LAN IP address of The Host**. This is the address your workstation will SSH into when running the playbook.
-
-```ini
-192.168.1.50 ansible_user=ansible media_drive=/dev/sda1
+mediacenter.local ansible_user=ansible media_drive_device=/dev/sda1
+# Optional manual subnet override:
+# mediacenter.local ansible_user=ansible media_drive_device=/dev/sda1 media_subnet_cidr=192.168.50.0/24
 ```
 
 ### 4.2. Set the `media_drive` Path

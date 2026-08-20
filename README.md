@@ -56,7 +56,7 @@ The media stack consists of the following services, categorized by their Bounded
 *   **Processing:**
     *   **SABnzbd:** Usenet download client (Resource limited to 2 CPUs / 2GB RAM).
     *   **Tdarr:** Automated media transcoding (Intel QuickSync on-host).
-    *   **On-Demand GPU Workload Offloading:** A transient laptop node with an AMD Radeon RX 7600M XT can join the Tdarr cluster over NFSv4 + the Tdarr control plane to offload GPU encoding on demand. The export and control port are strictly scoped to `192.168.2.0/24` via UFW with zero-trust UID/GID squashing (see [Distributed Tdarr Node](docs/configuration/distributed-tdarr.md)).
+    *   **On-Demand GPU Workload Offloading:** A transient laptop node with an AMD Radeon RX 7600M XT can join the Tdarr cluster over NFSv4 + the Tdarr control plane to offload GPU encoding on demand. The export and control port are strictly scoped to the auto-detected LAN subnet via UFW with zero-trust UID/GID squashing (see [Distributed Tdarr Node](docs/configuration/distributed-tdarr.md)).
 *   **Media Request & Identity & Access:**
     *   **Seerr:** UI for media discovery and requests.
 *   **Ingress:**
@@ -117,8 +117,13 @@ Before running Ansible, the Intel N100 Mini-PC must be manually prepared:
 Ensure your control machine has Ansible installed along with the required collections:
 
 ```bash
-ansible-galaxy collection install community.general ansible.posix community.docker
+ansible-galaxy collection install community.general ansible.posix community.docker ansible.utils
 ```
+
+> **Python dependency:** the `ansible.utils` collection's `ipaddr` filter (used for
+> automatic LAN subnet detection) requires the `netaddr` Python package in your
+> Ansible control environment (`pip install netaddr`, or
+> `pipx inject ansible-core netaddr` when Ansible runs from pipx).
 
 ### 3. Configuration
 
@@ -128,11 +133,15 @@ ansible-galaxy collection install community.general ansible.posix community.dock
     cd mediacenter
     ```
 
-2.  **Inventory:** Edit `ansible/inventory/hosts.ini`. Replace the IP and ensure `media_drive_device` matches your drive path from step 1.4.
-    ```ini
-    [the_host]
-    192.168.1.100 ansible_user=ansible media_drive_device=/dev/sdb
-    ```
+2.  **Inventory:** Edit `ansible/inventory/hosts.ini` and ensure `media_drive_device` matches your drive path from step 1.4.
+
+    > **Bootstrapping (Day 1 vs. Day 2)**
+    > *   **Day 1 (Bootstrap):** The Host does not run Avahi/mDNS yet, so `mediacenter.local` cannot resolve. Target its DHCP address directly for the first run, e.g. `ansible-playbook -i "192.168.1.150," -u ansible ansible/playbooks/provision_host.yml -K`.
+    > *   **Day 2 (Normal Ops):** The playbook sets the role-based hostname and installs Avahi. Afterwards, point the inventory at the mDNS name — resilient to DHCP address changes:
+    >     ```ini
+    >     [the_host]
+    >     mediacenter.local ansible_user=ansible media_drive_device=/dev/sdb
+    >     ```
 
 3.  **Environment Variables:** Copy `.env.example` to `.env` and set your `TZ` and `CLOUDFLARED_TOKEN`.
     ```bash
