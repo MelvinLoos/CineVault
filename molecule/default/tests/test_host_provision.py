@@ -19,6 +19,8 @@ All tests use the `host` fixture exclusively (pytest-testinfra).
 Tests are deterministic and order-independent.
 """
 
+import ipaddress
+
 import pytest
 
 # ---------------------------------------------------------------------------
@@ -508,14 +510,41 @@ def test_ufw_does_not_expose_jellyfin_port_externally(host):
 # Group F — On-Demand GPU Workload Offloading (Distributed Tdarr Node)
 # Spec: distributed-tdarr topology — NFS export of The Library plus the
 #       Tdarr Server control plane, both strictly scoped to the local
-#       subnet (192.168.2.0/24) per zero-trust micro-segmentation.
+#       subnet per zero-trust micro-segmentation.
+#
+# The expected subnet is derived dynamically from the VM's default-route
+# interface (provision_host.yml auto-detects the same subnet from host
+# network facts), so the contract holds regardless of the libvirt/DHCP
+# address range assigned to the test VM.
 #
 # The export must enforce identity parity via all_squash + anonuid/anongid
 # mapping to mediasvc (UID/GID 5000) — AGENTS.md §3 Zero Root Execution.
 # ===========================================================================
 
-MEDIA_SUBNET_CIDR = "192.168.2.0/24"
 NFS_EXPORT_PATH = "/opt/mediastack/data"
+
+
+def get_expected_subnet(host):
+    """
+    Derive the LAN subnet CIDR expected to be configured on The Host by
+    inspecting the default-route interface of the VM.
+
+    Mirrors provision_host.yml's runtime detection: the playbook computes
+    'media_subnet_cidr' from ansible_default_ipv4.network/netmask, which
+    corresponds to the default-route NIC. Assertions use this value so the
+    suite is independent of any hardcoded IP range.
+    """
+    cmd = host.run("ip -4 route show default")
+    assert cmd.rc == 0, "ip route show default must succeed on The Host"
+    first_line = cmd.stdout.strip().splitlines()[0]
+    dev = first_line.split()[4]
+
+    addr_cmd = host.run(f"ip -4 -o addr show dev {dev}")
+    assert addr_cmd.rc == 0, f"ip addr show dev {dev} must succeed on The Host"
+    cidr_str = addr_cmd.stdout.split()[3]
+
+    interface = ipaddress.IPv4Interface(cidr_str)
+    return str(interface.network)
 
 
 def test_nfs_kernel_server_package_installed(host):
@@ -534,7 +563,7 @@ def test_nfs_kernel_server_package_installed(host):
 def test_nfs_export_line_configured(host):
     """
     /etc/exports must contain an export line for /opt/mediastack/data that:
-      - Restricts access to the local subnet (192.168.2.0/24)
+      - Restricts access to the local subnet (auto-detected)
       - Squashes ALL clients to mediasvc identity (all_squash)
       - Maps anonuid/anongid to UID/GID 5000 (zero-trust UID/GID parity)
       - Includes fsid=1 (required: the export is the root of the media
@@ -548,13 +577,14 @@ def test_nfs_export_line_configured(host):
         "/etc/exports must exist on The Host"
     )
     exports_content = exports_file.content_string
+    expected_cidr = get_expected_subnet(host)
 
     assert NFS_EXPORT_PATH in exports_content, (
         f"/etc/exports must export '{NFS_EXPORT_PATH}' "
         "(The Library) for the distributed Tdarr node"
     )
-    assert MEDIA_SUBNET_CIDR in exports_content, (
-        f"NFS export must be restricted to subnet '{MEDIA_SUBNET_CIDR}'; "
+    assert expected_cidr in exports_content, (
+        f"NFS export must be restricted to subnet '{expected_cidr}'; "
         "a wider scope would violate zero-trust micro-segmentation"
     )
     assert "all_squash" in exports_content, (
@@ -581,20 +611,21 @@ def test_ufw_allows_nfs_from_local_subnet(host):
     UFW must allow inbound NFS (port 2049) from the local subnet ONLY.
 
     The distributed Tdarr laptop node mounts The Library over NFSv4, which
-    uses port 2049 exclusively. The allow rule must be scoped to
-    192.168.2.0/24 — not exposed to Anywhere — per zero-trust
+    uses port 2049 exclusively. The allow rule must be scoped to the
+    auto-detected local subnet — not exposed to Anywhere — per zero-trust
     micro-segmentation (ARCHITECTURE.md §2).
     """
     ufw_status = host.run("sudo ufw status verbose")
     assert ufw_status.rc == 0, "ufw status verbose must succeed"
     output = ufw_status.stdout
+    expected_cidr = get_expected_subnet(host)
 
     assert "2049" in output, (
         "UFW must have an ALLOW rule for port 2049 (NFS) to serve the "
         "distributed Tdarr node"
     )
-    assert MEDIA_SUBNET_CIDR in output, (
-        f"UFW NFS rule must reference subnet '{MEDIA_SUBNET_CIDR}'; "
+    assert expected_cidr in output, (
+        f"UFW NFS rule must reference subnet '{expected_cidr}'; "
         "the export is scoped to the local subnet per the approved plan"
     )
 
@@ -605,20 +636,22 @@ def test_ufw_allows_tdarr_control_from_local_subnet(host):
     from the local subnet ONLY.
 
     The transient laptop node registers with the Tdarr Server on 8266. The
-    rule must be scoped to 192.168.2.0/24 — the control plane is never
-    exposed beyond the local subnet (CONSTITUTION.md §2 Maxim 4).
+    rule must be scoped to the auto-detected local subnet — the control
+    plane is never exposed beyond the local subnet (CONSTITUTION.md §2
+    Maxim 4).
     """
     ufw_status = host.run("sudo ufw status verbose")
     assert ufw_status.rc == 0, "ufw status verbose must succeed"
     output = ufw_status.stdout
+    expected_cidr = get_expected_subnet(host)
 
     assert "8266" in output, (
         "UFW must have an ALLOW rule for port 8266 (Tdarr Server control "
         "plane) so the external node can register"
     )
-    assert MEDIA_SUBNET_CIDR in output, (
+    assert expected_cidr in output, (
         f"UFW Tdarr control-plane rule must reference subnet "
-        f"'{MEDIA_SUBNET_CIDR}'; the control port is scoped to the local "
+        f"'{expected_cidr}'; the control port is scoped to the local "
         "subnet per the approved plan"
     )
 
@@ -635,15 +668,16 @@ def test_ufw_does_not_expose_nfs_or_tdarr_to_anywhere(host):
     ufw_status = host.run("sudo ufw status verbose")
     assert ufw_status.rc == 0, "ufw status verbose must succeed"
 
+    expected_cidr = get_expected_subnet(host)
     lines = ufw_status.stdout.splitlines()
     for line in lines:
         if ("2049" in line or "8266" in line) and "Anywhere" in line:
             # A line like "2049/tcp  ALLOW   Anywhere" is a leak; a line
-            # like "2049/tcp  ALLOW   192.168.2.0/24" is correct and is
+            # like "2049/tcp  ALLOW   192.168.121.0/24" is correct and is
             # validated by the positive tests above.
             pytest.fail(
                 f"UFW rule is scoped to 'Anywhere' for an offload port: "
                 f"'{line.strip()}'. NFS (2049) and the Tdarr control plane "
-                f"(8266) must be restricted to {MEDIA_SUBNET_CIDR} "
+                f"(8266) must be restricted to {expected_cidr} "
                 "(zero-trust micro-segmentation)."
             )
