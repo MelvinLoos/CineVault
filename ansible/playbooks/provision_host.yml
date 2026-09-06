@@ -25,17 +25,17 @@
     media_subnet_cidr: ""
 
   tasks:
-    - name: Ensure system hostname is set to role-based name
-      ansible.builtin.hostname:
-        name: "{{ mediacenter_hostname | default('mediacenter') }}"
-      tags:
-        - identity
-
     - name: Ensure role-based hostname resolves locally
       ansible.builtin.lineinfile:
         path: /etc/hosts
         regexp: '^127\.0\.1\.1\s+'
         line: "127.0.1.1 {{ mediacenter_hostname | default('mediacenter') }}"
+      tags:
+        - identity
+
+    - name: Ensure system hostname is set to role-based name
+      ansible.builtin.hostname:
+        name: "{{ mediacenter_hostname | default('mediacenter') }}"
       tags:
         - identity
 
