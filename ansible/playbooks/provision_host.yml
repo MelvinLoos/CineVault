@@ -31,6 +31,14 @@
       tags:
         - identity
 
+    - name: Ensure role-based hostname resolves locally
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1\s+'
+        line: "127.0.1.1 {{ mediacenter_hostname | default('mediacenter') }}"
+      tags:
+        - identity
+
     - name: Calculate LAN Subnet CIDR from host network facts
       # Compose the address/netmask pair and let the ipaddr filter derive the
       # canonical network/prefix form (e.g. 192.168.2.42/255.255.255.0 ->
