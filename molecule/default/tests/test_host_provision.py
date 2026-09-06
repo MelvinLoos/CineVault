@@ -20,6 +20,7 @@ Tests are deterministic and order-independent.
 """
 
 import ipaddress
+import re
 
 import pytest
 
@@ -160,6 +161,22 @@ def test_mediasvc_user_is_not_in_sudo_group(host):
     assert "sudo" not in user.groups, (
         f"User '{MEDIASVC_USER}' must NOT be in the 'sudo' group; "
         "privilege escalation violates the Zero Root Execution constraint"
+    )
+
+
+def test_hostname_is_locally_resolvable(host):
+    """
+    The provisioned hostname must resolve locally on The Host.
+
+    The playbook renames the machine to the role-based hostname early in the
+    converge sequence. Debian sudo/become lookups depend on the host being
+    locally resolvable, so /etc/hosts must keep the hostname mapped.
+    """
+    hostname = host.check_output("hostname").strip()
+    hosts_file = host.file("/etc/hosts")
+    assert hosts_file.contains(rf"^127\.0\.1\.1\s+{re.escape(hostname)}(?:\s|$)"), (
+        f"/etc/hosts must map 127.0.1.1 to '{hostname}' so privileged tasks "
+        "continue working after the hostname is changed"
     )
 
 
