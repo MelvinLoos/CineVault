@@ -345,7 +345,7 @@
         path: /etc/exports
         regexp: '^/opt/mediastack/data'
         line: '/opt/mediastack/data {{ media_subnet_cidr }}(rw,sync,no_subtree_check,all_squash,anonuid={{ mediasvc_uid }},anongid={{ mediasvc_gid }},fsid=1)'
-      notify: Restart NFS Server
+      notify: Reload NFS Exports
       tags: [nfs, filesystem]
 
     - name: Media Offloading - Ensure NFS server is running and enabled
@@ -773,10 +773,9 @@
         name: sshd
         state: restarted
 
-    - name: Restart NFS Server
-      ansible.builtin.systemd:
-        name: nfs-server
-        state: restarted
+    - name: Reload NFS Exports
+      ansible.builtin.command: exportfs -ra
+      changed_when: false
 
     - name: Reload systemd
       ansible.builtin.systemd:
