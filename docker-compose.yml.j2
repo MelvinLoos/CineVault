@@ -391,7 +391,10 @@ services:
     container_name: cloudflared
     profiles:
       - ingress
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN}
+    command: tunnel --no-autoupdate run
+    # SECURITY: --token is intentionally omitted from the CLI command.
+    # CLI arguments are visible in /proc/*/cmdline and `ps aux` to any user on The Host.
+    # cloudflared reads TUNNEL_TOKEN from the environment variable natively (line below).
     # No volumes: cloudflared is stateless compute — all tunnel state lives in Cloudflare's control plane.
     networks:
       - ingress_net
