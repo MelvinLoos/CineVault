@@ -163,6 +163,29 @@ def test_mediasvc_user_is_not_in_sudo_group(host):
     )
 
 
+def test_hostname_is_locally_resolvable(host):
+    """
+    The provisioned hostname must resolve locally on The Host.
+
+    The playbook renames the machine to the role-based hostname early in the
+    converge sequence. Debian sudo/become lookups depend on the host being
+    locally resolvable, so /etc/hosts must keep the hostname mapped.
+    """
+    hostname = host.check_output("hostname").strip()
+    hosts_line = host.check_output(
+        r"""awk '$1 == "127.0.1.1" { print; exit }' /etc/hosts"""
+    ).strip()
+    hosts_fields = hosts_line.split()
+    assert (
+        len(hosts_fields) > 1
+        and hosts_fields[0] == "127.0.1.1"
+        and hostname in hosts_fields[1:]
+    ), (
+        f"/etc/hosts must map 127.0.1.1 to '{hostname}' so privileged tasks "
+        "continue working after the hostname is changed"
+    )
+
+
 # ===========================================================================
 # Group B — File System Architecture / State Isolation
 # Spec: ARCHITECTURE.md §1 File System Architecture (State Isolation)
