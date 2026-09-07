@@ -25,11 +25,11 @@
     media_subnet_cidr: ""
 
   tasks:
-    - name: Ensure role-based hostname resolves locally
+    - name: Ensure current and target hostnames resolve locally during rename
       ansible.builtin.lineinfile:
         path: /etc/hosts
         regexp: '^127\.0\.1\.1\s+'
-        line: "127.0.1.1 {{ mediacenter_hostname | default('mediacenter') }}"
+        line: "127.0.1.1 {{ ([ansible_facts['hostname'], mediacenter_hostname | default('mediacenter')] | unique) | join(' ') }}"
       tags:
         - identity
 
