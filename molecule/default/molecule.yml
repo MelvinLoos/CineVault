@@ -20,6 +20,8 @@ provisioner:
   config_options:
     defaults:
       become: true
+      # Disable host key checking for ephemeral Vagrant VMs used in CI
+      host_key_checking: false
 verifier:
   name: testinfra
   options:
