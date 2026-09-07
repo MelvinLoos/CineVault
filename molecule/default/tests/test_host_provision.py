@@ -20,7 +20,6 @@ Tests are deterministic and order-independent.
 """
 
 import ipaddress
-import re
 
 import pytest
 
@@ -173,8 +172,15 @@ def test_hostname_is_locally_resolvable(host):
     locally resolvable, so /etc/hosts must keep the hostname mapped.
     """
     hostname = host.check_output("hostname").strip()
-    hosts_file = host.file("/etc/hosts")
-    assert hosts_file.contains(rf"^127\.0\.1\.1\s+{re.escape(hostname)}(?:\s|$)"), (
+    hosts_line = host.check_output(
+        r"""awk '$1 == "127.0.1.1" { print; exit }' /etc/hosts"""
+    ).strip()
+    hosts_fields = hosts_line.split()
+    assert (
+        len(hosts_fields) > 1
+        and hosts_fields[0] == "127.0.1.1"
+        and hostname in hosts_fields[1:]
+    ), (
         f"/etc/hosts must map 127.0.1.1 to '{hostname}' so privileged tasks "
         "continue working after the hostname is changed"
     )
