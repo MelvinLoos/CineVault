@@ -477,6 +477,14 @@
         sonarr_key: "{{ lookup('password', playbook_dir + '/../credentials/sonarr.key chars=hexdigits length=32') }}"
         prowlarr_key: "{{ lookup('password', playbook_dir + '/../credentials/prowlarr.key chars=hexdigits length=32') }}"
         bazarr_key: "{{ lookup('password', playbook_dir + '/../credentials/bazarr.key chars=hexdigits length=32') }}"
+        sabnzbd_key: "{{ lookup('password', playbook_dir + '/../credentials/sabnzbd.key chars=hexdigits length=32') }}"
+      tags:
+        - config
+
+    - name: Configuration - Generate Idempotent Spotweb DB Passwords
+      ansible.builtin.set_fact:
+        spotweb_db_root_password: "{{ lookup('password', playbook_dir + '/../credentials/spotweb_root.key chars=ascii_letters,digits length=24') }}"
+        spotweb_db_password: "{{ lookup('password', playbook_dir + '/../credentials/spotweb.key chars=ascii_letters,digits length=24') }}"
       tags:
         - config
 
@@ -578,7 +586,7 @@
     - name: Configuration - Determine final BAZARR and SABnzbd keys
       ansible.builtin.set_fact:
         final_bazarr_key: "{{ current_bazarr_key if (current_bazarr_key | length > 0) else bazarr_key }}"
-        final_sabnzbd_key: "{{ current_sabnzbd_key if (current_sabnzbd_key | length > 0) else '' }}"
+        final_sabnzbd_key: "{{ current_sabnzbd_key if (current_sabnzbd_key | length > 0) else sabnzbd_key }}"
       tags:
         - config
 
@@ -597,6 +605,8 @@
         - { key: 'PROWLARR_API_KEY', value: "{{ prowlarr_key }}" }
         - { key: 'BAZARR_API_KEY', value: "{{ final_bazarr_key }}" }
         - { key: 'SABNZBD_API_KEY', value: "{{ final_sabnzbd_key }}" }
+        - { key: 'SPOTWEB_DB_ROOT_PASSWORD', value: "{{ spotweb_db_root_password }}" }
+        - { key: 'SPOTWEB_DB_PASSWORD', value: "{{ spotweb_db_password }}" }
       tags:
         - config
 
