@@ -6,7 +6,7 @@ sonarr:
     base_url: http://sonarr:8989
     api_key: {{ sonarr_key }}
     download_clients:
-      - category: tv-sonarr
+      - category: {{ sonarr_sabnzbd_category }}
     include:
       - template: sonarr-quality-definition-series
       - template: sonarr-v3-quality-profile-web-dl-1080p

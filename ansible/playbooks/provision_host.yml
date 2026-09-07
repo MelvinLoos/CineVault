@@ -23,6 +23,11 @@
     # via inventory (media_subnet_cidr=...). Scoped strictly to enforce
     # zero-trust micro-segmentation (ARCHITECTURE.md §2).
     media_subnet_cidr: ""
+    # SSOT Category Tag linking Sonarr ⇄ SABnzbd (PRODUCT_SPECIFICATION.md §2).
+    # Must be byte-identical across recyclarr.yml.j2 and config.xml.j2.
+    # Any drift causes "Download wasn't grabbed by sonarr, skipping" failures.
+    # See: .ruler/specs/active/bug-sonarr-sabnzbd-sync.md
+    sonarr_sabnzbd_category: "tv-sonarr"
 
   tasks:
     - name: Ensure system hostname is set to role-based name
@@ -495,7 +500,8 @@
         owner: mediasvc
         group: mediasvc
         mode: '0644'
-        force: false
+      vars:
+        sonarr_sabnzbd_category: "{{ sonarr_sabnzbd_category }}"
       loop:
         - { app: 'radarr', port: '7878', api_key: "{{ radarr_key }}" }
         - { app: 'sonarr', port: '8989', api_key: "{{ sonarr_key }}" }
@@ -522,7 +528,9 @@
         dest: "/opt/mediastack/appdata/recyclarr/recyclarr.yml"
         owner: mediasvc
         group: mediasvc
-        mode: "0644"
+        mode: "0600"
+      vars:
+        sonarr_sabnzbd_category: "{{ sonarr_sabnzbd_category }}"
       tags:
         - deploy
 
