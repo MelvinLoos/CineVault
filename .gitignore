@@ -2,8 +2,16 @@
 **/__pycache__/
 # Ignore Ansible generated local secrets
 ansible/credentials/
+ansible/playbooks/credentials/
 
 .env
+
+# Ignore cached agent skill files
+.agents/
+skills-lock.json
+
+# Ignore AI agent tool configs
+.agent/
 
 # START Ruler Generated Files
 /.agent/rules/ruler.md
