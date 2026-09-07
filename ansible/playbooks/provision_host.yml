@@ -25,9 +25,26 @@
     media_subnet_cidr: ""
 
   tasks:
+    - name: Ensure current and target hostnames resolve locally during rename
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1\s+'
+        line: "127.0.1.1 {{ ([ansible_facts['hostname'], mediacenter_hostname | default('mediacenter')] | unique) | join(' ') }}"
+      when: ansible_facts['hostname'] != (mediacenter_hostname | default('mediacenter'))
+      tags:
+        - identity
+
     - name: Ensure system hostname is set to role-based name
       ansible.builtin.hostname:
         name: "{{ mediacenter_hostname | default('mediacenter') }}"
+      tags:
+        - identity
+
+    - name: Ensure role-based hostname resolves locally
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1\s+'
+        line: "127.0.1.1 {{ mediacenter_hostname | default('mediacenter') }}"
       tags:
         - identity
 
@@ -328,7 +345,7 @@
         path: /etc/exports
         regexp: '^/opt/mediastack/data'
         line: '/opt/mediastack/data {{ media_subnet_cidr }}(rw,sync,no_subtree_check,all_squash,anonuid={{ mediasvc_uid }},anongid={{ mediasvc_gid }},fsid=1)'
-      notify: Restart NFS Server
+      notify: Reload NFS Exports
       tags: [nfs, filesystem]
 
     - name: Media Offloading - Ensure NFS server is running and enabled
@@ -756,10 +773,9 @@
         name: sshd
         state: restarted
 
-    - name: Restart NFS Server
-      ansible.builtin.systemd:
-        name: nfs-server
-        state: restarted
+    - name: Reload NFS Exports
+      ansible.builtin.command: exportfs -ra
+      changed_when: false
 
     - name: Reload systemd
       ansible.builtin.systemd:
