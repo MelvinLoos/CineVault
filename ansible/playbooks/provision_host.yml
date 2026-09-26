@@ -517,6 +517,12 @@
         owner: mediasvc
         group: mediasvc
         mode: '0644'
+        # First-run-only seed: once the Servarr containers boot they rewrite
+        # config.xml themselves (normalising the XML and file mode), so
+        # re-templating would always report "changed" and break the Molecule
+        # idempotence test (AGENTS.md §3). force: false skips existing files,
+        # mirroring the host .env seed task below.
+        force: false
       loop:
         - { app: 'radarr', port: '7878', api_key: "{{ radarr_key }}" }
         - { app: 'sonarr', port: '8989', api_key: "{{ sonarr_key }}" }
