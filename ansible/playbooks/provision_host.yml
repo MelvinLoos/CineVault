@@ -517,8 +517,6 @@
         owner: mediasvc
         group: mediasvc
         mode: '0644'
-      vars:
-        sonarr_sabnzbd_category: "{{ sonarr_sabnzbd_category }}"
       loop:
         - { app: 'radarr', port: '7878', api_key: "{{ radarr_key }}" }
         - { app: 'sonarr', port: '8989', api_key: "{{ sonarr_key }}" }
@@ -546,8 +544,6 @@
         owner: mediasvc
         group: mediasvc
         mode: "0600"
-      vars:
-        sonarr_sabnzbd_category: "{{ sonarr_sabnzbd_category }}"
       tags:
         - deploy
 
