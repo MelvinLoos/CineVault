@@ -54,7 +54,21 @@ PGID=5000
 !!! warning "Must Match `mediasvc`"
     The default values `5000`/`5000` correspond to the `mediasvc` user provisioned by `ansible/playbooks/provision_host.yml`. If you change these, you **must** also change the canonical values in the playbook, or file ownership will break.
 
-### 2.3. `TZ` — Timezone
+### 2.3. `DOCKER_GROUP_GID` — Docker Socket Access (auto-resolved)
+
+The `docker-proxy` socket proxy runs HAProxy as the non-root `mediasvc` user (Zero Root Execution), but HAProxy must still reach `/var/run/docker.sock`, which is group-`docker` owned on The Host. This variable grants the host `docker` group's GID to the proxy container as a supplementary group.
+
+```bash
+# Resolve on The Host with:
+#   getent group docker        → docker:x:998: ...
+# then paste the GID (e.g. 998):
+DOCKER_GROUP_GID=998
+```
+
+!!! info "Ansible handles this for you"
+    `ansible/playbooks/provision_host.yml` resolves this GID automatically via `getent group docker` and injects it into `/opt/mediastack/.env`. You only need to set it manually when provisioning the stack by hand.
+
+### 2.4. `TZ` — Timezone
 
 Set a valid [IANA timezone string](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). This drives log timestamps and scheduler behaviour for every container.
 
