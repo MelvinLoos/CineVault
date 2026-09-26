@@ -409,6 +409,16 @@ services:
   docker-proxy:
     image: tecnativa/docker-socket-proxy:latest
     container_name: docker-proxy
+    # Zero Root Execution (AGENTS.md §3): the bundled HAProxy must not run as root.
+    # - user: run every process as the mediasvc service account.
+    # - group_add: HAProxy still needs to reach /var/run/docker.sock (srw-rw----
+    #   root:docker); the host 'docker' group GID is injected by the playbook.
+    # - tmpfs /run: HAProxy requires a writable pidfile at /run/haproxy.pid.
+    user: ${PUID}:${PGID}
+    group_add:
+      - ${DOCKER_GROUP_GID}
+    tmpfs:
+      - /run:rw,mode=1777
     environment:
       - CONTAINERS=1
       - IMAGES=1
@@ -441,6 +451,10 @@ services:
   watchtower:
     image: containrrr/watchtower
     container_name: watchtower
+    # Zero Root Execution (AGENTS.md §3): watchtower reaches the Docker API over
+    # TCP via docker-proxy (DOCKER_HOST below), so it needs no host socket
+    # access and safely runs as the non-root mediasvc user.
+    user: ${PUID}:${PGID}
     environment:
       - TZ=${TZ}
       - WATCHTOWER_CLEANUP=true
