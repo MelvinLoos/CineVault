@@ -1,0 +1,48 @@
+---
+# Docker Engine provisioning for The Host: the docker.io toolchain and the
+# host-side docker group membership that keeps operational access non-root
+# (AGENTS.md §3 Zero Root Execution). System preparation (GRUB preseed and
+# the apt cache refresh/upgrade) runs as a play-level pre-task so it precedes
+# every role that installs packages.
+
+- name: System Preparation - Install required system packages for Docker and Python
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose
+      - python3-docker
+      - avahi-daemon
+    state: present
+  tags:
+    - docker
+
+- name: Identity & Zero Root Execution - Add ansible remote user to the docker group
+  # Lives in the docker role (not identity) because the docker group only
+  # exists after the docker.io package above has been installed.
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+  tags:
+    - docker
+
+- name: Docker Service - Enable and start the docker systemd service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+    daemon_reload: true
+  tags:
+    - docker
+
+- name: Privacy - Restart Docker ONLY if DNS config changed
+  # The security role rewrites /etc/resolv.conf via systemd-resolved; a docker
+  # daemon started before that change keeps stale resolvers. Guarded on the
+  # registered fact so the task is a no-op whenever the DNS tasks are not part
+  # of the run (e.g. --tags docker on a host that never ran the security role).
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+  when: security_dns_config is defined and security_dns_config.changed  # noqa: no-handler
+  tags:
+    - docker

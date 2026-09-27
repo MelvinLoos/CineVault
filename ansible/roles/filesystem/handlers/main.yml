@@ -1,0 +1,6 @@
+---
+# Handler for changes to the managed /etc/exports block.
+
+- name: Reload NFS Exports
+  ansible.builtin.command: exportfs -ra
+  changed_when: false

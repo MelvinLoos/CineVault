@@ -1,0 +1,65 @@
+---
+# Deployment bounded context: renders the stack definition from the
+# repository's docker-compose.yml.j2 and brings the compose project up on
+# The Host (PRODUCT_SPECIFICATION.md §2).
+
+- name: Deploy Stack - Template dynamic docker-compose.yml to the host
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../../docker-compose.yml.j2"
+    dest: /opt/mediastack/docker-compose.yml
+    owner: mediasvc
+    group: mediasvc
+    mode: '0644'
+  tags:
+    - deployment
+
+- name: Deploy Stack - Synchronize Container Identities with Host Identities
+  ansible.builtin.lineinfile:
+    path: /opt/mediastack/.env
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  loop:
+    - { key: 'PUID', value: "{{ mediasvc_uid }}" }
+    - { key: 'PGID', value: "{{ mediasvc_gid }}" }
+  tags:
+    - deployment
+
+- name: Deploy Stack - Resolve host Docker group GID for socket proxy access
+  # docker-proxy's HAProxy runs as the non-root mediasvc user (Zero Root
+  # Execution, AGENTS.md §3) yet must reach /var/run/docker.sock
+  # (srw-rw---- root:docker). Granting the host 'docker' group GID as a
+  # supplementary group keeps the proxy functional without root execution.
+  ansible.builtin.getent:
+    database: group
+    key: docker
+  tags:
+    - deployment
+
+- name: Deploy Stack - Inject Docker group GID into host .env
+  ansible.builtin.lineinfile:
+    path: /opt/mediastack/.env
+    regexp: "^DOCKER_GROUP_GID="
+    line: "DOCKER_GROUP_GID={{ ansible_facts['getent_group']['docker'][1] }}"
+    create: true
+    owner: mediasvc
+    group: mediasvc
+    mode: '0600'
+  tags:
+    - deployment
+
+- name: Deploy Stack - Spin up the Prosumer Media Hub
+  community.docker.docker_compose_v2:
+    project_src: /opt/mediastack/
+    state: present
+    # Prune containers that belong to the project but are no longer defined
+    # in the rendered compose file (e.g. retired services), keeping The Host
+    # free of stale containers.
+    remove_orphans: true
+  environment:
+    COMPOSE_PARALLEL_LIMIT: "2"
+  register: deployment_deploy_result
+  until: deployment_deploy_result is not failed
+  retries: 5
+  delay: 60
+  tags:
+    - deployment
