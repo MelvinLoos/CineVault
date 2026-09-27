@@ -26,7 +26,7 @@
         description: Movie Manager
         server: local-docker
         container: radarr
-{% if radarr_key is defined and radarr_key | length > 0 %}
+{% if secrets_radarr_key is defined and secrets_radarr_key | length > 0 %}
         widget:
             type: radarr
             url: http://radarr:7878
@@ -38,7 +38,7 @@
         description: TV Show Manager
         server: local-docker
         container: sonarr
-{% if sonarr_key is defined and sonarr_key | length > 0 %}
+{% if secrets_sonarr_key is defined and secrets_sonarr_key | length > 0 %}
         widget:
             type: sonarr
             url: http://sonarr:8989
@@ -50,7 +50,7 @@
         description: Indexer Manager
         server: local-docker
         container: prowlarr
-{% if prowlarr_key is defined and prowlarr_key | length > 0 %}
+{% if secrets_prowlarr_key is defined and secrets_prowlarr_key | length > 0 %}
         widget:
             type: prowlarr
             url: http://prowlarr:9696
@@ -62,7 +62,7 @@
         description: Subtitle Manager
         server: local-docker
         container: bazarr
-{% if final_bazarr_key is defined and final_bazarr_key | length > 0 %}
+{% if configuration_final_bazarr_key is defined and configuration_final_bazarr_key | length > 0 %}
         widget:
             type: bazarr
             url: http://bazarr:6767
@@ -75,7 +75,7 @@
         description: Usenet Downloader
         server: local-docker
         container: sabnzbd
-{% if final_sabnzbd_key is defined and final_sabnzbd_key | length > 0 %}
+{% if configuration_final_sabnzbd_key is defined and configuration_final_sabnzbd_key | length > 0 %}
         widget:
             type: sabnzbd
             url: http://sabnzbd:8080

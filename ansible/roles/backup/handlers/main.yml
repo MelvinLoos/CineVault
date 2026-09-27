@@ -1,0 +1,6 @@
+---
+# Handler for restic systemd unit changes.
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true

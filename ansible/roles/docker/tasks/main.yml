@@ -1,0 +1,70 @@
+---
+# Docker Engine provisioning for The Host: system preparation, the docker.io
+# toolchain, and the host-side docker group membership that keeps operational
+# access non-root (AGENTS.md §3 Zero Root Execution).
+
+- name: System Preparation - Pre-seed GRUB to bypass Legacy BIOS prompts in Vagrant
+  ansible.builtin.debconf:
+    name: grub-pc
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  loop:
+    - { question: 'grub-pc/install_devices', value: '', vtype: 'multiselect' }
+    - { question: 'grub-pc/install_devices_empty', value: 'true', vtype: 'boolean' }
+  tags:
+    - docker
+
+- name: System Preparation - Update apt package cache and upgrade all packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: true
+    dpkg_options: 'force-confdef,force-confold'
+    autoclean: true
+    autoremove: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  tags:
+    - docker
+
+- name: System Preparation - Install required system packages for Docker and Python
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose
+      - python3-docker
+      - avahi-daemon
+    state: present
+  tags:
+    - docker
+
+- name: Identity & Zero Root Execution - Add ansible remote user to the docker group
+  # Lives in the docker role (not identity) because the docker group only
+  # exists after the docker.io package above has been installed.
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: true
+  tags:
+    - docker
+
+- name: Docker Service - Enable and start the docker systemd service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+    daemon_reload: true
+  tags:
+    - docker
+
+- name: Privacy - Restart Docker ONLY if DNS config changed
+  # The security role rewrites /etc/resolv.conf via systemd-resolved; a docker
+  # daemon started before that change keeps stale resolvers. Guarded on the
+  # registered fact so the task is a no-op whenever the DNS tasks are not part
+  # of the run (e.g. --tags docker on a host that never ran the security role).
+  ansible.builtin.systemd:
+    name: docker
+    state: restarted
+  when: security_dns_config is defined and security_dns_config.changed  # noqa: no-handler
+  tags:
+    - docker
