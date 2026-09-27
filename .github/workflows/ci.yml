@@ -107,10 +107,11 @@ jobs:
           sudo systemctl start libvirtd
           sudo chmod 666 /var/run/libvirt/libvirt-sock
           
-          # Install the required community collections.
-          # ansible.utils provides the ipaddr filter used by provision_host.yml
-          # to auto-detect the LAN subnet CIDR from host network facts.
-          ansible-galaxy collection install community.general community.docker ansible.posix ansible.utils
+          # Install the required community collections from the single
+          # source of truth (ansible/requirements.yml). ansible.utils
+          # provides the ipaddr filter used by provision_host.yml to
+          # auto-detect the LAN subnet CIDR from host network facts.
+          ansible-galaxy collection install -r ansible/requirements.yml
           
           # Execute the pipeline
           molecule test
