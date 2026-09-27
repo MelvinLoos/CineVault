@@ -191,6 +191,7 @@
         - wizarr
         - spotweb
         - spotweb-db
+        - maintainerr
 
       tags:
         - filesystem
@@ -328,6 +329,14 @@
       community.general.ufw:
         rule: allow
         port: '8266'
+        proto: tcp
+        from_ip: "{{ media_subnet_cidr }}"
+      tags: [security]
+
+    - name: Zero Trust Micro-segmentation - Allow Maintainerr WebUI (6246) from local subnet only
+      community.general.ufw:
+        rule: allow
+        port: '6246'
         proto: tcp
         from_ip: "{{ media_subnet_cidr }}"
       tags: [security]
