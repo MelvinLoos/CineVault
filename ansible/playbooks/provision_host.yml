@@ -46,10 +46,12 @@
     sonarr_sabnzbd_category: "tv-sonarr"
 
   # ---------------------------------------------------------------------------
-  # Cross-cutting fact discovery, deliberately kept out of the roles so that
+  # Cross-cutting prerequisites, deliberately kept out of the roles so that
   # no role depends on a sibling role having run first:
   #   - media_subnet_cidr  : consumed by security (UFW) and filesystem (NFS)
   #   - host_has_quicksync : consumed by deployment (docker-compose template)
+  #   - system preparation : GRUB preseed + apt cache refresh/upgrade must
+  #     complete before any role installs packages
   # ---------------------------------------------------------------------------
   pre_tasks:
     - name: Calculate LAN Subnet CIDR from host network facts
@@ -94,6 +96,36 @@
       when: host_has_quicksync is not defined
       tags:
         - deployment
+
+    - name: System Preparation - Pre-seed GRUB to bypass Legacy BIOS prompts in Vagrant
+      ansible.builtin.debconf:
+        name: grub-pc
+        question: "{{ item.question }}"
+        value: "{{ item.value }}"
+        vtype: "{{ item.vtype }}"
+      loop:
+        - { question: 'grub-pc/install_devices', value: '', vtype: 'multiselect' }
+        - { question: 'grub-pc/install_devices_empty', value: 'true', vtype: 'boolean' }
+      tags:
+        - security
+        - filesystem
+        - docker
+        - backup
+
+    - name: System Preparation - Update apt package cache and upgrade all packages
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: true
+        dpkg_options: 'force-confdef,force-confold'
+        autoclean: true
+        autoremove: true
+      environment:
+        DEBIAN_FRONTEND: noninteractive
+      tags:
+        - security
+        - filesystem
+        - docker
+        - backup
 
   roles:
     - role: identity
