@@ -39,7 +39,7 @@
   ansible.builtin.lineinfile:
     path: /opt/mediastack/.env
     regexp: "^DOCKER_GROUP_GID="
-    line: "DOCKER_GROUP_GID={{ getent_group['docker'][1] }}"
+    line: "DOCKER_GROUP_GID={{ ansible_facts['getent_group']['docker'][1] }}"
     create: true
     owner: mediasvc
     group: mediasvc
