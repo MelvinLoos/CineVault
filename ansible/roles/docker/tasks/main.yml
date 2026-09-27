@@ -1,31 +1,9 @@
 ---
-# Docker Engine provisioning for The Host: system preparation, the docker.io
-# toolchain, and the host-side docker group membership that keeps operational
-# access non-root (AGENTS.md §3 Zero Root Execution).
-
-- name: System Preparation - Pre-seed GRUB to bypass Legacy BIOS prompts in Vagrant
-  ansible.builtin.debconf:
-    name: grub-pc
-    question: "{{ item.question }}"
-    value: "{{ item.value }}"
-    vtype: "{{ item.vtype }}"
-  loop:
-    - { question: 'grub-pc/install_devices', value: '', vtype: 'multiselect' }
-    - { question: 'grub-pc/install_devices_empty', value: 'true', vtype: 'boolean' }
-  tags:
-    - docker
-
-- name: System Preparation - Update apt package cache and upgrade all packages
-  ansible.builtin.apt:
-    update_cache: true
-    upgrade: true
-    dpkg_options: 'force-confdef,force-confold'
-    autoclean: true
-    autoremove: true
-  environment:
-    DEBIAN_FRONTEND: noninteractive
-  tags:
-    - docker
+# Docker Engine provisioning for The Host: the docker.io toolchain and the
+# host-side docker group membership that keeps operational access non-root
+# (AGENTS.md §3 Zero Root Execution). System preparation (GRUB preseed and
+# the apt cache refresh/upgrade) runs as a play-level pre-task so it precedes
+# every role that installs packages.
 
 - name: System Preparation - Install required system packages for Docker and Python
   ansible.builtin.apt:
