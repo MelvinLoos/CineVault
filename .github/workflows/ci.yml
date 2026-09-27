@@ -89,7 +89,11 @@ jobs:
           pipx install pytest
           pipx inject pytest pytest-testinfra PyYAML
           
-          pipx install molecule==26.9.0
+          # molecule is pinned to 25.1.0: it is the last release that adds
+          # the driver's ansible module directory (ANSIBLE_LIBRARY) that the
+          # vagrant driver needs. 25.2.0 dropped it (ansible/molecule#4380)
+          # and the upstream fix is still open (molecule-plugins#301).
+          pipx install molecule==25.1.0
           pipx inject molecule "molecule-plugins[vagrant]==26.7.15"
           pipx inject molecule pytest-testinfra
           pipx inject molecule python-vagrant

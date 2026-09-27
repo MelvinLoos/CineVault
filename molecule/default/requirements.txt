@@ -3,8 +3,12 @@
 #
 # Spec reference: AGENTS.md §2 — Spec-Driven Development; verifier = testinfra.
 
-# Core Molecule framework (pinned to the CI-verified release)
-molecule==26.9.0
+# Core Molecule framework
+# Pinned to 25.1.0: the last release that injects the vagrant driver's
+# ansible module path (ANSIBLE_LIBRARY). 25.2.0+ removed it, so the
+# driver cannot resolve its vagrant module (ansible/molecule#4380,
+# molecule-plugins#301).
+molecule==25.1.0
 
 # Vagrant driver plugin — required for driver: name: vagrant in molecule.yml
 molecule-plugins[vagrant]==26.7.15
