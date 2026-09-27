@@ -1,0 +1,13 @@
+---
+# Ansible collection dependencies for provisioning The Host.
+# Install with: ansible-galaxy collection install -r ansible/requirements.yml
+#
+# - ansible.utils     : ipaddr filter for LAN subnet CIDR auto-detection
+# - community.general : UFW firewall + parted/filesystem storage modules
+# - community.docker  : docker_compose_v2 stack deployment
+# - ansible.posix     : mount module for the media drive
+collections:
+  - name: ansible.utils
+  - name: community.general
+  - name: community.docker
+  - name: ansible.posix

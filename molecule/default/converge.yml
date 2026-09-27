@@ -1,3 +1,14 @@
 ---
+- name: Prepare Molecule environment
+  hosts: all
+  become: true
+  pre_tasks:
+    - name: Install required collections
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install -r {{ playbook_dir }}/../../ansible/requirements.yml
+      delegate_to: localhost
+      run_once: true
+      changed_when: false
+
 - name: Route Molecule to the production playbook
   ansible.builtin.import_playbook: "../../ansible/playbooks/provision_host.yml"
