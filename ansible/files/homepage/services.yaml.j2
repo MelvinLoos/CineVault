@@ -125,3 +125,12 @@
         description: Socket Proxy
         server: local-docker
         container: docker-proxy
+    - Maintainerr:
+        icon: maintainerr
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:6246"
+        description: Library Cleanup
+        server: local-docker
+        container: maintainerr
+        widget:
+            type: maintainerr
+            url: http://maintainerr:6246
