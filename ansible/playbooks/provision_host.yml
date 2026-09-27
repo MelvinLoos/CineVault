@@ -60,7 +60,7 @@
       # "192.168.2.0/24"). Applying ipaddr('prefix') to a bare netmask would
       # yield the no-bits-count default (32), so the pair must be composed.
       # ansible_facts[] (rather than the deprecated injected ansible_* alias)
-      # keeps this working once INJECT_FACTS_AS_VARS is removed in 2.24.
+      # keeps this working once INJECT_FACTS_AS_VARS defaults to false in 2.24.
       ansible.builtin.set_fact:
         media_subnet_cidr: >-
           {{ (ansible_facts['default_ipv4'].address ~ '/' ~ ansible_facts['default_ipv4'].netmask)

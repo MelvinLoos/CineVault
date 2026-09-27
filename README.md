@@ -130,8 +130,8 @@ ansible-galaxy collection install community.general ansible.posix community.dock
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/MelvinLoos/mediacenter.git
-    cd mediacenter
+    git clone https://github.com/MelvinLoos/CineVault.git
+    cd CineVault
     ```
 
 2.  **Inventory:** Edit `ansible/inventory/hosts.ini` and ensure `media_drive_device` matches your drive path from step 1.4.
@@ -181,7 +181,7 @@ This project uses **Molecule** with **Testinfra** to validate the infrastructure
 
 To run tests:
 ```bash
-cd mediacenter
+cd CineVault
 molecule test
 ```
 
