@@ -3,16 +3,18 @@
 #
 # Spec reference: AGENTS.md §2 — Spec-Driven Development; verifier = testinfra.
 
-# Core Molecule framework
-molecule
+# Core Molecule framework (pinned to the CI-verified release)
+molecule==26.9.0
 
 # Vagrant driver plugin — required for driver: name: vagrant in molecule.yml
-molecule-vagrant
+molecule-plugins[vagrant]==26.7.15
+# Note: the standalone molecule-vagrant package is archived upstream
+# (Jan 2023) and conflicts with the umbrella distribution.
 
 # Testinfra pytest plugin — the verifier framework for all Group A–E tests
 pytest-testinfra
 
-# Python binding to Vagrant CLI — used internally by molecule-vagrant
+# Python binding to Vagrant CLI — used internally by the Molecule vagrant driver
 python-vagrant
 
 # YAML parser for test_sonarr_sabnzbd_category_sync.py

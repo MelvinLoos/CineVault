@@ -22,7 +22,8 @@ name: CI
 
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Node 24 is now the only JavaScript runtime on GitHub-hosted runners
+  # (Node 20 was retired in September 2026), so the force flag is gone.
   # SECURITY: Host key checking is disabled ONLY in CI where ephemeral VMs
   # have no pre-trusted host keys. Production runs controlled by ansible.cfg.
   ANSIBLE_HOST_KEY_CHECKING: 'false'
@@ -43,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Enable KVM group permissions
         # Required for nested virtualisation: the Vagrant/libvirt driver
@@ -88,8 +89,8 @@ jobs:
           pipx install pytest
           pipx inject pytest pytest-testinfra PyYAML
           
-          pipx install molecule==25.1.0
-          pipx inject molecule "molecule-plugins[vagrant]==23.7.0"
+          pipx install molecule==26.9.0
+          pipx inject molecule "molecule-plugins[vagrant]==26.7.15"
           pipx inject molecule pytest-testinfra
           pipx inject molecule python-vagrant
           pipx inject molecule PyYAML
@@ -117,7 +118,7 @@ jobs:
           molecule test
 
       - name: Publish Test Results Dashboard
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: EnricoMi/publish-unit-test-result-action@v2.24.0
         if: (!cancelled())
         with:
           files: "infrastructure-report.xml"
@@ -127,7 +128,7 @@ jobs:
       - name: Upload infrastructure test report
         # Persists the Testinfra JUnit XML report so engineers can inspect
         # failures even when the Testinfra contract step above has failed.
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: infrastructure-report
