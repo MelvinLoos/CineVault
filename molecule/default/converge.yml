@@ -1,12 +1,15 @@
 ---
 - name: Prepare Molecule environment
   hosts: all
-  become: true
+  # Deliberately non-privileged: the task below is delegated to the controller
+  # (localhost). On CI runners ansible-galaxy lives in the pipx-managed
+  # ~/.local/bin, which sudo's secure_path does not include.
   pre_tasks:
     - name: Install required collections
       ansible.builtin.command:
         cmd: ansible-galaxy collection install -r {{ playbook_dir }}/../../ansible/requirements.yml
       delegate_to: localhost
+      become: false
       run_once: true
       changed_when: false
 
