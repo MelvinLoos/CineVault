@@ -1,0 +1,1442 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+      
+      
+      
+        <link rel="canonical" href="https://MelvinLoos.github.io/CineVault/configuration/distributed-tdarr/">
+      
+      
+        <link rel="prev" href="../tdarr/">
+      
+      
+        <link rel="next" href="../bazarr/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Distributed Tdarr Node - CineVault</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#on-demand-gpu-workload-offloading-distributed-tdarr" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CineVault" class="md-header__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CineVault
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Distributed Tdarr Node
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../deployment/initial-setup/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../homepage/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../maintenance/storage-cleanup/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CineVault" class="md-nav__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CineVault
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/bare-metal-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up the host
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../homepage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spotweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotweb Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wizarr Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distributed Tdarr Node
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distributed Tdarr Node
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-host-side-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Host-Side Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-laptop-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Laptop Execution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Laptop Execution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-the-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-tear-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop / tear down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-tdarr-ui-configuration-path-translators-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Tdarr UI Configuration (Path Translators &amp; Workers)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Tdarr UI Configuration (Path Translators &amp; Workers)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-node-worker-allocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Node worker allocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-amd-vaapi-plugin-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 AMD VAAPI plugin stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-path-translators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Path Translators
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bazarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazarr Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintenance/storage-cleanup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-host-side-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Host-Side Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-laptop-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Laptop Execution
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Laptop Execution">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-the-node" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start the node
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-tear-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop / tear down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-tdarr-ui-configuration-path-translators-workers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Tdarr UI Configuration (Path Translators &amp; Workers)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Tdarr UI Configuration (Path Translators &amp; Workers)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-node-worker-allocation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Node worker allocation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-amd-vaapi-plugin-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 AMD VAAPI plugin stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-path-translators" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Path Translators
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="on-demand-gpu-workload-offloading-distributed-tdarr">On-Demand GPU Workload Offloading (Distributed Tdarr)</h1>
+<p>Tdarr in the CineVault stack normally encodes on the Intel N100's integrated
+QuickSync (QSV) chip — see <a href="../tdarr/">Tdarr Transcoding</a> for the core setup.
+This page documents the <strong>on-demand offload topology</strong>: a transient laptop
+equipped with an AMD Radeon RX 7600M XT joins the Tdarr cluster as a remote
+GPU node whenever the operator wants extra encode capacity, then detaches
+cleanly when the work is done.</p>
+<p>!!! warning "Distinct plugin stack required"
+    The remote node uses an <strong>AMD VAAPI</strong> plugin stack. It must <strong>never</strong> run
+    the host's QSV stack (<code>Boosh-Transcode using QSV GPU &amp; FFMPEG</code>) — QSV
+    targets Intel hardware and will fail (or silently fall back to software
+    encoding) on the Radeon GPU.</p>
+<hr />
+<h2 id="1-topology">1. Topology</h2>
+<pre><code class="language-text">┌─────────────────── The Host: Intel N100 (Debian 13) ───────────────────┐
+│                                                                        │
+│  tdarr (server + internal QSV node)   nfs-kernel-server                │
+│  ├── :8265  Web UI                    └── exports /opt/mediastack/data │
+│  └── :8266  Control plane ←───────────────────────────┐                │
+│                                                        │                │
+└────────────────────────────────────────────────────────┼────────────────┘
+                                                          │ NFSv4.2 (2049) + TCP 8266
+                                       restricted to the auto-detected LAN subnet (UFW)
+                                                         │
+┌────────────────────── Transient AMD Laptop Node ───────┼────────────────┐
+│                                                        │                │
+│  /mnt/n100_data  ← NFS mount of The Library            │                │
+│  tdarr-node container (Radeon RX 7600M XT passthrough) ┘                │
+└─────────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<p>Three components carry the offload traffic, all of which Ansible configures
+automatically on The Host (see <a href="../../deployment/bare-metal-provisioning/">Bare-Metal Provisioning</a>):</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Port / Path</th>
+<th>Restriction</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NFS export</td>
+<td><code>:2049</code> (tcp+udp)</td>
+<td>LAN subnet only (auto-detected), <code>all_squash</code> → <code>anonuid=5000,anongid=5000</code></td>
+</tr>
+<tr>
+<td>Tdarr control plane</td>
+<td><code>:8266</code> (tcp)</td>
+<td>LAN subnet only (auto-detected)</td>
+</tr>
+<tr>
+<td>NFS payload</td>
+<td><code>/opt/mediastack/data</code></td>
+<td><code>rw,sync,no_subtree_check,all_squash,anonuid=5000,anongid=5000,fsid=1</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Zero-trust UID/GID parity:</strong> every NFS client is squashed to the
+<code>mediasvc</code> identity (UID/GID 5000), so files written by the laptop node land
+in The Library with the same ownership as every other container on The Host.
+This is what makes instant moves and hardlinks work across the whole stack —
+and why the node container runs with <code>PUID=5000</code> / <code>PGID=5000</code>.</p>
+<hr />
+<h2 id="2-host-side-prerequisites">2. Host-Side Prerequisites</h2>
+<p>Everything below is applied by the <code>provision_host.yml</code> playbook — no manual
+host configuration is required:</p>
+<ol>
+<li><strong>NFS server</strong> — <code>nfs-kernel-server</code> installed, enabled and started.</li>
+<li><strong>Export</strong> — <code>/etc/exports</code> contains:</li>
+</ol>
+<p><code>text
+   /opt/mediastack/data &lt;auto-detected-subnet&gt;(rw,sync,no_subtree_check,all_squash,anonuid=5000,anongid=5000,fsid=1)</code></p>
+<p>The subnet is derived from The Host's own network facts at play time; no
+   IP is hardcoded in the playbook.</p>
+<ol>
+<li><strong>Firewall</strong> — UFW allows <code>2049/tcp</code>, <code>2049/udp</code> and <code>8266/tcp</code> from the
+   auto-detected LAN subnet only. The default deny-inbound policy remains
+   untouched.</li>
+</ol>
+<p>Re-run the playbook if any of these are missing:</p>
+<pre><code class="language-bash">ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K
+</code></pre>
+<hr />
+<h2 id="3-laptop-execution">3. Laptop Execution</h2>
+<p>!!! note "Prerequisites on the laptop"
+    Docker Engine and an NFS client are required:
+    <code>sudo apt install nfs-common</code> (Debian/Ubuntu) or
+    <code>sudo dnf install nfs-utils</code> (Fedora). Root/sudo access is mandatory.</p>
+<h3 id="start-the-node">Start the node</h3>
+<pre><code class="language-bash">sudo scripts/laptop-node/run-tdarr-node.sh
+</code></pre>
+<p>The script is fully self-contained and idempotent:</p>
+<ol>
+<li>Resolves <code>mediacenter.local</code> via mDNS and mounts
+   <code>&lt;resolved-ip&gt;:/opt/mediastack/data</code> to <code>/mnt/n100_data</code>
+   (NFSv4.2 — only port 2049 is used, no rpcbind/mountd ports).</li>
+<li>Creates a laptop-local scratch cache <code>/var/tmp/tdarr-node-cache</code>
+   (transcode intermediates never traverse the network).</li>
+<li>Launches <code>ghcr.io/haveagitgat/tdarr_node:latest</code> with AMD GPU
+   passthrough (<code>--device /dev/dri</code>, <code>--device /dev/kfd</code>,
+   <code>--group-add video</code>, <code>--group-add render</code>), <code>PUID/PGID=5000</code>, and the
+   Tdarr server connection parameters (<code>serverIP</code>, <code>serverPort=8266</code>,
+   <code>nodeID=AMD-Laptop-Node</code>).</li>
+</ol>
+<p>If <code>--server-ip</code> is omitted the script resolves <code>mediacenter.local</code> via mDNS
+(thanks to <code>avahi-daemon</code> on The Host). There is <strong>no stale-IP fallback</strong>:
+if resolution fails — e.g. a router isolating Wi-Fi multicast traffic — the
+script exits with an actionable error and asks for an explicit
+<code>--server-ip &lt;THE_HOST_LAN_IP&gt;</code>.</p>
+<h3 id="stop-tear-down">Stop / tear down</h3>
+<pre><code class="language-bash">sudo scripts/laptop-node/run-tdarr-node.sh --stop
+</code></pre>
+<p>Stops and removes the container (30-second graceful timeout), unmounts the
+NFS share and cleans the scratch cache. Idempotent — safe to run when
+nothing is running.</p>
+<hr />
+<h2 id="4-tdarr-ui-configuration-path-translators-workers">4. Tdarr UI Configuration (Path Translators &amp; Workers)</h2>
+<p>Perform these steps <strong>once</strong> in the Tdarr Web UI (<code>http://&lt;host-ip&gt;:8265</code>)
+while the laptop node is running.</p>
+<h3 id="41-node-worker-allocation">4.1 Node worker allocation</h3>
+<ol>
+<li>Open the <strong>Nodes</strong> tab.</li>
+<li>Locate the <code>AMD-Laptop-Node</code> card (it registers automatically).</li>
+<li>Allocate <strong>1 GPU worker</strong> and <strong>1 CPU worker</strong> — the identical
+   requirement documented for the internal node in
+   <a href="../tdarr/#d-node-configuration">Tdarr Transcoding</a>. The AMD Radeon has one
+   encode engine, so a single GPU worker is correct.</li>
+</ol>
+<h3 id="42-amd-vaapi-plugin-stack">4.2 AMD VAAPI plugin stack</h3>
+<p>Create a node-specific plugin stack for the laptop node (replacing the QSV
+encoder with the VAAPI variant):</p>
+<pre><code class="language-text">1. Migz-Remove image formats from video
+2. Migz-Clean audio streams
+3. Boosh-Transcode using VAAPI GPU &amp; FFMPEG   (default settings)
+</code></pre>
+<p>!!! danger "Do not reuse the QSV stack"
+    The host's <code>Boosh-Transcode using QSV GPU &amp; FFMPEG</code> plugin targets Intel
+    hardware only. On the AMD node it will fall back to CPU encoding or fail
+    entirely. Keep the two stacks separate: QSV for the internal node, VAAPI
+    for <code>AMD-Laptop-Node</code>.</p>
+<h3 id="43-path-translators">4.3 Path Translators</h3>
+<p>The node container mounts the laptop's <code>/mnt/n100_data</code> <strong>as</strong> <code>/data</code>
+inside the container, so Tdarr's node-internal paths are identical to the
+server paths — the translator is a one-to-one mapping:</p>
+<table>
+<thead>
+<tr>
+<th>Server Path</th>
+<th>Node Path</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/data</code></td>
+<td><code>/data</code></td>
+<td>The Library (media tree) via the NFS mount</td>
+</tr>
+<tr>
+<td><code>/temp</code></td>
+<td><code>/temp</code></td>
+<td>Transcode scratch (laptop-local, not network)</td>
+</tr>
+</tbody>
+</table>
+<p>Configure these under <strong>Libraries → Transcode Options → Path Translators</strong>
+(or the node's settings) so the node resolves server-side file locations to
+its own mount namespace correctly.</p>
+<hr />
+<h2 id="5-verification">5. Verification</h2>
+<ol>
+<li><strong>Node registration</strong> — <code>AMD-Laptop-Node</code> appears in the Nodes tab and
+   reports healthy (green).</li>
+<li><strong>Worker type</strong> — on the Tdarr dashboard, the laptop node's transcode
+   stage shows <strong>Transcode GPU</strong> with <code>Boosh-Transcode using VAAPI GPU &amp;
+   FFMPEG</code>.</li>
+<li><strong>FFmpeg command</strong> — expanding the worker reveals VAAPI flags, e.g.:</li>
+</ol>
+<p><code>text
+   -hwaccel vaapi -vaapi_device /dev/dri/renderD128 ... -c:v hevc_vaapi</code></p>
+<ol>
+<li><strong>GPU utilisation on the laptop</strong> — while a job runs:</li>
+</ol>
+<p><code>bash
+   radeontop</code></p>
+<p>The Radeon RX 7600M XT should show sustained utilisation. Flat-zero
+   utilisation means the container is not reaching <code>/dev/dri</code> (group mapping
+   issue) or the job silently fell back to CPU encoding.</p>
+<hr />
+<h2 id="6-troubleshooting">6. Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node never registers in the UI</td>
+<td>TCP 8266 blocked</td>
+<td>Check UFW on The Host: <code>sudo ufw status numbered</code> — the rule must scope the LAN subnet, not <code>Anywhere</code>.</td>
+</tr>
+<tr>
+<td>NFS mount hangs or dies mid-session</td>
+<td>Network stall</td>
+<td>The script already mounts <code>soft,timeo=30,retrans=3</code>; avoid moving the laptop between APs mid-job.</td>
+</tr>
+<tr>
+<td>"Permission denied" writing to <code>/data</code></td>
+<td>Squash mapping wrong</td>
+<td>Verify <code>/etc/exports</code> contains <code>all_squash,anonuid=5000,anongid=5000</code>.</td>
+</tr>
+<tr>
+<td>GPU node starts, jobs use CPU</td>
+<td>Group/devices not passed</td>
+<td>Confirm the container was launched by the script (it includes <code>--device /dev/dri</code>, <code>--device /dev/kfd</code>, <code>--group-add render</code>).</td>
+</tr>
+<tr>
+<td><code>mount.nfs: not found</code></td>
+<td>Missing NFS client</td>
+<td><code>sudo apt install nfs-common</code> (or <code>nfs-utils</code> on Fedora).</td>
+</tr>
+<tr>
+<td>Unmount fails on <code>--stop</code></td>
+<td>Mount still busy</td>
+<td>Stop any process using <code>/mnt/n100_data</code>, then re-run <code>--stop</code>.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

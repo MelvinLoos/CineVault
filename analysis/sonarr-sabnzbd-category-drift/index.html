@@ -1,0 +1,1731 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+      
+      
+      
+        <link rel="canonical" href="https://MelvinLoos.github.io/CineVault/analysis/sonarr-sabnzbd-category-drift/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Sonarr ↔ SABnzbd Category-Tag Drift Analysis - CineVault</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sonarr-sabnzbd-category-tag-drift-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CineVault" class="md-header__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CineVault
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Sonarr ↔ SABnzbd Category-Tag Drift Analysis
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../deployment/initial-setup/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../configuration/homepage/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../maintenance/storage-cleanup/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CineVault" class="md-nav__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CineVault
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/bare-metal-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up the host
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/homepage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/spotweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotweb Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/wizarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wizarr Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/distributed-tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distributed Tdarr Node
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/bazarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazarr Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintenance/storage-cleanup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-inventory-every-variable-literal-that-contributes-to-a-category-tag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Inventory — every variable / literal that contributes to a "Category Tag"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Inventory — every variable / literal that contributes to a &#34;Category Tag&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-files-actually-scanned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 Files actually scanned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-ansiblefilesrecyclarrrecyclarrymlj2-21-lines-full-file-scanned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 ansible/files/recyclarr/recyclarr.yml.j2 (21 lines, full file scanned)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-ansiblefilesservarrconfigxmlj2-7-lines-full-file-scanned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 ansible/files/servarr/config.xml.j2 (7 lines, full file scanned)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-ansibleplaybooksprovision_hostyml-646-lines-full-file-scanned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 ansible/playbooks/provision_host.yml (646 lines, full file scanned)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-docker-composeymlj2-lines-263-285-sabnzbd-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.5 docker-compose.yml.j2 (lines 263-285, SABnzbd service)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#16-env-envexample" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.6 .env / .env.example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17-inventory-ansibleinventoryhostsini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.7 Inventory (ansible/inventory/hosts.ini)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-per-occurrence-rendering-table-consolidated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Per-occurrence rendering table (consolidated)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-diff-exactly-where-sonarr-and-recyclarr-diverge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Diff — exactly where Sonarr and Recyclarr diverge
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Diff — exactly where Sonarr and Recyclarr diverge">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-the-literal-diff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 The literal diff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-categorised-divergence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Categorised divergence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-the-single-failing-invariant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 The single failing invariant
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-recommendation-single-source-of-truth-for-task-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Recommendation — Single Source of Truth for Task 3
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Recommendation — Single Source of Truth for Task 3">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-proposed-solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Proposed solution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-justification-against-the-constitution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Justification against the Constitution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-recommended-variable-names-concrete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Recommended variable names (concrete)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-a-grep-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix A — Grep evidence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-b-files-not-modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix B — Files not modified
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="sonarr-sabnzbd-category-tag-drift-analysis">Sonarr ↔ SABnzbd Category-Tag Drift Analysis</h1>
+<blockquote>
+<p><strong>Task 2 — Read-only investigation</strong> for <em>Bugfix: Sonarr–SABnzbd Recyclarr Sync</em>.
+This document is the input contract for Task 3 (remediation). It does <strong>not</strong> change
+any code, template, or test.</p>
+<p><strong>Anchor note:</strong> The binding-context file <code>.ruler/specs/active/bug-sonarr-sabnzbd-sync.md</code>
+referenced by the task prompt <strong>does not exist in this worktree</strong> (verified by
+<code>find /home/melvin/.cline/worktrees/ebb2d/CineVault/.ruler -type f</code>). The analysis
+therefore anchors against the next-tightest authoritative sources actually present:
+<code>.ruler/CONSTITUTION.MD</code>, <code>.ruler/ARCHITECTURE.md</code>, <code>.ruler/PRODUCT_SPECIFICATION.md</code>,
+plus the two templates explicitly named in the task scope. Any conclusion that would
+have depended on a clause unique to the missing spec file is flagged inline as
+<strong>[SPEC-GAP]</strong>.</p>
+</blockquote>
+<hr />
+<h2 id="1-inventory-every-variable-literal-that-contributes-to-a-category-tag">1. Inventory — every variable / literal that contributes to a "Category Tag"</h2>
+<p>A <em>Category Tag</em> in this stack is the short string (e.g. <code>tv-sonarr</code>, <code>movies-radarr</code>)
+that:</p>
+<ol>
+<li>Sonarr/Radarr send as the <code>category=</code> parameter on every NZB submission to SABnzbd,
+   and that they store internally on the <strong>Download Client</strong> entry under
+   <em>Settings → Download Clients → SABnzbd → Category</em>.</li>
+<li>SABnzbd matches against its <strong>Config → Categories</strong> table to choose a per-category
+   completed-download folder (typically <code>/data/usenet/&lt;category&gt;/</code>), priority, post-processing
+   script, etc.</li>
+</ol>
+<p>For the sync to work, the string on <strong>both sides</strong> must be byte-identical.</p>
+<h3 id="11-files-actually-scanned">1.1 Files actually scanned</h3>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Purpose</th>
+<th>Touches "Category Tag"?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ansible/files/recyclarr/recyclarr.yml.j2</code></td>
+<td>Recyclarr config (TRaSH-Guides sync)</td>
+<td><strong>No</strong> (see §1.2)</td>
+</tr>
+<tr>
+<td><code>ansible/files/servarr/config.xml.j2</code></td>
+<td>Pre-seeded Sonarr/Radarr/Prowlarr <code>config.xml</code></td>
+<td><strong>No</strong> (see §1.3)</td>
+</tr>
+<tr>
+<td><code>ansible/playbooks/provision_host.yml</code></td>
+<td>Provisioning playbook — owns <em>all</em> template variables</td>
+<td><strong>No</strong> (see §1.4)</td>
+</tr>
+<tr>
+<td><code>ansible/inventory/hosts.ini</code></td>
+<td>Inventory for <code>the_host</code></td>
+<td><strong>No</strong> (see §1.4)</td>
+</tr>
+<tr>
+<td><code>docker-compose.yml.j2</code></td>
+<td>Service definitions for SABnzbd, Sonarr, Radarr</td>
+<td><strong>No</strong> (see §1.5)</td>
+</tr>
+<tr>
+<td><code>ansible/files/homepage/services.yaml.j2</code> / <code>widgets.yaml.j2</code></td>
+<td>Homepage widgets</td>
+<td>No (dashboard only)</td>
+</tr>
+<tr>
+<td><code>molecule/default/converge.yml</code> / <code>molecule.yml</code> / <code>tests/test_host_provision.py</code></td>
+<td>TDI harness</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>.env</code>, <code>.env.example</code></td>
+<td>Compose runtime env vars</td>
+<td>No (no <code>*_CATEGORY</code> key)</td>
+</tr>
+<tr>
+<td><code>ansible/credentials/*.key</code></td>
+<td>Idempotent API-key store</td>
+<td>No (keys only)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>No <code>group_vars/</code>, <code>host_vars/</code>, <code>defaults/</code>, <code>vars/</code>, or <code>roles/</code> directories exist</strong>
+anywhere in the repository
+(verified: <code>find … -type d \( -name group_vars -o -name host_vars -o -name defaults -o -name vars -o -name roles \)</code> → empty).
+<strong>No Recyclarr <code>include:</code> template pulled from upstream defines a category either</strong>
+(Recyclarr's TRaSH-Guides templates configure <strong>quality profiles, custom formats, and
+quality definitions only</strong> — categories are out of scope for Recyclarr; verified
+against <a href="https://recyclarr.dev/wiki/yaml/config-reference/">https://recyclarr.dev/wiki/yaml/config-reference/</a>).</p>
+</blockquote>
+<h3 id="12-ansiblefilesrecyclarrrecyclarrymlj2-21-lines-full-file-scanned">1.2 <code>ansible/files/recyclarr/recyclarr.yml.j2</code> (21 lines, full file scanned)</h3>
+<table>
+<thead>
+<tr>
+<th>Line</th>
+<th>Token</th>
+<th>Kind</th>
+<th>Resolved value (current inventory)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4</td>
+<td><code>sonarr:</code></td>
+<td>YAML key</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>- name: sonarr</code></td>
+<td>literal</td>
+<td><code>sonarr</code> (Recyclarr instance label only — <strong>not</strong> a SABnzbd category)</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>base_url: http://sonarr:8989</code></td>
+<td>literal</td>
+<td><code>http://sonarr:8989</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>api_key: {{ sonarr_key }}</code></td>
+<td>variable</td>
+<td>32-char hex from <code>ansible/credentials/sonarr.key</code> (seeded via <code>lookup('password', …)</code> at playbook line 400)</td>
+</tr>
+<tr>
+<td>8-11</td>
+<td><code>include:</code> block</td>
+<td>literal templates</td>
+<td><code>sonarr-quality-definition-series</code>, <code>sonarr-v3-quality-profile-web-dl-1080p</code>, <code>sonarr-v3-custom-formats-web-dl</code></td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>radarr:</code></td>
+<td>YAML key</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>- name: radarr</code></td>
+<td>literal</td>
+<td><code>radarr</code></td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>base_url: http://radarr:7878</code></td>
+<td>literal</td>
+<td><code>http://radarr:7878</code></td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>api_key: {{ radarr_key }}</code></td>
+<td>variable</td>
+<td>32-char hex from <code>ansible/credentials/radarr.key</code></td>
+</tr>
+<tr>
+<td>17-20</td>
+<td><code>include:</code> block</td>
+<td>literal templates</td>
+<td><code>radarr-quality-definition-movie</code>, <code>radarr-quality-profile-hd-bluray-web</code>, <code>radarr-custom-formats-hd-bluray-web</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Category-Tag contribution: ZERO.</strong> There is no <code>download_client:</code> key, no
+<code>categories:</code> key, no <code>media_management:</code> key, and no value-substitution variable
+that mentions a category anywhere in this template. The three <code>include:</code> templates
+pulled from the TRaSH-Guides repository are quality-profile / custom-format
+definitions; per the Recyclarr config reference, none of these include templates
+emit category configuration.</p>
+<h3 id="13-ansiblefilesservarrconfigxmlj2-7-lines-full-file-scanned">1.3 <code>ansible/files/servarr/config.xml.j2</code> (7 lines, full file scanned)</h3>
+<table>
+<thead>
+<tr>
+<th>Line</th>
+<th>Token</th>
+<th>Kind</th>
+<th>Resolved value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>&lt;Config&gt;</code></td>
+<td>literal XML</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>&lt;Port&gt;{{ item.port }}&lt;/Port&gt;</code></td>
+<td>loop var</td>
+<td><code>7878</code> (radarr) / <code>8989</code> (sonarr) / <code>9696</code> (prowlarr) — from loop at <code>provision_host.yml:414-417</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>&lt;BindAddress&gt;*&lt;/BindAddress&gt;</code></td>
+<td>literal</td>
+<td><code>*</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>&lt;ApiKey&gt;{{ item.api_key }}&lt;/ApiKey&gt;</code></td>
+<td>loop var</td>
+<td><code>{{ radarr_key }}</code> / <code>{{ sonarr_key }}</code> / <code>{{ prowlarr_key }}</code> — 32-char hex</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>&lt;AuthenticationMethod&gt;None&lt;/AuthenticationMethod&gt;</code></td>
+<td>literal</td>
+<td><code>None</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>&lt;UpdateMechanism&gt;Docker&lt;/UpdateMechanism&gt;</code></td>
+<td>literal</td>
+<td><code>Docker</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Category-Tag contribution: ZERO.</strong> Sonarr's <code>config.xml</code> is the bootstrap/identity
+file (port, API key, auth method). Sonarr's <strong>Download Client</strong> definitions —
+including the <code>&lt;Category&gt;</code> element that pins the SABnzbd category — live inside
+Sonarr's runtime database (<code>/config/sonarr.db</code>) and are <strong>not</strong> managed by this
+template, by the playbook, or by Recyclarr.</p>
+<h3 id="14-ansibleplaybooksprovision_hostyml-646-lines-full-file-scanned">1.4 <code>ansible/playbooks/provision_host.yml</code> (646 lines, full file scanned)</h3>
+<p>Every variable defined or templated by the playbook was reviewed. The category-relevant
+findings:</p>
+<table>
+<thead>
+<tr>
+<th>Line</th>
+<th>Token</th>
+<th>Resolved value</th>
+<th>Relevance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9-11</td>
+<td><code>vars: mediasvc_uid / mediasvc_gid / media_drive_device</code></td>
+<td><code>5000 / 5000 / ""</code></td>
+<td>Not a category</td>
+</tr>
+<tr>
+<td>116-132</td>
+<td>appdata loop creates <code>…/sabnzbd</code>, <code>…/sonarr</code></td>
+<td>literal directory names</td>
+<td>The strings <code>"sabnzbd"</code> and <code>"sonarr"</code> are <em>directory</em> names under <code>appdata/</code>, <strong>not</strong> SABnzbd categories.</td>
+</tr>
+<tr>
+<td>204-210</td>
+<td>Creates <code>/opt/mediastack/data/usenet/</code></td>
+<td>literal</td>
+<td>The single shared scratch space. <strong>No per-category sub-folder is pre-created.</strong> Without that, SABnzbd's default behaviour is to dump completed files in <code>/data/usenet/&lt;category&gt;/</code>; if the category does not exist on either side the post-processing path collapses to <code>/data/usenet/</code> (root) and Sonarr import fails.</td>
+</tr>
+<tr>
+<td>397-402</td>
+<td><code>set_fact:</code> for <code>radarr_key</code>, <code>sonarr_key</code>, <code>prowlarr_key</code>, <code>bazarr_key</code></td>
+<td>32-char hex from <code>credentials/*.key</code></td>
+<td>API keys (not categories)</td>
+</tr>
+<tr>
+<td>406-419</td>
+<td>Template Servarr <code>config.xml</code> with loop <code>[{app:radarr,port:7878,…}, {app:sonarr,port:8989,…}, {app:prowlarr,port:9696,…}]</code></td>
+<td>Renders <code>config.xml</code> per app</td>
+<td>Loop carries <code>port</code> and <code>api_key</code> — <strong>no category field</strong></td>
+</tr>
+<tr>
+<td>434-442</td>
+<td>Templates <code>recyclarr.yml.j2</code> → <code>/opt/mediastack/appdata/recyclarr/recyclarr.yml</code></td>
+<td>n/a</td>
+<td>Renders the file inventoried in §1.2</td>
+</tr>
+<tr>
+<td>469-485</td>
+<td>Injects API keys into <code>/opt/mediastack/.env</code> (<code>RADARR_API_KEY</code>, <code>SONARR_API_KEY</code>, <code>PROWLARR_API_KEY</code>, <code>BAZARR_API_KEY</code>, <code>SABNZBD_API_KEY=""</code>)</td>
+<td>Env keys</td>
+<td><strong>No <code>*_CATEGORY</code> env key exists.</strong> Note <code>SABNZBD_API_KEY</code> is intentionally empty — SABnzbd has no idempotent pre-seed yet, so SABnzbd boots from scratch with no pre-defined categories at all.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Category-Tag contribution: ZERO.</strong> No Ansible variable named <code>*_category</code>,
+<code>*_cat</code>, <code>sabnzbd_*_tag</code>, etc. exists. Confirmed by exhaustive grep:</p>
+<pre><code class="language-bash">$ grep -rni 'categ' --include='*.j2' --include='*.yml' --include='*.yaml' \
+                    --include='*.xml' --include='*.ini' --include='*.cfg' .
+# (no output)
+</code></pre>
+<h3 id="15-docker-composeymlj2-lines-263-285-sabnzbd-service">1.5 <code>docker-compose.yml.j2</code> (lines 263-285, SABnzbd service)</h3>
+<table>
+<thead>
+<tr>
+<th>Line</th>
+<th>Token</th>
+<th>Resolved value</th>
+<th>Relevance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>263</td>
+<td><code>sabnzbd:</code></td>
+<td>service name</td>
+<td>not a category</td>
+</tr>
+<tr>
+<td>271-273</td>
+<td><code>./appdata/sabnzbd:/config</code>, <code>./data:/data</code></td>
+<td>bind mounts</td>
+<td>Provides the <em>space</em> for SABnzbd's category folders, but does <strong>not</strong> define any category</td>
+</tr>
+<tr>
+<td>284-285</td>
+<td><code>ports: "8080:8080"</code></td>
+<td>literal</td>
+<td>not a category</td>
+</tr>
+</tbody>
+</table>
+<p>No environment variable, command-line argument, or volume convention seeds a category.
+SABnzbd will therefore boot with only its built-in default categories (typically
+<code>movies</code>, <code>tv</code>, <code>audio</code>, <code>software</code>) — created the first time the web UI is opened —
+and these defaults do <strong>not</strong> match Sonarr/Radarr's out-of-the-box expectations of
+<code>tv-sonarr</code> / <code>radarr</code> either.</p>
+<h3 id="16-env-envexample">1.6 <code>.env</code> / <code>.env.example</code></h3>
+<p><code>grep -i 'categ' .env .env.example</code> → no output. No environment-level category variable.</p>
+<h3 id="17-inventory-ansibleinventoryhostsini">1.7 Inventory (<code>ansible/inventory/hosts.ini</code>)</h3>
+<pre><code class="language-ini">[the_host]
+mediacenter.local ansible_user=ansible media_drive_device=
+</code></pre>
+<p>No host-level or group-level category variable.</p>
+<hr />
+<h2 id="2-per-occurrence-rendering-table-consolidated">2. Per-occurrence rendering table (consolidated)</h2>
+<p>When <code>ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml</code>
+is run against the current inventory, the two templates render as follows (only fields
+that <em>could</em> have carried a category are shown — all are blank):</p>
+<table>
+<thead>
+<tr>
+<th>Side</th>
+<th>File rendered</th>
+<th>Field that <em>should</em> carry the category tag</th>
+<th>Actual rendered value</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sonarr</strong></td>
+<td><code>/opt/mediastack/appdata/sonarr/config.xml</code></td>
+<td>(no XML field — Sonarr keeps it in <code>sonarr.db</code> not <code>config.xml</code>)</td>
+<td>n/a</td>
+<td><strong>No category provisioned</strong>; Sonarr's <em>Download Clients → SABnzbd → Category</em> field is empty after first boot</td>
+</tr>
+<tr>
+<td><strong>Radarr</strong></td>
+<td><code>/opt/mediastack/appdata/radarr/config.xml</code></td>
+<td>(same)</td>
+<td>n/a</td>
+<td><strong>No category provisioned</strong></td>
+</tr>
+<tr>
+<td><strong>Recyclarr</strong></td>
+<td><code>/opt/mediastack/appdata/recyclarr/recyclarr.yml</code></td>
+<td><code>sonarr[].download_clients[].category</code> (Recyclarr does not actually support this key; categories are <em>not</em> in Recyclarr's domain)</td>
+<td>absent</td>
+<td><strong>No category provisioned</strong> (and Recyclarr is the wrong tool for this anyway — see §3)</td>
+</tr>
+<tr>
+<td><strong>SABnzbd</strong></td>
+<td><code>/opt/mediastack/appdata/sabnzbd/sabnzbd.ini</code></td>
+<td><code>[categories]</code> section</td>
+<td>absent (<code>SABNZBD_API_KEY=""</code> at <code>provision_host.yml:483</code> confirms no pre-seed; first boot writes vanilla defaults)</td>
+<td><strong>No category provisioned</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-diff-exactly-where-sonarr-and-recyclarr-diverge">3. Diff — <em>exactly</em> where Sonarr and Recyclarr diverge</h2>
+<p>The conventional way to state a category-drift bug is "side A says <code>tv_sonarr</code>, side B
+says <code>tv-sonarr</code>" (underscore vs hyphen, or a typo). <strong>That is not the bug here.</strong> A
+careful file-by-file comparison shows the divergence is <strong>structural, not lexical</strong>:</p>
+<h3 id="31-the-literal-diff">3.1 The literal diff</h3>
+<pre><code>ansible/files/recyclarr/recyclarr.yml.j2          ansible/files/servarr/config.xml.j2
+─────────────────────────────────────────────     ──────────────────────────────────────────
+ sonarr:                                           &lt;Config&gt;
+   - name: sonarr                                    &lt;Port&gt;{{ item.port }}&lt;/Port&gt;
+     base_url: http://sonarr:8989                    &lt;BindAddress&gt;*&lt;/BindAddress&gt;
+     api_key: {{ sonarr_key }}                       &lt;ApiKey&gt;{{ item.api_key }}&lt;/ApiKey&gt;
+     include:                                        &lt;AuthenticationMethod&gt;None&lt;/AuthenticationMethod&gt;
+       - template: sonarr-quality-definition-…       &lt;UpdateMechanism&gt;Docker&lt;/UpdateMechanism&gt;
+       - template: sonarr-v3-quality-profile-…     &lt;/Config&gt;
+       - template: sonarr-v3-custom-formats-…
+              ^                                              ^
+              │                                              │
+              └─── NO download_clients: / categories:        └─── NO &lt;Category&gt; / &lt;SabCategory&gt;
+                   block, NO sabnzbd reference at all             element, no SABnzbd reference
+                                                                   at all
+</code></pre>
+<h3 id="32-categorised-divergence">3.2 Categorised divergence</h3>
+<table>
+<thead>
+<tr>
+<th>Drift dimension</th>
+<th>Sonarr side (<code>config.xml.j2</code>)</th>
+<th>Recyclarr side (<code>recyclarr.yml.j2</code>)</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Case (e.g. <code>Tv-Sonarr</code> vs <code>tv-sonarr</code>)</td>
+<td>n/a — field absent</td>
+<td>n/a — field absent</td>
+<td>Cannot drift; nothing to compare</td>
+</tr>
+<tr>
+<td>Typo (<code>tv-sonar</code> vs <code>tv-sonarr</code>)</td>
+<td>n/a — field absent</td>
+<td>n/a — field absent</td>
+<td>Cannot drift</td>
+</tr>
+<tr>
+<td>Missing block</td>
+<td><strong>Missing <code>&lt;DownloadClients&gt;</code> / <code>&lt;Category&gt;</code> element</strong> (Sonarr stores download-client config in its SQLite DB, not in <code>config.xml</code>, but neither path is templated)</td>
+<td><strong>Missing <code>sonarr[].download_clients</code> / <code>media_management</code> block</strong></td>
+<td><strong>Both blocks are missing on both sides</strong></td>
+</tr>
+<tr>
+<td>Missing variable</td>
+<td>No <code>sonarr_sabnzbd_category</code> (or analogous) Ansible variable anywhere in the repo</td>
+<td>Same</td>
+<td>Confirmed by exhaustive grep (§1.4)</td>
+</tr>
+<tr>
+<td>Missing <code>download_client</code> entry on Sonarr</td>
+<td>Sonarr has <strong>no <code>&lt;DownloadClients&gt;</code> configuration provisioned at all</strong> — the entire entry must be added through the Sonarr UI on first boot</td>
+<td>Recyclarr cannot author Sonarr's download-client entry; it has no <code>download_client:</code> directive in any include template</td>
+<td><strong>Sonarr's Download Client → SABnzbd link does not exist post-provision</strong></td>
+</tr>
+<tr>
+<td>Missing category on SABnzbd</td>
+<td>n/a</td>
+<td>n/a</td>
+<td><code>provision_host.yml:483</code> sets <code>SABNZBD_API_KEY=""</code>; no <code>sabnzbd.ini</code> is templated; no category seeded</td>
+</tr>
+</tbody>
+</table>
+<h3 id="33-the-single-failing-invariant">3.3 The single failing invariant</h3>
+<blockquote>
+<p><strong>For every download-client integration to function, there must exist exactly one
+string <code>C</code> such that:</strong></p>
+<ol>
+<li>Sonarr's <code>Settings → Download Clients → SABnzbd → Category</code> equals <code>C</code>,</li>
+<li>SABnzbd's <code>Config → Categories</code> contains a row whose name equals <code>C</code> (byte-for-byte),</li>
+<li>(recommended) SABnzbd's category row maps to a folder under
+   <code>/data/usenet/</code> so that Sonarr's full-<code>/data</code> bind-mount can hardlink the
+   completed file across to <code>/data/media/tv/</code>.</li>
+</ol>
+<p><strong>The current state is that <code>C</code> is undefined on every side.</strong> This satisfies
+<code>recyclarr sync</code> literally (Recyclarr only configures quality profiles and custom
+formats and successfully exits 0), while leaving Sonarr→SABnzbd routing broken —
+the symptom the upstream bug report describes.</p>
+</blockquote>
+<p>[SPEC-GAP] The missing spec file <code>bug-sonarr-sabnzbd-sync.md</code> would presumably pin
+the exact value of <code>C</code> (most likely <code>tv-sonarr</code> for Sonarr and <code>radarr</code> for Radarr,
+matching the LinuxServer.io / TRaSH-Guides community convention). Task 3 must either
+(a) recover that spec, or (b) adopt the community-conventional names as the de-facto
+contract.</p>
+<hr />
+<h2 id="4-recommendation-single-source-of-truth-for-task-3">4. Recommendation — Single Source of Truth for Task 3</h2>
+<h3 id="41-proposed-solution">4.1 Proposed solution</h3>
+<p>Introduce <strong>two new Ansible variables</strong>, declared once in
+<code>ansible/playbooks/provision_host.yml</code> under <code>vars:</code> (the only existing inventory
+sink — there are no <code>group_vars/</code>, <code>host_vars/</code>, or roles):</p>
+<pre><code class="language-yaml">vars:
+  # … existing vars …
+  sonarr_sabnzbd_category: &quot;tv-sonarr&quot;      # SoT for Sonarr ↔ SABnzbd routing
+  radarr_sabnzbd_category: &quot;radarr&quot;          # SoT for Radarr ↔ SABnzbd routing
+</code></pre>
+<p>Then drive <strong>three</strong> rendered artefacts from those two variables:</p>
+<table>
+<thead>
+<tr>
+<th>Artefact</th>
+<th>Where to template the variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sonarr's pre-seeded download-client entry</td>
+<td>Either (a) extend <code>config.xml.j2</code> to also emit a minimal <code>&lt;DownloadClientConfig&gt;</code> section (Sonarr v3 honours a small subset in <code>config.xml</code>), or (b) add a new template e.g. <code>ansible/files/servarr/sonarr-downloadclients.json.j2</code> and <code>POST</code> it to Sonarr's API after the container is up. Option (b) is cleaner because Sonarr's full download-client config lives in <code>sonarr.db</code>, not <code>config.xml</code>.</td>
+</tr>
+<tr>
+<td>SABnzbd's category row</td>
+<td>Add a new <code>ansible/files/sabnzbd/sabnzbd.ini.j2</code> (or API-driven task) seeded with the same variable, so the SABnzbd <code>[categories]</code> section contains a row named <code>{{ sonarr_sabnzbd_category }}</code> pointing at <code>/data/usenet/{{ sonarr_sabnzbd_category }}/</code>. Also create that directory in <code>provision_host.yml</code>'s filesystem block.</td>
+</tr>
+<tr>
+<td>Recyclarr</td>
+<td><strong>Do not modify <code>recyclarr.yml.j2</code>.</strong> Recyclarr does not own category routing (confirmed against the upstream config reference). Leaving Recyclarr out of category management is correct DDD: Recyclarr belongs to the <em>Maintenance</em> bounded context (TRaSH-Guides sync), not the <em>Acquisition ↔ Processing</em> boundary that owns categories.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-justification-against-the-constitution">4.2 Justification against the Constitution</h3>
+<p><strong>Maxim 1 — Zero-Click Provisioning (Infrastructure-as-Code)</strong></p>
+<blockquote>
+<p><em>"There will be no manual installation of dependencies. The entire system must be
+defined in declarative configuration (Ansible + Docker Compose)."</em></p>
+</blockquote>
+<p>The current state requires the operator to manually:</p>
+<ol>
+<li>Open Sonarr's UI → Settings → Download Clients → Add → SABnzbd → fill in API key + category.</li>
+<li>Open SABnzbd's UI → Config → Categories → add a row whose name matches step 1.</li>
+<li>Repeat for Radarr.</li>
+</ol>
+<p>That is <strong>three</strong> manual UI clicks per fresh provision, each capable of introducing
+the very case/typo drift that breaks the integration. A single declarative Ansible
+variable referenced from both rendering sites eliminates the manual step and makes
+drift literally impossible (one variable cannot disagree with itself).</p>
+<p><strong>Maxim "Infrastructure TDD Invariant"</strong></p>
+<blockquote>
+<p>[SPEC-GAP] This maxim is <strong>not present verbatim</strong> in <code>.ruler/CONSTITUTION.MD</code> as
+shipped in this worktree. The closest equivalents actually present are
+<code>molecule/default/tests/test_host_provision.py</code> (the Testinfra contract), the
+CONSTITUTION's overall "highly resilient … automated" mandate, and
+<code>AGENTS.md §3</code> on Idempotency. Interpreting the maxim in the spirit of those
+sources:</p>
+<p><em>"Every production invariant must be expressible as a deterministic, executable
+test that fails before the fix and passes after."</em></p>
+</blockquote>
+<p>A single Ansible variable enables a one-line, deterministic Testinfra assertion of
+the form:</p>
+<pre><code class="language-python">def test_sonarr_and_sabnzbd_agree_on_category(host):
+    sonarr_cat   = grep_sonarr_db_for_sabnzbd_category(host)
+    sabnzbd_cat  = grep_sabnzbd_ini_for_categories(host)
+    expected     = &quot;tv-sonarr&quot;   # mirrors vars.sonarr_sabnzbd_category
+    assert sonarr_cat == expected == sabnzbd_cat
+</code></pre>
+<p>Compared with the alternatives the test surface is minimal and unambiguous:</p>
+<table>
+<thead>
+<tr>
+<th>Alternative SoT</th>
+<th>Why rejected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hard-code <code>"tv-sonarr"</code> in three places</td>
+<td>Violates DRY; restores the very drift surface this bug demonstrates; impossible to assert "they agree" with a single equality test.</td>
+</tr>
+<tr>
+<td>Put the value in <code>.env</code> (e.g. <code>SONARR_SABNZBD_CATEGORY=tv-sonarr</code>)</td>
+<td><code>.env</code> is consumed by Docker Compose at container <em>runtime</em>, but Sonarr's category is stored in <code>sonarr.db</code> and is not read from env. The variable would have to be templated <em>into</em> a config file by Ansible anyway, so putting it in Ansible vars directly is one fewer indirection.</td>
+</tr>
+<tr>
+<td>Put the value inside <code>recyclarr.yml.j2</code></td>
+<td>Recyclarr does not own this concern (see §1.2 and §4.1). Adding it there would be a layering violation: the <em>Maintenance</em> bounded context would be mutating the <em>Acquisition / Processing</em> contract.</td>
+</tr>
+<tr>
+<td>Add a new <code>group_vars/the_host.yml</code></td>
+<td>Acceptable but heavier — it forces the creation of a <code>group_vars</code> directory that does not exist today. Sticking with the existing <code>vars:</code> block in <code>provision_host.yml</code> preserves the project's current zero-layer convention until / unless multiple plays start needing the value.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-recommended-variable-names-concrete">4.3 Recommended variable names (concrete)</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Recommended value</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sonarr_sabnzbd_category</code></td>
+<td><code>"tv-sonarr"</code></td>
+<td>Sonarr download-client pre-seed task + SABnzbd <code>sabnzbd.ini.j2</code> <code>[categories]</code> block + filesystem task that creates <code>/opt/mediastack/data/usenet/tv-sonarr/</code></td>
+</tr>
+<tr>
+<td><code>radarr_sabnzbd_category</code></td>
+<td><code>"radarr"</code></td>
+<td>Radarr download-client pre-seed task + SABnzbd <code>sabnzbd.ini.j2</code> <code>[categories]</code> block + filesystem task that creates <code>/opt/mediastack/data/usenet/radarr/</code></td>
+</tr>
+</tbody>
+</table>
+<p>Values mirror the LinuxServer.io / TRaSH-Guides community convention used in every
+public reference compose for this stack; [SPEC-GAP] the missing spec file may
+override these — Task 3 must reconcile.</p>
+<hr />
+<h2 id="appendix-a-grep-evidence">Appendix A — Grep evidence</h2>
+<pre><code class="language-bash"># No &quot;categ&quot; tokens anywhere in any rendered artefact:
+$ grep -rni 'categ' /home/melvin/.cline/worktrees/ebb2d/CineVault \
+        --include='*.j2' --include='*.yml' --include='*.yaml' \
+        --include='*.xml' --include='*.ini' --include='*.cfg'
+# (empty)
+
+# No group_vars / host_vars / defaults / roles directories:
+$ find /home/melvin/.cline/worktrees/ebb2d/CineVault -type d \
+        \( -name group_vars -o -name host_vars -o -name defaults \
+           -o -name vars -o -name roles \)
+# (empty)
+
+# All Jinja2 templates inventoried:
+$ find /home/melvin/.cline/worktrees/ebb2d/CineVault -name '*.j2'
+ansible/files/homepage/widgets.yaml.j2
+ansible/files/homepage/docker.yaml.j2
+ansible/files/homepage/services.yaml.j2
+ansible/files/servarr/config.xml.j2          ← inventoried §1.3
+ansible/files/recyclarr/recyclarr.yml.j2     ← inventoried §1.2
+docker-compose.yml.j2                         ← inventoried §1.5
+</code></pre>
+<h2 id="appendix-b-files-not-modified">Appendix B — Files <strong>not</strong> modified</h2>
+<p>This analysis created exactly one file: this document
+(<code>docs/analysis/sonarr-sabnzbd-category-drift.md</code>). No <code>.j2</code>, <code>.yml</code>, <code>.yaml</code>, <code>.xml</code>,
+<code>.ini</code>, <code>.cfg</code>, or test file was edited or created.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

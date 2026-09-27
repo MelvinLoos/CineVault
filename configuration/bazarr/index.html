@@ -1,0 +1,1280 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+      
+      
+      
+        <link rel="canonical" href="https://MelvinLoos.github.io/CineVault/configuration/bazarr/">
+      
+      
+        <link rel="prev" href="../distributed-tdarr/">
+      
+      
+        <link rel="next" href="../../maintenance/storage-cleanup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Bazarr Configuration - CineVault</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bazarr-subtitle-provider-sync-configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CineVault" class="md-header__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CineVault
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Bazarr Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../deployment/initial-setup/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../homepage/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../maintenance/storage-cleanup/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CineVault" class="md-nav__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CineVault
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/bare-metal-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up the host
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../homepage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spotweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotweb Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wizarr Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed-tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distributed Tdarr Node
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazarr Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazarr Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a-subtitle-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Subtitle Providers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b-preventing-duplicate-subtitle-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Preventing Duplicate Subtitle Downloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c-audio-based-synchronisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Audio-Based Synchronisation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#d-language-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Language Profiles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="D. Language Profiles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-dutch-at-the-top-with-the-cutoff-on-dutch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Dutch at the top with the cutoff on Dutch?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e-minimum-scores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E. Minimum Scores
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintenance/storage-cleanup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#a-subtitle-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A. Subtitle Providers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#b-preventing-duplicate-subtitle-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        B. Preventing Duplicate Subtitle Downloads
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#c-audio-based-synchronisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Audio-Based Synchronisation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#d-language-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Language Profiles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="D. Language Profiles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-dutch-at-the-top-with-the-cutoff-on-dutch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Dutch at the top with the cutoff on Dutch?
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#e-minimum-scores" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E. Minimum Scores
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="bazarr-subtitle-provider-sync-configuration">Bazarr — Subtitle Provider &amp; Sync Configuration</h1>
+<p>Bazarr is the subtitle companion to Radarr and Sonarr in the CineVault stack.
+It watches the libraries those two apps manage and pulls down matching
+subtitle tracks for each movie or episode. For a <strong>Dutch / English bilingual
+household</strong> the defaults are not good enough — Bazarr will happily download
+mis-synced WEB-DL subtitles over the top of a perfectly good embedded MKV
+track, or grab five copies of the same <code>.srt</code> from five different providers.</p>
+<p>This page documents the exact UI clicks required to make a fresh Bazarr
+deployment produce <strong>accurate, synchronised and deduplicated</strong> subtitles for
+NL + EN viewers.</p>
+<p>!!! warning "Stateful configuration"
+    Everything on this page lives inside Bazarr's own SQLite database
+    (<code>/opt/mediastack/data/bazarr/</code>). It is <strong>not</strong> managed by Ansible —
+    these steps must be performed once via the web UI after the container
+    is up.</p>
+<hr />
+<h2 id="a-subtitle-providers">A. Subtitle Providers</h2>
+<p>Navigate to <strong>Settings -&gt; Providers</strong> and enable <strong>only</strong> the following stack.
+This combination has been tested for English and Dutch coverage across both
+movies and TV without burning through any single provider's rate limit.</p>
+<table>
+<thead>
+<tr>
+<th>Provider</th>
+<th>Account required</th>
+<th>Best for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OpenSubtitles.com</strong></td>
+<td>Yes (free account)</td>
+<td>General coverage</td>
+</tr>
+<tr>
+<td><strong>Addic7ed</strong></td>
+<td>Yes (free account)</td>
+<td>TV shows</td>
+</tr>
+<tr>
+<td><strong>Podnapisi</strong></td>
+<td>No</td>
+<td>Dutch + EU titles</td>
+</tr>
+<tr>
+<td><strong>YIFY</strong></td>
+<td>No</td>
+<td>Movies <strong>only</strong></td>
+</tr>
+<tr>
+<td><strong>BSPlayer</strong></td>
+<td>No</td>
+<td>Fallback / fill-in</td>
+</tr>
+</tbody>
+</table>
+<p>!!! warning "Do NOT enable every provider"
+    Bazarr will query every enabled provider for every missing subtitle on
+    every search cycle. Enabling the full list in the UI is the single
+    fastest way to get your IP <strong>rate-limited or temporarily banned</strong> by
+    OpenSubtitles and Addic7ed — both of which enforce strict daily download
+    caps on free accounts. Stick to the five providers above.</p>
+<p>!!! note "Subscene is dead"
+    Subscene was shut down permanently in 2024 and its API no longer
+    responds. If you see it listed in the provider dropdown, <strong>do not enable
+    it</strong> — it will only generate failed-request log spam. Any older guide
+    that recommends Subscene is out of date.</p>
+<hr />
+<h2 id="b-preventing-duplicate-subtitle-downloads">B. Preventing Duplicate Subtitle Downloads</h2>
+<p>A correctly tagged MKV from a good release group usually already contains
+the Dutch and English subtitle tracks embedded inside the container. Without
+the settings below, Bazarr will ignore those embedded tracks and download
+external <code>.srt</code> files anyway — leaving you with <strong>two</strong> copies of the same
+subtitle (one inside the MKV, one next to it on disk) and the external sidecar
+taking priority in most players.</p>
+<p>Navigate to <strong>Settings -&gt; Subtitles</strong> and enable <strong>both</strong> of the following
+options:</p>
+<ul>
+<li><strong>Use Embedded Subtitles</strong> — tells Bazarr to count the MKV's internal
+  subtitle tracks as valid coverage for the language profile.</li>
+<li><strong>Analyze Video Files</strong> — tells Bazarr to actually open each file with
+  <code>ffprobe</code> on import so it knows which embedded tracks exist in the first
+  place. Without this toggle the previous option does nothing, because Bazarr
+  has no idea what is inside the MKV.</li>
+</ul>
+<p>With both enabled, Bazarr will skip the external download entirely whenever
+the MKV already ships with the desired language track, eliminating the
+duplicate-subtitle problem at the source.</p>
+<hr />
+<h2 id="c-audio-based-synchronisation">C. Audio-Based Synchronisation</h2>
+<p>External subtitles are notoriously mis-timed — a WEB-DL sub applied to a
+BluRay release is typically off by several seconds because of the
+distributor's intro card, and even "matching" releases drift by 100–500 ms.
+Bazarr ships with two waveform-based sync tools that fix this automatically.</p>
+<p>Navigate to <strong>Settings -&gt; Subtitles</strong> and configure:</p>
+<ol>
+<li>Enable <strong>Automatic Subtitles Synchronization</strong>.</li>
+<li>Select either <strong>alass</strong> or <strong>ffsubsync</strong> as the sync engine.</li>
+</ol>
+<p>Both tools are already installed inside the Bazarr container image — there
+is nothing to apt-get or pip-install on the host. They work by extracting
+the audio waveform of the video file and mathematically aligning the
+subtitle timestamps to where speech actually occurs, rather than relying on
+the (often wrong) release-name metadata.</p>
+<p>!!! note "alass vs. ffsubsync"
+    - <strong>alass</strong> is generally faster and handles subtitles with long gaps
+      (e.g. silent intros, post-credit scenes) more gracefully.
+    - <strong>ffsubsync</strong> is slightly more conservative and a good fallback if
+      alass produces an obviously broken result on a specific file.</p>
+<pre><code>Either choice is fine — pick one and stay with it.
+</code></pre>
+<hr />
+<h2 id="d-language-profiles">D. Language Profiles</h2>
+<p>Navigate to <strong>Languages -&gt; Profiles</strong> and create a single dual-language
+profile called <strong><code>NL + EN</code></strong>, then assign it to every series in Sonarr and
+every movie in Radarr.</p>
+<p>Inside the profile, order and configure the languages as follows:</p>
+<table>
+<thead>
+<tr>
+<th>Order</th>
+<th>Language</th>
+<th>Cutoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Dutch</strong></td>
+<td>✅ (set cutoff here)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>English</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-dutch-at-the-top-with-the-cutoff-on-dutch">Why Dutch at the top with the cutoff on Dutch?</h3>
+<p>Bazarr treats the <strong>cutoff</strong> as "the target language — once this one is
+downloaded, stop searching the rest". By placing Dutch first <strong>and</strong> setting
+the cutoff on Dutch:</p>
+<ul>
+<li><strong>English is grabbed immediately</strong> when the file is first imported, because
+  it is by far the most likely subtitle to be available on day one of a
+  release. You can sit down and watch the episode tonight.</li>
+<li><strong>Dutch is upgraded in the background</strong> — Bazarr keeps searching for the
+  Dutch track on its normal schedule and silently swaps it in once a Dutch
+  provider publishes a matching <code>.srt</code>. The English copy is kept alongside
+  it.</li>
+<li><strong>Searching stops once Dutch lands.</strong> With the cutoff on Dutch, Bazarr will
+  not keep hammering providers indefinitely for a "better" track once the
+  preferred language is in place.</li>
+</ul>
+<p>The net effect is "watchable right now in English, eventually in Dutch" —
+which is exactly the desired bilingual-household behaviour.</p>
+<hr />
+<h2 id="e-minimum-scores">E. Minimum Scores</h2>
+<p>Bazarr scores each subtitle candidate against the video file based on release
+group, source (BluRay / WEB-DL / HDTV), resolution, and other metadata. The
+default minimum score is low enough that a WEB-DL subtitle will routinely be
+applied to a BluRay release, producing a sub that is <strong>several seconds
+out of sync</strong> before the audio-sync step even runs.</p>
+<p>Navigate to <strong>Settings -&gt; Subtitles</strong> and raise the minimum scores to at
+least the following values:</p>
+<table>
+<thead>
+<tr>
+<th>Content type</th>
+<th>Minimum score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Movies</td>
+<td><strong>70</strong></td>
+</tr>
+<tr>
+<td>TV shows</td>
+<td><strong>80</strong></td>
+</tr>
+</tbody>
+</table>
+<p>This forces Bazarr to only accept subtitles where the source / release-group
+fingerprint actually matches the video file, preventing out-of-sync WEB-DL
+subs from being applied to BluRay rips (and vice versa). Anything that
+scores below the threshold is rejected and the search continues until a
+properly matched track is found — or, failing that, no track is applied
+rather than a wrong one.</p>
+<p>Combined with the alass / ffsubsync step in section <strong>C</strong>, this produces
+subtitles that are correctly matched to the release <strong>and</strong> waveform-aligned
+to the audio, which is as good as automated subtitle delivery gets.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
