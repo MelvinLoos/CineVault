@@ -65,6 +65,7 @@ The media stack consists of the following services, categorized by their Bounded
     *   **Homepage:** Centralized dashboard for all services.
     *   **Watchtower:** Automatic Docker image updates.
     *   **Docker Socket Proxy:** Secure abstraction for the Docker socket.
+    *   **Maintainerr:** Rule-based cleanup of stale media from Jellyfin, the *arrs, and Seerr.
 
 ## File System Layout
 
@@ -172,6 +173,7 @@ Once deployed, the following services are available on The Host:
 | **Prowlarr** | 9696 | Indexers | No |
 | **SABnzbd** | 8080 | Processing | No |
 | **Tdarr Server** | 8266 | Processing | No (Local `/24` only — laptop GPU node control plane) |
+| **Maintainerr** | 6246 | Maintenance | No (Local `/24` only — library cleanup WebUI) |
 
 ## Development & Testing
 
