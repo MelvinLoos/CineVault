@@ -51,6 +51,10 @@
   community.docker.docker_compose_v2:
     project_src: /opt/mediastack/
     state: present
+    # Prune containers that belong to the project but are no longer defined
+    # in the rendered compose file (e.g. retired services), keeping The Host
+    # free of stale containers.
+    remove_orphans: true
   environment:
     COMPOSE_PARALLEL_LIMIT: "2"
   register: deployment_deploy_result
