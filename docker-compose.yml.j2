@@ -465,3 +465,42 @@ services:
     networks:
       - socket_proxy_net
     restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)
+  # Maintenance context — automated Library cleanup & storage reclamation.
+  # Applies rules (age, watch status, ratings) to gather stale media into a
+  # holding collection with a grace period, then removes it from Jellyfin,
+  # the *arrs and Seerr. API keys are configured via its WebUI and stored in
+  # appdata — never in .env.
+  # ---------------------------------------------------------------------------
+  maintainerr:
+    image: ghcr.io/maintainerr/maintainerr:latest
+    container_name: maintainerr
+    # Zero Root Execution (AGENTS.md §3): the image accepts an explicit runtime user.
+    user: ${PUID}:${PGID}
+    environment:
+      - TZ=${TZ}
+      # Privacy: the anonymous weekly usage report is disabled by default.
+      # Opt in with MAINTAINERR_TELEMETRY=on in .env.
+      - TELEMETRY=${MAINTAINERR_TELEMETRY:-off}
+    volumes:
+      - ./appdata/maintainerr:/opt/data  # Config state (fast SSD — ARCHITECTURE.md §1)
+      # Leftover-folder cleanup (optional): Maintainerr must see The Library at
+      # the same path Radarr/Sonarr report it at (./data -> /data). Deleting
+      # empty leftover folders requires write access, so no :ro flag. Commented
+      # out by default (State vs. Compute — AGENTS.md §3).
+      # - ./data:/data
+    ports:
+      - "6246:6246"  # WebUI. UFW-scoped to the LAN subnet by provision_host.yml.
+    networks:
+      - ingress_net   # Jellyfin API (Delivery bounded context)
+      - internal_api  # Radarr / Sonarr / Seerr APIs (Acquisition + Media Request)
+    restart: unless-stopped
+    # Healthcheck ships inside the image; parameters restated here for tuning.
+    healthcheck:
+      test: ['CMD', '/opt/app/healthcheck.sh']
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
