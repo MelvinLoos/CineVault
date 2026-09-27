@@ -155,6 +155,40 @@
   tags:
     - filesystem
 
+- name: Media Offloading - Check whether the NFS export is already block-managed
+  ansible.builtin.command:
+    cmd: grep -Fq 'ANSIBLE MANAGED — /opt/mediastack/data NFS export' /etc/exports
+  register: filesystem_nfs_export_block_managed
+  changed_when: false
+  failed_when: false
+  tags:
+    - filesystem
+
+- name: Media Offloading - Count existing NFS export lines
+  ansible.builtin.command:
+    cmd: grep -c '^/opt/mediastack/data' /etc/exports
+  register: filesystem_nfs_export_line_count
+  changed_when: false
+  failed_when: false
+  tags:
+    - filesystem
+
+- name: Media Offloading - Remove unmanaged NFS export lines (migration)
+  # Hosts provisioned before the blockinfile migration carry an unmarked
+  # /opt/mediastack/data line. Adding the managed block next to it makes
+  # `exportfs -ra` fail on "duplicated export entries". Remove every
+  # /opt/mediastack/data line (the managed block is re-created below) ONLY
+  # when a duplicate exists or the managed block is absent, so already
+  # converged hosts stay untouched and this task remains idempotent.
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    regexp: '^/opt/mediastack/data'
+    state: absent
+  when: (filesystem_nfs_export_line_count.stdout | int) > 1 or filesystem_nfs_export_block_managed.rc != 0
+  notify: Reload NFS Exports
+  tags:
+    - filesystem
+
 - name: Media Offloading - Configure NFS export of The Library (zero-trust UID/GID parity)
   # blockinfile rather than lineinfile: when media_subnet_cidr changes, the
   # managed block must be REPLACED. A regexp-anchored lineinfile would append
