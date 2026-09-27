@@ -50,6 +50,7 @@ MEDIASTACK_DIRECTORIES = [
     "/opt/mediastack/appdata/seerr",
     "/opt/mediastack/appdata/gluetun",
     "/opt/mediastack/appdata/qbittorrent",
+    "/opt/mediastack/appdata/maintainerr",
     # Media Payload tree (data) — "Resides on High-Capacity Drive" per ARCHITECTURE.md
     "/opt/mediastack/data",
     # The Download Client scratch space — SABnzbd active Usenet downloads
@@ -704,3 +705,38 @@ def test_ufw_does_not_expose_nfs_or_tdarr_to_anywhere(host):
                 f"(8266) must be restricted to {expected_cidr} "
                 "(zero-trust micro-segmentation)."
             )
+
+
+def test_ufw_allows_maintainerr_webui_from_local_subnet(host):
+    """
+    UFW must allow inbound Maintainerr (6246/tcp) WebUI traffic from the local
+    subnet ONLY.
+
+    The WebUI is a LAN-only operational tool and is never published through
+    The Ingress (CONSTITUTION.md §2 Maxim 4). Its allow rule must therefore be
+    scoped to the auto-detected local subnet — mirroring the NFS (2049) and
+    Tdarr control-plane (8266) rules — per zero-trust micro-segmentation
+    (ARCHITECTURE.md §2).
+    """
+    ufw_status = host.run("sudo ufw status verbose")
+    assert ufw_status.rc == 0, "ufw status verbose must succeed"
+    output = ufw_status.stdout
+    expected_cidr = get_expected_subnet(host)
+
+    assert "6246" in output, (
+        "UFW must have an ALLOW rule for port 6246 "
+        "(Maintainerr WebUI) so LAN clients can reach it"
+    )
+    for line in output.splitlines():
+        if "6246" in line and "Anywhere" in line:
+            pytest.fail(
+                "UFW rule for Maintainerr (port 6246) is scoped to "
+                f"'Anywhere': '{line.strip()}'. The WebUI must be "
+                f"restricted to {expected_cidr} "
+                "(zero-trust micro-segmentation)."
+            )
+
+    assert expected_cidr in output, (
+        f"UFW Maintainerr WebUI rule must reference subnet '{expected_cidr}'; "
+        "the WebUI is scoped to the local subnet per the approved plan"
+    )
