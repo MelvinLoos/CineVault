@@ -14,7 +14,12 @@ The Homepage UI is rendered from two Ansible templates:
   (resources, search, weather, etc.).
 - `ansible/files/homepage/services.yaml.j2` — defines the grouped service
   tiles and their per-service widget bindings (Radarr, Sonarr, SABnzbd,
-  Prowlarr, Jellyfin, Tdarr…).
+  Prowlarr, Jellyfin, Tdarr, Maintainerr…).
+
+!!! note
+    The **Maintainerr** tile displays live storage metrics (items handled,
+    movies/shows/episodes processed, reclaimable space) served from its own
+    `/api/storage-metrics` endpoint — no key must be provisioned.
 
 Both files are rendered and copied to the Homepage configuration volume during
 playbook execution, so any structural change should be made in the templates
