@@ -629,6 +629,20 @@ def test_nfs_export_line_configured(host):
         "export a filesystem root"
     )
 
+    # Exactly ONE content line may exist (the managed block). Unmarked legacy
+    # lines from the pre-blockinfile lineinfile era sit alongside the managed
+    # block and make `exportfs -ra` fail with "duplicated export entries"
+    # (issue #26). The marker line itself starts with '#' and is not counted.
+    export_lines = [
+        line for line in exports_content.splitlines()
+        if line.startswith(NFS_EXPORT_PATH)
+    ]
+    assert len(export_lines) == 1, (
+        f"Expected exactly one export line for {NFS_EXPORT_PATH} in "
+        f"/etc/exports, found {len(export_lines)}: {export_lines}. "
+        "Duplicated export entries make `exportfs -ra` fail."
+    )
+
 
 def test_ufw_allows_nfs_from_local_subnet(host):
     """
