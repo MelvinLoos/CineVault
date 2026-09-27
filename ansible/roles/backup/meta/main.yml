@@ -1,0 +1,13 @@
+---
+galaxy_info:
+  author: CineVault
+  description: >-
+    Restic backup automation for /opt/mediastack/appdata on The Host with a
+    daily systemd timer and keep-daily/weekly/monthly retention.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - trixie
+dependencies: []

@@ -4,7 +4,7 @@
 sonarr:
   - name: sonarr
     base_url: http://sonarr:8989
-    api_key: {{ sonarr_key }}
+    api_key: {{ secrets_sonarr_key }}
     download_clients:
       - category: {{ sonarr_sabnzbd_category }}
     include:
@@ -15,7 +15,7 @@ sonarr:
 radarr:
   - name: radarr
     base_url: http://radarr:7878
-    api_key: {{ radarr_key }}
+    api_key: {{ secrets_radarr_key }}
     include:
       - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-hd-bluray-web

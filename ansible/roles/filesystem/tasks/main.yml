@@ -1,0 +1,177 @@
+---
+# The Library filesystem architecture (ARCHITECTURE.md §1): the
+# /opt/mediastack state/payload split, the optional high-capacity media drive,
+# and the NFS export of The Library that enables media offloading to the
+# distributed GPU node.
+#
+# Depends on the identity role for the mediasvc owner and on the play-level
+# media_subnet_cidr fact for the zero-trust scoping of the NFS export.
+
+- name: File System Architecture - Create /opt/mediastack/ (root)
+  ansible.builtin.file:
+    path: /opt/mediastack/
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: '0755'
+  tags:
+    - filesystem
+
+- name: File System Architecture - Create appdata directories (Config state)
+  ansible.builtin.file:
+    path: "/opt/mediastack/appdata/{{ item }}"
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: '0755'
+  loop:
+    - jellyfin
+    - recyclarr
+    - radarr
+    - sonarr
+    - prowlarr
+    - sabnzbd
+    - seerr
+    - homepage
+    - bazarr
+    - gluetun
+    - qbittorrent
+    - tdarr/server
+    - tdarr/configs
+    - wizarr
+    - spotweb
+    - spotweb-db
+    - maintainerr
+  tags:
+    - filesystem
+
+- name: Storage - Install required disk management packages
+  ansible.builtin.apt:
+    name: parted
+    state: present
+  tags:
+    - filesystem
+
+- name: Storage - Check if physical media drive is defined and present
+  ansible.builtin.stat:
+    path: "{{ media_drive_device }}"
+  register: filesystem_media_drive_stat
+  when: media_drive_device != "" # <--- Skips immediately if blank (e.g., during CI)
+  tags:
+    - filesystem
+
+- name: Storage - Create partition on media drive
+  community.general.parted:
+    device: "{{ media_drive_device }}"
+    number: 1
+    state: present
+    fs_type: ext4
+  when:
+    - media_drive_device != ""
+    - filesystem_media_drive_stat.stat is defined
+    - filesystem_media_drive_stat.stat.exists
+  tags:
+    - filesystem
+
+- name: Storage - Format partition to ext4
+  community.general.filesystem:
+    fstype: ext4
+    dev: "{{ media_drive_device }}1" # Adds '1' to target the first partition (e.g., /dev/sdb1)
+  when:
+    - media_drive_device != ""
+    - filesystem_media_drive_stat.stat is defined
+    - filesystem_media_drive_stat.stat.exists
+  tags:
+    - filesystem
+
+- name: Storage - Mount media drive to /opt/mediastack/data
+  ansible.posix.mount:
+    path: /opt/mediastack/data
+    src: "{{ media_drive_device }}1"
+    fstype: ext4
+    opts: defaults,noexec,nosuid,nodev
+    state: mounted
+  when:
+    - media_drive_device != ""
+    - filesystem_media_drive_stat.stat is defined
+    - filesystem_media_drive_stat.stat.exists
+  tags:
+    - filesystem
+
+- name: Storage - Set ownership of /opt/mediastack/data
+  ansible.builtin.file:
+    path: /opt/mediastack/data
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: '0755'
+  tags:
+    - filesystem
+
+- name: File System Architecture - Create The Download Client scratch space (SABnzbd active downloads)
+  ansible.builtin.file:
+    path: /opt/mediastack/data/usenet/
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: '0755'
+  tags:
+    - filesystem
+
+- name: File System Architecture - Create The Library -  movies (Final destination for Radarr)
+  ansible.builtin.file:
+    path: /opt/mediastack/data/media/movies/
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: '0755'
+  tags:
+    - filesystem
+
+- name: File System Architecture - Create The Library -  tv (Final destination for Sonarr)
+  ansible.builtin.file:
+    path: /opt/mediastack/data/media/tv/
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: '0755'
+  tags:
+    - filesystem
+
+- name: Processing Bounded Context - Create Tdarr transcode cache
+  ansible.builtin.file:
+    path: /opt/mediastack/data/transcode_cache/
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: '0755'
+  tags:
+    - filesystem
+
+- name: Media Offloading - Install NFS kernel server
+  ansible.builtin.apt:
+    name: nfs-kernel-server
+    state: present
+  tags:
+    - filesystem
+
+- name: Media Offloading - Configure NFS export of The Library (zero-trust UID/GID parity)
+  # blockinfile rather than lineinfile: when media_subnet_cidr changes, the
+  # managed block must be REPLACED. A regexp-anchored lineinfile would append
+  # a second, stale export line for the previous subnet (issue #26, I-2).
+  ansible.builtin.blockinfile:
+    path: /etc/exports
+    marker: "# {mark} ANSIBLE MANAGED — /opt/mediastack/data NFS export"
+    block: |
+      /opt/mediastack/data {{ media_subnet_cidr }}(rw,sync,no_subtree_check,all_squash,anonuid={{ mediasvc_uid }},anongid={{ mediasvc_gid }},fsid=1)
+  notify: Reload NFS Exports
+  tags:
+    - filesystem
+
+- name: Media Offloading - Ensure NFS server is running and enabled
+  ansible.builtin.systemd:
+    name: nfs-server
+    state: started
+    enabled: true
+  tags:
+    - filesystem

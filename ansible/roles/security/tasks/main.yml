@@ -1,0 +1,168 @@
+---
+# Security bounded context: host hardening, zero-trust micro-segmentation and
+# privacy. Owns the UFW firewall (ARCHITECTURE.md §2), SSH hardening,
+# DNS-over-TLS via systemd-resolved, and unattended security updates.
+#
+# The LAN subnet used to scope the micro-segmentation rules is detected once
+# as a play-level fact (media_subnet_cidr) so this role stays independent of
+# any sibling role.
+
+- name: Host Hardening - Install UFW firewall
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+  tags:
+    - security
+
+- name: Host Hardening - Configure UFW to allow SSH
+  community.general.ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+  tags:
+    - security
+
+- name: Zero Trust Micro-segmentation - Allow NFS (2049) from local subnet only
+  community.general.ufw:
+    rule: allow
+    port: '2049'
+    proto: "{{ item }}"
+    from_ip: "{{ media_subnet_cidr }}"
+  loop: [tcp, udp]
+  tags:
+    - security
+
+- name: Zero Trust Micro-segmentation - Allow Tdarr Server control plane (8266) from local subnet only
+  community.general.ufw:
+    rule: allow
+    port: '8266'
+    proto: tcp
+    from_ip: "{{ media_subnet_cidr }}"
+  tags:
+    - security
+
+- name: Zero Trust Micro-segmentation - Allow Maintainerr WebUI (6246) from local subnet only
+  community.general.ufw:
+    rule: allow
+    port: '6246'
+    proto: tcp
+    from_ip: "{{ media_subnet_cidr }}"
+  tags:
+    - security
+
+- name: Host Hardening - Enable UFW and drop default inbound
+  community.general.ufw:
+    state: enabled
+    default: deny
+    direction: incoming
+  tags:
+    - security
+
+- name: Host Hardening - Disable password authentication for SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify: Restart SSH
+  tags:
+    - security
+
+- name: Host Hardening - Disable root login for SSH
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: Restart SSH
+  tags:
+    - security
+
+- name: Privacy - Install systemd-resolved package
+  ansible.builtin.apt:
+    name: systemd-resolved
+    state: present
+  tags:
+    - security
+
+- name: Privacy - Configure Secure DNS (Cloudflare/Quad9) with DNS-over-TLS
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^#?DNS=', line: 'DNS=1.1.1.1 1.0.0.1 9.9.9.9' }
+    - { regexp: '^#?DNSOverTLS=', line: 'DNSOverTLS=yes' }
+  register: security_dns_config
+  tags:
+    - security
+
+- name: Privacy - Ensure systemd-resolved is running and enabled
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: started
+    enabled: true
+  tags:
+    - security
+
+- name: Privacy - Restart DNS ONLY if DNS config changed
+  # Restart-on-config-change is intentional (not a handler): it must re-run
+  # only when the registered config result reports a change in THIS run. The
+  # docker daemon restart that accompanied this loop previously now lives in
+  # the docker role, which owns the docker service (and its install order).
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+  when: security_dns_config.changed  # noqa: no-handler
+  tags:
+    - security
+
+- name: Privacy - Symlink resolv.conf to use systemd-resolved
+  ansible.builtin.file:
+    src: /run/systemd/resolve/stub-resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: true
+  tags:
+    - security
+
+- name: Host Maintenance - Install unattended-upgrades
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+  tags:
+    - security
+
+- name: Host Maintenance - Ensure unattended-upgrades is enabled and running # FIXED: Ensures it stays on
+  ansible.builtin.systemd:
+    name: unattended-upgrades
+    state: started
+    enabled: true
+  tags:
+    - security
+
+- name: Host Maintenance - Configure automatic updates (20auto-upgrades)
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::AutocleanInterval "7";
+  tags:
+    - security
+
+- name: Host Maintenance - Configure automatic reboots and cleanup (50unattended-upgrades)
+  ansible.builtin.lineinfile:
+    path: /etc/apt/apt.conf.d/50unattended-upgrades
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^//?Unattended-Upgrade::Automatic-Reboot ', line: 'Unattended-Upgrade::Automatic-Reboot "true";' }
+    - { regexp: '^//?Unattended-Upgrade::Automatic-Reboot-Time ', line: 'Unattended-Upgrade::Automatic-Reboot-Time "04:00";' }
+    - { regexp: '^//?Unattended-Upgrade::Remove-Unused-Kernel-Packages ', line: 'Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";' }
+    - { regexp: '^//?Unattended-Upgrade::Remove-Unused-Dependencies ', line: 'Unattended-Upgrade::Remove-Unused-Dependencies "true";' }
+  tags:
+    - security

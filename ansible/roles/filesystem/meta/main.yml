@@ -1,0 +1,14 @@
+---
+galaxy_info:
+  author: CineVault
+  description: >-
+    The Library filesystem architecture of The Host: /opt/mediastack tree,
+    optional media drive provisioning, and the zero-trust NFS export used for
+    media offloading.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - trixie
+dependencies: []
