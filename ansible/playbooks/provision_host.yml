@@ -1,7 +1,23 @@
 ---
-- name: Provision The Host (Intel N100 Mini-PC running Debian 13 "Trixie")
+# Provision The Host (Intel N100 Mini-PC running Debian 13 "Trixie").
+#
+# Thin orchestration entry point: shared variables and cross-cutting host-fact
+# discovery live here; every provisioning step is decomposed into a
+# single-responsibility role under ansible/roles/. Run targeted slices with
+# --tags <role> (e.g. --tags filesystem, --tags backup).
+- name: Provision The Host (Intel N100 Mini-PC running Debian 13 "Trixie")  # noqa: fqcn[keyword]
   hosts: the_host
   become: true
+  # Explicit collection declarations (issue #26, finding I-3): the block
+  # documents the playbook's dependency surface at the top level. The noqa is
+  # required because every module invocation already uses FQCN (fqcn[keyword]
+  # prefers dropping the keyword in that case), but the declaration is the
+  # intentional dependency map for this play.
+  collections:  # noqa: fqcn[keyword]
+    - community.general
+    - community.docker
+    - ansible.posix
+    - ansible.utils
   vars:
     # PUID/PGID for the mediasvc user, as mandated by ARCHITECTURE.md for Zero Root Execution.
     # These values are chosen to be outside the typical system reserved range and common
@@ -29,61 +45,57 @@
     # See: .ruler/specs/active/bug-sonarr-sabnzbd-sync.md
     sonarr_sabnzbd_category: "tv-sonarr"
 
-  tasks:
-    - name: Ensure current and target hostnames resolve locally during rename
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        regexp: '^127\.0\.1\.1\s+'
-        line: "127.0.1.1 {{ ([ansible_facts['hostname'], mediacenter_hostname | default('mediacenter')] | unique) | join(' ') }}"
-      when: ansible_facts['hostname'] != (mediacenter_hostname | default('mediacenter'))
-      tags:
-        - identity
-
-    - name: Ensure system hostname is set to role-based name
-      ansible.builtin.hostname:
-        name: "{{ mediacenter_hostname | default('mediacenter') }}"
-      tags:
-        - identity
-
-    - name: Ensure role-based hostname resolves locally
-      ansible.builtin.lineinfile:
-        path: /etc/hosts
-        regexp: '^127\.0\.1\.1\s+'
-        line: "127.0.1.1 {{ mediacenter_hostname | default('mediacenter') }}"
-      tags:
-        - identity
-
+  # ---------------------------------------------------------------------------
+  # Cross-cutting prerequisites, deliberately kept out of the roles so that
+  # no role depends on a sibling role having run first:
+  #   - media_subnet_cidr  : consumed by security (UFW) and filesystem (NFS)
+  #   - host_has_quicksync : consumed by deployment (docker-compose template)
+  #   - system preparation : GRUB preseed + apt cache refresh/upgrade must
+  #     complete before any role installs packages
+  # ---------------------------------------------------------------------------
+  pre_tasks:
     - name: Calculate LAN Subnet CIDR from host network facts
       # Compose the address/netmask pair and let the ipaddr filter derive the
       # canonical network/prefix form (e.g. 192.168.2.42/255.255.255.0 ->
       # "192.168.2.0/24"). Applying ipaddr('prefix') to a bare netmask would
       # yield the no-bits-count default (32), so the pair must be composed.
+      # ansible_facts[] (rather than the deprecated injected ansible_* alias)
+      # keeps this working once INJECT_FACTS_AS_VARS is removed in 2.24.
       ansible.builtin.set_fact:
-        media_subnet_cidr: "{{ (ansible_default_ipv4.address ~ '/' ~ ansible_default_ipv4.netmask) | ansible.utils.ipaddr('network/prefix') }}"
+        media_subnet_cidr: >-
+          {{ (ansible_facts['default_ipv4'].address ~ '/' ~ ansible_facts['default_ipv4'].netmask)
+          | ansible.utils.ipaddr('network/prefix') }}
       when: media_subnet_cidr is not defined or media_subnet_cidr == ""
       tags:
         - security
-        - nfs
+        - filesystem
 
     - name: Display detected Media Subnet CIDR
       ansible.builtin.debug:
         msg: "Configuring NFS and UFW rules for subnet: {{ media_subnet_cidr }}"
       tags:
         - security
-        - nfs
+        - filesystem
 
     - name: Hardware Detection - Check if Intel QuickSync GPU is physically present
       ansible.builtin.stat:
         path: /dev/dri/renderD128
       register: quicksync_device
       tags:
-        - hardware
+        - deployment
 
     - name: Hardware Detection - Set QuickSync capability fact
       ansible.builtin.set_fact:
         host_has_quicksync: "{{ quicksync_device.stat.exists }}"
       tags:
-        - hardware
+        - deployment
+
+    - name: Hardware Detection - Default QuickSync capability to false
+      ansible.builtin.set_fact:
+        host_has_quicksync: false
+      when: host_has_quicksync is not defined
+      tags:
+        - deployment
 
     - name: System Preparation - Pre-seed GRUB to bypass Legacy BIOS prompts in Vagrant
       ansible.builtin.debconf:
@@ -95,7 +107,10 @@
         - { question: 'grub-pc/install_devices', value: '', vtype: 'multiselect' }
         - { question: 'grub-pc/install_devices_empty', value: 'true', vtype: 'boolean' }
       tags:
-        - system-preparation
+        - security
+        - filesystem
+        - docker
+        - backup
 
     - name: System Preparation - Update apt package cache and upgrade all packages
       ansible.builtin.apt:
@@ -107,719 +122,17 @@
       environment:
         DEBIAN_FRONTEND: noninteractive
       tags:
-        - system-preparation
-        - update
-
-    - name: System Preparation - Install required system packages for Docker and Python
-      ansible.builtin.apt:
-        name:
-          - docker.io
-          - docker-compose
-          - python3-docker
-          - avahi-daemon
-        state: present
-      tags:
-        - system-preparation
-
-    - name: Identity & Zero Root Execution - Create mediasvc group
-      ansible.builtin.group:
-        name: mediasvc
-        gid: "{{ mediasvc_gid }}"
-        state: present
-        system: true # Mark as a system group
-      tags:
-        - identity
-
-    - name: Identity & Zero Root Execution - Create dedicated system user mediasvc (non-login, no home directory)
-      ansible.builtin.user:
-        name: mediasvc
-        uid: "{{ mediasvc_uid }}"
-        group: mediasvc
-        home: /nonexistent # No home directory
-        shell: /usr/sbin/nologin # Non-login shell
-        state: present
-        system: true # Mark as a system user
-        create_home: false
-      tags:
-        - identity
-
-    - name: Hardware Detection - Default QuickSync capability to false
-      ansible.builtin.set_fact:
-        host_has_quicksync: false
-      when: host_has_quicksync is not defined
-      tags:
-        - hardware
-
-    - name: Identity & Zero Root Execution - Add ansible remote user to the docker group
-      ansible.builtin.user:
-        name: "{{ ansible_user }}"
-        groups: docker
-        append: true
-      tags:
-        - identity
-
-    - name: File System Architecture - Create /opt/mediastack/ (root)
-      ansible.builtin.file:
-        path: /opt/mediastack/
-        state: directory
-        owner: mediasvc
-        group: mediasvc
-        mode: '0755'
-      tags:
+        - security
         - filesystem
-
-    - name: File System Architecture - Create appdata directories (Config state)
-      ansible.builtin.file:
-        path: "/opt/mediastack/appdata/{{ item }}"
-        state: directory
-        owner: mediasvc
-        group: mediasvc
-      loop:
-        - jellyfin
-        - recyclarr
-        - radarr
-        - sonarr
-        - prowlarr
-        - sabnzbd
-        - seerr
-        - homepage
-        - bazarr
-        - gluetun
-        - qbittorrent
-        - tdarr/server
-        - tdarr/configs
-        - wizarr
-        - spotweb
-        - spotweb-db
-
-      tags:
-        - filesystem
-
-    - name: Storage - Install required disk management packages
-      ansible.builtin.apt:
-        name: parted
-        state: present
-      tags:
-        - storage
-        - filesystem
-
-    - name: Storage - Check if physical media drive is defined and present
-      ansible.builtin.stat:
-        path: "{{ media_drive_device }}"
-      register: media_drive_stat
-      when: media_drive_device != "" # <--- Skips immediately if blank (e.g., during CI)
-      tags:
-        - storage
-        - filesystem
-
-    - name: Storage - Create partition on media drive
-      community.general.parted:
-        device: "{{ media_drive_device }}"
-        number: 1
-        state: present
-        fs_type: ext4
-      when:
-        - media_drive_device != ""
-        - media_drive_stat.stat is defined
-        - media_drive_stat.stat.exists
-      tags:
-        - storage
-        - filesystem
-
-    - name: Storage - Format partition to ext4
-      community.general.filesystem:
-        fstype: ext4
-        dev: "{{ media_drive_device }}1" # Adds '1' to target the first partition (e.g., /dev/sdb1)
-      when:
-        - media_drive_device != ""
-        - media_drive_stat.stat is defined
-        - media_drive_stat.stat.exists
-      tags:
-        - storage
-        - filesystem
-
-    - name: Storage - Mount media drive to /opt/mediastack/data
-      ansible.posix.mount:
-        path: /opt/mediastack/data
-        src: "{{ media_drive_device }}1"
-        fstype: ext4
-        opts: defaults,noexec,nosuid,nodev
-        state: mounted
-      when:
-        - media_drive_device != ""
-        - media_drive_stat.stat is defined
-        - media_drive_stat.stat.exists
-      tags:
-        - storage
-        - filesystem
-
-    - name: Storage - Set ownership of /opt/mediastack/data
-      ansible.builtin.file:
-        path: /opt/mediastack/data
-        state: directory
-        owner: mediasvc
-        group: mediasvc
-        mode: '0755'
-      tags: [storage, filesystem]
-
-    - name: File System Architecture - Create The Download Client scratch space (SABnzbd active downloads)
-      ansible.builtin.file:
-        path: /opt/mediastack/data/usenet/
-        state: directory
-        owner: mediasvc
-        group: mediasvc
-        mode: '0755'
-      tags:
-        - filesystem
-
-    - name: File System Architecture - Create The Library -  movies (Final destination for Radarr)
-      ansible.builtin.file:
-        path: /opt/mediastack/data/media/movies/
-        state: directory
-        owner: mediasvc
-        group: mediasvc
-        mode: '0755'
-      tags:
-        - filesystem
-
-    - name: File System Architecture - Create The Library -  tv (Final destination for Sonarr)
-      ansible.builtin.file:
-        path: /opt/mediastack/data/media/tv/
-        state: directory
-        owner: mediasvc
-        group: mediasvc
-        mode: '0755'
-      tags:
-        - filesystem
-    - name: Processing Bounded Context - Create Tdarr transcode cache
-      ansible.builtin.file:
-        path: /opt/mediastack/data/transcode_cache/
-        state: directory
-        owner: mediasvc
-        group: mediasvc
-        mode: '0755'
-      tags:
-        - filesystem
-
-
-    - name: Host Hardening - Install UFW firewall
-      ansible.builtin.apt:
-        name: ufw
-        state: present
-      tags: [security]
-
-    - name: Host Hardening - Configure UFW to allow SSH
-      community.general.ufw:
-        rule: allow
-        port: '22'
-        proto: tcp
-      tags: [security]
-
-    - name: Zero Trust Micro-segmentation - Allow NFS (2049) from local subnet only
-      community.general.ufw:
-        rule: allow
-        port: '2049'
-        proto: "{{ item }}"
-        from_ip: "{{ media_subnet_cidr }}"
-      loop: [tcp, udp]
-      tags: [security]
-
-    - name: Zero Trust Micro-segmentation - Allow Tdarr Server control plane (8266) from local subnet only
-      community.general.ufw:
-        rule: allow
-        port: '8266'
-        proto: tcp
-        from_ip: "{{ media_subnet_cidr }}"
-      tags: [security]
-
-    - name: Host Hardening - Enable UFW and drop default inbound
-      community.general.ufw:
-        state: enabled
-        default: deny
-        direction: incoming
-      tags: [security]
-
-    - name: Media Offloading - Install NFS kernel server
-      ansible.builtin.apt:
-        name: nfs-kernel-server
-        state: present
-      tags: [nfs, filesystem]
-
-    - name: Media Offloading - Configure NFS export of The Library (zero-trust UID/GID parity)
-      ansible.builtin.lineinfile:
-        path: /etc/exports
-        regexp: '^/opt/mediastack/data'
-        line: '/opt/mediastack/data {{ media_subnet_cidr }}(rw,sync,no_subtree_check,all_squash,anonuid={{ mediasvc_uid }},anongid={{ mediasvc_gid }},fsid=1)'
-      notify: Reload NFS Exports
-      tags: [nfs, filesystem]
-
-    - name: Media Offloading - Ensure NFS server is running and enabled
-      ansible.builtin.systemd:
-        name: nfs-server
-        state: started
-        enabled: true
-      tags: [nfs, filesystem]
-
-    - name: Host Hardening - Disable password authentication for SSH
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^#?PasswordAuthentication'
-        line: 'PasswordAuthentication no'
-      notify: Restart SSH
-      tags: [security]
-
-    - name: Host Hardening - Disable root login for SSH
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^#?PermitRootLogin'
-        line: 'PermitRootLogin no'
-      notify: Restart SSH
-      tags: [security]
-
-    - name: Privacy - Install systemd-resolved package
-      ansible.builtin.apt:
-        name: systemd-resolved
-        state: present
-      tags:
-        - host
-        - dns
-
-    - name: Privacy - Configure Secure DNS (Cloudflare/Quad9) with DNS-over-TLS
-      ansible.builtin.lineinfile:
-        path: /etc/systemd/resolved.conf
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-      loop:
-        - { regexp: '^#?DNS=', line: 'DNS=1.1.1.1 1.0.0.1 9.9.9.9' }
-        - { regexp: '^#?DNSOverTLS=', line: 'DNSOverTLS=yes' }
-      register: dns_config
-      tags:
-        - host
-        - dns
-
-    - name: Privacy - Ensure systemd-resolved is running and enabled
-      ansible.builtin.systemd:
-        name: systemd-resolved
-        state: started
-        enabled: true
-      tags:
-        - host
-        - dns
-
-    - name: Privacy - Restart DNS and Docker ONLY if DNS config changed
-      ansible.builtin.systemd:
-        name: "{{ item }}"
-        state: restarted
-      loop:
-        - systemd-resolved
         - docker
-      when: dns_config.changed
-      tags:
-        - host
-        - dns
-
-    - name: Privacy - Symlink resolv.conf to use systemd-resolved
-      ansible.builtin.file:
-        src: /run/systemd/resolve/stub-resolv.conf
-        dest: /etc/resolv.conf
-        state: link
-        force: true
-      tags:
-        - host
-        - dns
-
-    - name: Host Maintenance - Install unattended-upgrades
-      ansible.builtin.apt:
-        name: unattended-upgrades
-        state: present
-      tags:
-        - host
-        - updates
-
-    - name: Host Maintenance - Ensure unattended-upgrades is enabled and running # FIXED: Ensures it stays on
-      ansible.builtin.systemd:
-        name: unattended-upgrades
-        state: started
-        enabled: true
-      tags:
-        - host
-        - updates
-
-    - name: Host Maintenance - Configure automatic updates (20auto-upgrades)
-      ansible.builtin.copy:
-        dest: /etc/apt/apt.conf.d/20auto-upgrades
-        owner: root
-        group: root
-        mode: '0644'
-        content: |
-          APT::Periodic::Update-Package-Lists "1";
-          APT::Periodic::Unattended-Upgrade "1";
-          APT::Periodic::Download-Upgradeable-Packages "1";
-          APT::Periodic::AutocleanInterval "7";
-      tags:
-        - host
-        - updates
-
-    - name: Host Maintenance - Configure automatic reboots and cleanup (50unattended-upgrades)
-      ansible.builtin.lineinfile:
-        path: /etc/apt/apt.conf.d/50unattended-upgrades
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-        state: present
-      loop:
-        - { regexp: '^//?Unattended-Upgrade::Automatic-Reboot ', line: 'Unattended-Upgrade::Automatic-Reboot "true";' }
-        - { regexp: '^//?Unattended-Upgrade::Automatic-Reboot-Time ', line: 'Unattended-Upgrade::Automatic-Reboot-Time "04:00";' }
-        - { regexp: '^//?Unattended-Upgrade::Remove-Unused-Kernel-Packages ', line: 'Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";' }
-        - { regexp: '^//?Unattended-Upgrade::Remove-Unused-Dependencies ', line: 'Unattended-Upgrade::Remove-Unused-Dependencies "true";' }
-      tags:
-        - host
-        - updates
-
-    - name: Docker Service - Enable and start the docker systemd service
-      ansible.builtin.systemd:
-        name: docker
-        state: started
-        enabled: true
-        daemon_reload: true
-      tags:
-        - docker-service
-
-    - name: Configuration - Ensure local credentials directory exists on control node
-      ansible.builtin.file:
-        path: "{{ playbook_dir }}/credentials"
-        state: directory
-      delegate_to: localhost
-      become: false
-      tags:
-        - config
-
-    - name: Configuration - Generate Idempotent API Keys
-      ansible.builtin.set_fact:
-        radarr_key: "{{ lookup('password', playbook_dir + '/../credentials/radarr.key chars=hexdigits length=32') }}"
-        sonarr_key: "{{ lookup('password', playbook_dir + '/../credentials/sonarr.key chars=hexdigits length=32') }}"
-        prowlarr_key: "{{ lookup('password', playbook_dir + '/../credentials/prowlarr.key chars=hexdigits length=32') }}"
-        bazarr_key: "{{ lookup('password', playbook_dir + '/../credentials/bazarr.key chars=hexdigits length=32') }}"
-        sabnzbd_key: "{{ lookup('password', playbook_dir + '/../credentials/sabnzbd.key chars=hexdigits length=32') }}"
-      tags:
-        - config
-
-    - name: Configuration - Generate Idempotent Spotweb DB Passwords
-      ansible.builtin.set_fact:
-        spotweb_db_root_password: "{{ lookup('password', playbook_dir + '/../credentials/spotweb_root.key chars=ascii_letters,digits length=24') }}"
-        spotweb_db_password: "{{ lookup('password', playbook_dir + '/../credentials/spotweb.key chars=ascii_letters,digits length=24') }}"
-      tags:
-        - config
-
-    - name: Configuration - Pre-seed Servarr API Keys
-      ansible.builtin.template:
-        src: "../files/servarr/config.xml.j2"
-        dest: "/opt/mediastack/appdata/{{ item.app }}/config.xml"
-        owner: mediasvc
-        group: mediasvc
-        mode: '0644'
-        # First-run-only seed: once the Servarr containers boot they rewrite
-        # config.xml themselves (normalising the XML and file mode), so
-        # re-templating would always report "changed" and break the Molecule
-        # idempotence test (AGENTS.md §3). force: false skips existing files,
-        # mirroring the host .env seed task below.
-        force: false
-      loop:
-        - { app: 'radarr', port: '7878', api_key: "{{ radarr_key }}" }
-        - { app: 'sonarr', port: '8989', api_key: "{{ sonarr_key }}" }
-        - { app: 'prowlarr', port: '9696', api_key: "{{ prowlarr_key }}" }
-      tags:
-        - config
-
-    - name: Deploy Stack - Push Homepage Dashboard Configuration
-      ansible.builtin.template:
-        src: "../files/homepage/{{ item }}.j2"
-        dest: "/opt/mediastack/appdata/homepage/{{ item }}"
-        owner: mediasvc
-        group: mediasvc
-        mode: '0644'
-      loop:
-        - docker.yaml
-        - widgets.yaml
-        - services.yaml
-      tags:
-        - deploy
-    - name: Deploy Stack - Push Recyclarr Configuration
-      ansible.builtin.template:
-        src: "../files/recyclarr/recyclarr.yml.j2"
-        dest: "/opt/mediastack/appdata/recyclarr/recyclarr.yml"
-        owner: mediasvc
-        group: mediasvc
-        mode: "0600"
-      tags:
-        - deploy
-
-    - name: Deploy Stack - Template dynamic docker-compose.yml to the host
-      ansible.builtin.template:
-        src: ../../docker-compose.yml.j2
-        dest: /opt/mediastack/docker-compose.yml
-        owner: mediasvc
-        group: mediasvc
-        mode: '0644'
-      tags:
-        - deploy
-
-    - name: Deploy Stack - Seed host .env from local .env (first run only)
-      ansible.builtin.copy:
-        src: "{{ lookup('ansible.builtin.first_found', env_seed_candidates) }}"
-        dest: /opt/mediastack/.env
-        owner: mediasvc
-        group: mediasvc
-        mode: '0600'
-        force: false
-      vars:
-        env_seed_candidates:
-          - "{{ playbook_dir }}/../../.env"
-          - "{{ playbook_dir }}/../../.env.example"
-      tags:
-        - deploy
-
-    - name: Configuration - Check if host .env file exists
-      ansible.builtin.stat:
-        path: /opt/mediastack/.env
-      register: host_env_stat
-      tags:
-        - config
-
-    - name: Configuration - Extract existing BAZARR_API_KEY from host .env
-      ansible.builtin.shell:
-        cmd: awk -F '=' '/^BAZARR_API_KEY=/ {print $2}' /opt/mediastack/.env
-      register: existing_bazarr_key_cmd
-      changed_when: false
-      when: host_env_stat.stat.exists
-      tags:
-        - config
-
-    - name: Configuration - Extract existing SABNZBD_API_KEY from host .env
-      ansible.builtin.shell:
-        cmd: awk -F '=' '/^SABNZBD_API_KEY=/ {print $2}' /opt/mediastack/.env
-      register: existing_sabnzbd_key_cmd
-      changed_when: false
-      when: host_env_stat.stat.exists
-      tags:
-        - config
-
-    - name: Configuration - Set existing API key facts
-      ansible.builtin.set_fact:
-        current_bazarr_key: "{{ existing_bazarr_key_cmd.stdout | trim if (host_env_stat.stat.exists and existing_bazarr_key_cmd.stdout is defined) else '' }}"
-        current_sabnzbd_key: "{{ existing_sabnzbd_key_cmd.stdout | trim if (host_env_stat.stat.exists and existing_sabnzbd_key_cmd.stdout is defined) else '' }}"
-      tags:
-        - config
-
-    - name: Configuration - Determine final BAZARR and SABnzbd keys
-      ansible.builtin.set_fact:
-        final_bazarr_key: "{{ current_bazarr_key if (current_bazarr_key | length > 0) else bazarr_key }}"
-        final_sabnzbd_key: "{{ current_sabnzbd_key if (current_sabnzbd_key | length > 0) else sabnzbd_key }}"
-      tags:
-        - config
-
-    - name: Configuration - Inject dynamic API keys into host .env file
-      ansible.builtin.lineinfile:
-        path: /opt/mediastack/.env
-        regexp: "^{{ item.key }}="
-        line: "{{ item.key }}={{ item.value }}"
-        create: true
-        owner: mediasvc
-        group: mediasvc
-        mode: '0600'
-      loop:
-        - { key: 'RADARR_API_KEY', value: "{{ radarr_key }}" }
-        - { key: 'SONARR_API_KEY', value: "{{ sonarr_key }}" }
-        - { key: 'PROWLARR_API_KEY', value: "{{ prowlarr_key }}" }
-        - { key: 'BAZARR_API_KEY', value: "{{ final_bazarr_key }}" }
-        - { key: 'SABNZBD_API_KEY', value: "{{ final_sabnzbd_key }}" }
-        - { key: 'SPOTWEB_DB_ROOT_PASSWORD', value: "{{ spotweb_db_root_password }}" }
-        - { key: 'SPOTWEB_DB_PASSWORD', value: "{{ spotweb_db_password }}" }
-      tags:
-        - config
-
-    - name: Deploy Stack - Synchronize Container Identities with Host Identities
-      ansible.builtin.lineinfile:
-        path: /opt/mediastack/.env
-        regexp: "^{{ item.key }}="
-        line: "{{ item.key }}={{ item.value }}"
-      loop:
-        - { key: 'PUID', value: "{{ mediasvc_uid }}" }
-        - { key: 'PGID', value: "{{ mediasvc_gid }}" }
-      tags:
-        - deploy
-
-    - name: Deploy Stack - Resolve host Docker group GID for socket proxy access
-      # docker-proxy's HAProxy runs as the non-root mediasvc user (Zero Root
-      # Execution, AGENTS.md §3) yet must reach /var/run/docker.sock
-      # (srw-rw---- root:docker). Granting the host 'docker' group GID as a
-      # supplementary group keeps the proxy functional without root execution.
-      ansible.builtin.getent:
-        database: group
-        key: docker
-      tags:
-        - deploy
-
-    - name: Deploy Stack - Inject Docker group GID into host .env
-      ansible.builtin.lineinfile:
-        path: /opt/mediastack/.env
-        regexp: "^DOCKER_GROUP_GID="
-        line: "DOCKER_GROUP_GID={{ getent_group['docker'][1] }}"
-        create: true
-        owner: mediasvc
-        group: mediasvc
-        mode: '0600'
-      tags:
-        - deploy
-
-    - name: Deploy Stack - Spin up the Prosumer Media Hub
-      community.docker.docker_compose_v2:
-        project_src: /opt/mediastack/
-        state: present
-      environment:
-        COMPOSE_PARALLEL_LIMIT: "2"
-      register: deploy_result
-      until: deploy_result is not failed
-      retries: 5
-      delay: 60
-      tags:
-        - deploy
-
-    - name: Backups - Install restic
-      ansible.builtin.apt:
-        name: restic
-        state: present
-      tags:
         - backup
 
-    - name: Backups - Create /etc/restic config directory
-      ansible.builtin.file:
-        path: /etc/restic
-        state: directory
-        owner: root
-        group: root
-        mode: '0700'
-      tags:
-        - backup
-
-    - name: Backups - Generate idempotent repository password on control node
-      ansible.builtin.copy:
-        content: "{{ lookup('password', playbook_dir + '/../credentials/restic.password chars=ascii_letters,digits length=32') }}"
-        dest: "{{ playbook_dir }}/../credentials/restic.password"
-        mode: '0600'
-      delegate_to: localhost
-      become: false
-      tags:
-        - backup
-
-    - name: Backups - Push repository password file to host
-      ansible.builtin.copy:
-        src: "{{ playbook_dir }}/../credentials/restic.password"
-        dest: /etc/restic/password
-        owner: root
-        group: root
-        mode: '0400'
-      tags:
-        - backup
-
-    - name: Backups - Create backup repository directory
-      ansible.builtin.file:
-        path: /opt/mediastack/backups
-        state: directory
-        owner: root
-        group: root
-        mode: '0700'
-      tags:
-        - backup
-
-    - name: Backups - Initialize restic repository (idempotent)
-      ansible.builtin.command:
-        cmd: restic -r /opt/mediastack/backups -p /etc/restic/password init
-        creates: /opt/mediastack/backups/config
-      tags:
-        - backup
-
-    - name: Backups - Deploy backup wrapper script
-      ansible.builtin.copy:
-        dest: /usr/local/bin/restic-backup.sh
-        owner: root
-        group: root
-        mode: '0750'
-        content: |
-          #!/bin/bash
-          set -euo pipefail
-          REPO=/opt/mediastack/backups
-          PASSWORD_FILE=/etc/restic/password
-
-          restic -r "$REPO" -p "$PASSWORD_FILE" backup /opt/mediastack/appdata
-
-          restic -r "$REPO" -p "$PASSWORD_FILE" forget \
-            --keep-daily 7 \
-            --keep-weekly 4 \
-            --keep-monthly 6 \
-            --prune
-      tags:
-        - backup
-
-    - name: Backups - Deploy restic-backup systemd service unit
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/restic-backup.service
-        owner: root
-        group: root
-        mode: '0644'
-        content: |
-          [Unit]
-          Description=Daily restic backup of /opt/mediastack/appdata
-          After=network.target
-
-          [Service]
-          Type=oneshot
-          ExecStart=/usr/local/bin/restic-backup.sh
-          StandardOutput=journal
-          StandardError=journal
-      notify: Reload systemd
-      tags:
-        - backup
-
-    - name: Backups - Deploy restic-backup systemd timer unit
-      ansible.builtin.copy:
-        dest: /etc/systemd/system/restic-backup.timer
-        owner: root
-        group: root
-        mode: '0644'
-        content: |
-          [Unit]
-          Description=Daily restic backup timer for /opt/mediastack/appdata
-
-          [Timer]
-          OnCalendar=daily
-          RandomizedDelaySec=1h
-          Persistent=true
-
-          [Install]
-          WantedBy=timers.target
-      notify: Reload systemd
-      tags:
-        - backup
-
-    - name: Backups - Enable and start restic-backup timer
-      ansible.builtin.systemd:
-        name: restic-backup.timer
-        state: started
-        enabled: true
-        daemon_reload: true
-      tags:
-        - backup
-
-  handlers:
-    - name: Restart SSH
-      ansible.builtin.systemd:
-        name: sshd
-        state: restarted
-
-    - name: Reload NFS Exports
-      ansible.builtin.command: exportfs -ra
-      changed_when: false
-
-    - name: Reload systemd
-      ansible.builtin.systemd:
-        daemon_reload: true
+  roles:
+    - role: identity
+    - role: security
+    - role: filesystem
+    - role: docker
+    - role: secrets
+    - role: configuration
+    - role: deployment
+    - role: backup

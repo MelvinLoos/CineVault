@@ -1,0 +1,137 @@
+---
+# Configuration bounded context: renders every per-service configuration file
+# (Servarr pre-seeds, Homepage dashboard, Recyclarr sync) and materialises the
+# runtime secrets/identity values in /opt/mediastack/.env.
+#
+# Ordering note: the first-run .env seed must run before the extraction logic
+# below, so keys shipped in a seeded .env win over freshly generated ones.
+
+- name: Configuration - Pre-seed Servarr API Keys
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../files/servarr/config.xml.j2"
+    dest: "/opt/mediastack/appdata/{{ item.app }}/config.xml"
+    owner: mediasvc
+    group: mediasvc
+    mode: '0644'
+    # First-run-only seed: once the Servarr containers boot they rewrite
+    # config.xml themselves (normalising the XML and file mode), so
+    # re-templating would always report "changed" and break the Molecule
+    # idempotence test (AGENTS.md §3). force: false skips existing files,
+    # mirroring the host .env seed task below.
+    force: false
+  loop:
+    - { app: 'radarr', port: '7878', api_key: "{{ secrets_radarr_key }}" }
+    - { app: 'sonarr', port: '8989', api_key: "{{ secrets_sonarr_key }}" }
+    - { app: 'prowlarr', port: '9696', api_key: "{{ secrets_prowlarr_key }}" }
+  tags:
+    - configuration
+
+- name: Deploy Stack - Push Homepage Dashboard Configuration
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../files/homepage/{{ item }}.j2"
+    dest: "/opt/mediastack/appdata/homepage/{{ item }}"
+    owner: mediasvc
+    group: mediasvc
+    mode: '0644'
+  loop:
+    - docker.yaml
+    - widgets.yaml
+    - services.yaml
+  tags:
+    - configuration
+
+- name: Deploy Stack - Push Recyclarr Configuration
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../files/recyclarr/recyclarr.yml.j2"
+    dest: "/opt/mediastack/appdata/recyclarr/recyclarr.yml"
+    owner: mediasvc
+    group: mediasvc
+    mode: "0600"
+  tags:
+    - configuration
+
+- name: Deploy Stack - Seed host .env from local .env (first run only)
+  ansible.builtin.copy:
+    src: "{{ lookup('ansible.builtin.first_found', env_seed_candidates) }}"
+    dest: /opt/mediastack/.env
+    owner: mediasvc
+    group: mediasvc
+    mode: '0600'
+    force: false
+  vars:
+    env_seed_candidates:
+      - "{{ playbook_dir }}/../../.env"
+      - "{{ playbook_dir }}/../../.env.example"
+  tags:
+    - configuration
+
+- name: Configuration - Check if host .env file exists
+  ansible.builtin.stat:
+    path: /opt/mediastack/.env
+  register: configuration_host_env_stat
+  tags:
+    - configuration
+
+- name: Configuration - Extract existing BAZARR_API_KEY from host .env
+  ansible.builtin.shell:
+    cmd: awk -F '=' '/^BAZARR_API_KEY=/ {print $2}' /opt/mediastack/.env
+  register: configuration_existing_bazarr_key_cmd
+  changed_when: false
+  when: configuration_host_env_stat.stat.exists
+  tags:
+    - configuration
+
+- name: Configuration - Extract existing SABNZBD_API_KEY from host .env
+  ansible.builtin.shell:
+    cmd: awk -F '=' '/^SABNZBD_API_KEY=/ {print $2}' /opt/mediastack/.env
+  register: configuration_existing_sabnzbd_key_cmd
+  changed_when: false
+  when: configuration_host_env_stat.stat.exists
+  tags:
+    - configuration
+
+- name: Configuration - Set existing API key facts
+  ansible.builtin.set_fact:
+    configuration_current_bazarr_key: >-
+      {{ configuration_existing_bazarr_key_cmd.stdout | trim
+         if (configuration_host_env_stat.stat.exists and configuration_existing_bazarr_key_cmd.stdout is defined)
+         else '' }}
+    configuration_current_sabnzbd_key: >-
+      {{ configuration_existing_sabnzbd_key_cmd.stdout | trim
+         if (configuration_host_env_stat.stat.exists and configuration_existing_sabnzbd_key_cmd.stdout is defined)
+         else '' }}
+  tags:
+    - configuration
+
+- name: Configuration - Determine final BAZARR and SABnzbd keys
+  ansible.builtin.set_fact:
+    configuration_final_bazarr_key: >-
+      {{ configuration_current_bazarr_key
+         if (configuration_current_bazarr_key | length > 0)
+         else secrets_bazarr_key }}
+    configuration_final_sabnzbd_key: >-
+      {{ configuration_current_sabnzbd_key
+         if (configuration_current_sabnzbd_key | length > 0)
+         else secrets_sabnzbd_key }}
+  tags:
+    - configuration
+
+- name: Configuration - Inject dynamic API keys into host .env file
+  ansible.builtin.lineinfile:
+    path: /opt/mediastack/.env
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+    create: true
+    owner: mediasvc
+    group: mediasvc
+    mode: '0600'
+  loop:
+    - { key: 'RADARR_API_KEY', value: "{{ secrets_radarr_key }}" }
+    - { key: 'SONARR_API_KEY', value: "{{ secrets_sonarr_key }}" }
+    - { key: 'PROWLARR_API_KEY', value: "{{ secrets_prowlarr_key }}" }
+    - { key: 'BAZARR_API_KEY', value: "{{ configuration_final_bazarr_key }}" }
+    - { key: 'SABNZBD_API_KEY', value: "{{ configuration_final_sabnzbd_key }}" }
+    - { key: 'SPOTWEB_DB_ROOT_PASSWORD', value: "{{ secrets_spotweb_db_root_password }}" }
+    - { key: 'SPOTWEB_DB_PASSWORD', value: "{{ secrets_spotweb_db_password }}" }
+  tags:
+    - configuration
