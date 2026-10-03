@@ -22,6 +22,7 @@ Tests are deterministic and order-independent.
 import ipaddress
 
 import pytest
+import yaml
 
 # ---------------------------------------------------------------------------
 # Constants — single source of truth for IDs and paths within this suite.
@@ -753,4 +754,99 @@ def test_ufw_allows_maintainerr_webui_from_local_subnet(host):
     assert expected_cidr in output, (
         f"UFW Maintainerr WebUI rule must reference subnet '{expected_cidr}'; "
         "the WebUI is scoped to the local subnet per the approved plan"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Deployed stack health-check contract
+# Motivated by the 2026-10-03 Jellyfin outage postmortem: a watchtower
+# update killed the service at 04:02 and nothing restarted it for 16+ hours,
+# with no health signal anywhere to surface the outage.
+# ---------------------------------------------------------------------------
+
+# Long-running services that must define a compose-level healthcheck in the
+# rendered stack. cloudflared (distroless image — no shell, no HTTP client),
+# recyclarr (one-shot run) and homepage/wizarr/maintainerr/gluetun/watchtower
+# (image-built-in HEALTHCHECK) are deliberately excluded.
+HEALTHCHECK_SERVICES = [
+    "jellyfin",
+    "radarr",
+    "sonarr",
+    "prowlarr",
+    "spotweb-db",
+    "spotweb",
+    "bazarr",
+    "sabnzbd",
+    "tdarr",
+    "seerr",
+    "qbittorrent",
+    "docker-proxy",
+]
+
+
+def test_deployed_compose_defines_healthchecks(host):
+    """
+    Every long-running service in the deployed stack must define a
+    healthcheck so its state is visible via `docker ps` (HEALTH column)
+    and the Homepage docker widget.
+
+    Postmortem (2026-10-03): Jellyfin was down for 16+ hours with no health
+    signal to surface the outage; the recovery required a host reboot.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+    assert data and "services" in data, (
+        "The deployed compose file must define a 'services' map"
+    )
+
+    for name in HEALTHCHECK_SERVICES:
+        service = data["services"].get(name)
+        assert service is not None, (
+            f"Service '{name}' must be defined in the deployed compose file"
+        )
+        assert "healthcheck" in service, (
+            f"Service '{name}' must define a healthcheck so its state is "
+            "visible via `docker ps` and the Homepage docker widget"
+        )
+
+
+def test_docker_proxy_grants_watchtower_lifecycle_permissions(host):
+    """
+    docker-proxy must grant watchtower (and Homepage's Docker widget) the
+    lifecycle verbs a full container update requires: start, stop, restart
+    and network attachment.
+
+    Postmortem (2026-10-03): with only CONTAINERS/IMAGES/POST/DELETE set,
+    watchtower could kill and re-create containers but never start the
+    replacements, leaving Jellyfin and three other services offline until
+    a host reboot.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+    proxy = data["services"]["docker-proxy"]
+    env = set(proxy.get("environment", []))
+    required = {"ALLOW_START=1", "ALLOW_STOP=1", "ALLOW_RESTARTS=1", "NETWORKS=1"}
+    assert required.issubset(env), (
+        f"docker-proxy environment must grant watchtower the lifecycle "
+        f"permissions {sorted(required)}; got {sorted(env)}"
+    )
+
+
+def test_docker_proxy_excluded_from_watchtower_updates(host):
+    """
+    docker-proxy must carry the watchtower disable label so it is never
+    recreated mid-update-cycle. A proxy recreation drops the API connection
+    every other container update flows through, and a failed mid-flight
+    update is exactly what took down four services on 2026-10-03.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+    proxy = data["services"]["docker-proxy"]
+    labels = set(proxy.get("labels", []))
+    assert "com.centurylinklabs.watchtower.enable=false" in labels, (
+        "docker-proxy must be excluded from watchtower's update cycle via "
+        "the 'com.centurylinklabs.watchtower.enable=false' label"
     )
