@@ -54,6 +54,12 @@ networks:
 #     Zero Root Execution — AGENTS.md §3, ARCHITECTURE.md §3
 #   - TZ: ${TZ} sourced from .env
 #   - restart: unless-stopped
+#   - Health checks: every long-running service defines a healthcheck so its
+#     state is visible via the `docker ps` HEALTH column and the Homepage
+#     docker widget. Documented exceptions: cloudflared ships a distroless
+#     image (no shell, no HTTP client), recyclarr is a one-shot maintenance
+#     run, and homepage/wizarr/maintainerr/gluetun/watchtower rely on the
+#     healthcheck baked into their images.
 #   - All volume mounts within /opt/mediastack/ (State vs. Compute — AGENTS.md §3)
 # ---------------------------------------------------------------------------
 services:
@@ -82,6 +88,14 @@ services:
     restart: unless-stopped
     ports:
       - "8096:8096"
+    # Health check: Jellyfin exposes an unauthenticated /health endpoint
+    # (HTTP 200 "Healthy") on its default HTTP port.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8096/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Acquisition Bounded Context — The Library: movies (PRODUCT_SPECIFICATION.md §2)
@@ -104,6 +118,13 @@ services:
     restart: unless-stopped
     ports:
       - "7878:7878"
+    # Health check: Radarr's unauthenticated /ping endpoint replies 200 "pong".
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:7878/ping"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Acquisition Bounded Context — The Library: tv (PRODUCT_SPECIFICATION.md §2)
@@ -126,6 +147,13 @@ services:
     restart: unless-stopped
     ports:
       - "8989:8989"
+    # Health check: Sonarr's unauthenticated /ping endpoint replies 200 "pong".
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8989/ping"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Acquisition Bounded Context — The Indexer (PRODUCT_SPECIFICATION.md §1 & §2)
@@ -146,6 +174,13 @@ services:
     restart: unless-stopped
     ports:
       - "9696:9696"
+    # Health check: Prowlarr's unauthenticated /ping endpoint replies 200 "pong".
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9696/ping"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
 
   # ---------------------------------------------------------------------------
@@ -167,6 +202,15 @@ services:
       - ./appdata/spotweb-db:/config
     networks:
       - acquisition_net
+    # Health check: ping the MariaDB server with the root credentials. CMD-SHELL
+    # is required so $$MYSQL_ROOT_PASSWORD ($$ escapes Compose interpolation)
+    # is expanded by the container shell at runtime.
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
 
   spotweb:
     image: jgeusebroek/spotweb:latest
@@ -191,6 +235,13 @@ services:
       - ./appdata/spotweb:/config
     networks:
       - acquisition_net
+    # Health check: Spotweb's nginx frontend answers on container port 80.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
 
 
   # ---------------------------------------------------------------------------
@@ -213,6 +264,13 @@ services:
     restart: unless-stopped
     ports:
       - "6767:6767"
+    # Health check: Bazarr's web UI answers on its default HTTP port.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:6767/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Processing Bounded Context — The Download Client (PRODUCT_SPECIFICATION.md §1 & §2)
@@ -240,6 +298,8 @@ services:
       - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
       - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
     restart: unless-stopped
+    # No compose-level healthcheck: the qmcgaw/gluetun image ships its own
+    # HEALTHCHECK that verifies the VPN tunnel is actually up (DNS + port).
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -259,6 +319,14 @@ services:
     depends_on:
       - gluetun
     restart: unless-stopped
+    # Health check: qBittorrent shares gluetun's network namespace, so
+    # localhost:8090 reaches its WebUI from inside the container.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8090/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
@@ -283,6 +351,13 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    # Health check: SABnzbd's web UI answers (HTTP 303 to the login page).
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Processing Bounded Context — Media Optimization (PRODUCT_SPECIFICATION.md §2)
@@ -318,6 +393,13 @@ services:
     ports:
       - "8265:8265"   # Web UI
       - "8266:8266"   # Server control plane — external Tdarr nodes (on-demand laptop GPU offload). UFW-scoped to the auto-detected LAN subnet (media_subnet_cidr) by the provision playbook.
+    # Health check: Tdarr's combined server/node WebUI answers on 8265.
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8265/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
 
 
   # ---------------------------------------------------------------------------
@@ -338,6 +420,13 @@ services:
     restart: unless-stopped
     ports:
       - "5055:5055"
+    # Health check: Seerr's public status endpoint (no API key required).
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:5055/api/v1/status"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
 
   wizarr:
     image: ghcr.io/wizarrrr/wizarr:latest
@@ -353,6 +442,8 @@ services:
     restart: unless-stopped
     ports:
       - "5690:5690"
+    # No compose-level healthcheck: the Wizarr image ships its own HEALTHCHECK
+    # (visible as (healthy) in `docker ps`).
 
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
@@ -380,6 +471,8 @@ services:
       - internal_api
       - acquisition_net
     restart: unless-stopped
+    # No compose-level healthcheck: the Homepage image ships its own
+    # HEALTHCHECK (visible as (healthy) in `docker ps`).
 
   # ---------------------------------------------------------------------------
   # Ingress Bounded Context — The Ingress (PRODUCT_SPECIFICATION.md §1)
@@ -401,6 +494,10 @@ services:
     restart: unless-stopped
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARED_TOKEN}
+    # No healthcheck possible: the cloudflared image is distroless — it ships
+    # no shell and no HTTP client, and the binary offers no self-status
+    # subcommand without a tunnel name. Liveness is covered by the restart
+    # policy; tunnel connectivity is monitored in the Cloudflare dashboard.
 
   # ---------------------------------------------------------------------------
   # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)
@@ -471,6 +568,8 @@ services:
     networks:
       - internal_api
     restart: "no"
+    # No healthcheck: recyclarr is a one-shot maintenance run
+    # (`docker compose run`) that exits immediately after syncing.
 
   watchtower:
     image: containrrr/watchtower
@@ -489,6 +588,9 @@ services:
     networks:
       - socket_proxy_net
     restart: unless-stopped
+    # No compose-level healthcheck: the watchtower image ships its own
+    # HEALTHCHECK (visible as (healthy) in `docker ps`). Each run's outcome
+    # is additionally visible in its log ("Session done" Failed=N).
 
   # ---------------------------------------------------------------------------
   # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)
