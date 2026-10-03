@@ -556,7 +556,10 @@ services:
   # Maintenance context — keeps Radarr and Sonarr in sync with TRaSH Guides.
   # ---------------------------------------------------------------------------
   recyclarr:
-    image: ghcr.io/recyclarr/recyclarr:latest
+    # Pinned to the major version tag `:8`. Upstream publishes NO `latest` tag
+    # (it would silently apply breaking major bumps, e.g. v9). Watchtower keeps
+    # this image patched within v8.x automatically.
+    image: ghcr.io/recyclarr/recyclarr:8
     container_name: recyclarr
     profiles:
       - maintenance

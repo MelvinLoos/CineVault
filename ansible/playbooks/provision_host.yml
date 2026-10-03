@@ -4,7 +4,10 @@
 # Thin orchestration entry point: shared variables and cross-cutting host-fact
 # discovery live here; every provisioning step is decomposed into a
 # single-responsibility role under ansible/roles/. Run targeted slices with
-# --tags <role> (e.g. --tags filesystem, --tags backup).
+# --tags <role> (e.g. --tags filesystem, --tags backup). The configuration
+# slice (--tags configuration[,deployment]) automatically includes the secrets
+# role's fact generation — its tasks carry the `configuration` tag alongside
+# `secrets` (tag union) so the slice never hits undefined `secrets_*` vars.
 - name: Provision The Host (Intel N100 Mini-PC running Debian 13 "Trixie")  # noqa: fqcn[keyword]
   hosts: the_host
   become: true
