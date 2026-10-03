@@ -419,16 +419,40 @@ services:
       - ${DOCKER_GROUP_GID}
     tmpfs:
       - /run:rw,mode=1777
+    # HARDENING: exclude the proxy from watchtower's update cycle. If
+    # watchtower recreates the proxy mid-session it drops the very API
+    # connection the remaining container updates flow through — on
+    # 2026-10-03 a failed mid-flight update left four services down for
+    # 16+ hours. The proxy is instead updated with the normal stack deploy.
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
     environment:
       - CONTAINERS=1
       - IMAGES=1
       - POST=1
       - DELETE=1
+      # Watchtower lifecycle permissions. CONTAINERS alone grants kill/create
+      # but NOT the start/stop/restart verbs or network attachment that a
+      # full container update requires. Without these, watchtower creates
+      # replacement containers it can never start — leaving services down
+      # (the 2026-10-03 Jellyfin outage). Homepage's Docker widget needs the
+      # same verbs for its restart/stop/start buttons.
+      - ALLOW_START=1
+      - ALLOW_STOP=1
+      - ALLOW_RESTARTS=1
+      - NETWORKS=1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - socket_proxy_net
     restart: unless-stopped
+    # Health check: the proxy answers Docker's /_ping on its listening port.
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2375/_ping"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)
