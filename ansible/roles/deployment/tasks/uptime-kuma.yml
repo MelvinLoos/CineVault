@@ -1,0 +1,74 @@
+---
+# Uptime Kuma first-run automation (Observability bounded context).
+#
+# 2.x exposes NO REST API for monitor CRUD (monitors are configured via the
+# WebUI or the unsupported Socket.IO protocol), so the automatable surface is
+# deliberately limited to the one verified REST endpoint: the fresh-database
+# admin setup (server/routers/better-auth-router.ts -> POST /api/setup).
+#
+# Idempotency: the setup endpoint only creates the FIRST admin account.
+# Re-runs receive "Uptime Kuma has been initialized." (HTTP 4xx) and are
+# treated as unchanged. Without credentials in /opt/mediastack/.env the
+# remaining tasks self-skip (which also keeps Molecule CI green).
+
+- name: Uptime Kuma - Extract admin credentials from host .env
+  ansible.builtin.shell:
+    cmd: awk -F '=' '/^UPTIME_KUMA_ADMIN_(USERNAME|PASSWORD)=/ {print $2}' /opt/mediastack/.env
+  register: uptime_kuma_creds_cmd
+  changed_when: false
+  failed_when: false
+  no_log: true
+  tags:
+    - deployment
+    - uptime-kuma
+
+- name: Uptime Kuma - Set admin credential facts
+  ansible.builtin.set_fact:
+    uptime_kuma_admin_username: "{{ uptime_kuma_creds_cmd.stdout_lines[0] | default('') | trim }}"
+    uptime_kuma_admin_password: "{{ uptime_kuma_creds_cmd.stdout_lines[1] | default('') | trim }}"
+  tags:
+    - deployment
+    - uptime-kuma
+
+- name: Uptime Kuma - Wait for the WebUI to answer
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:3001/"
+    method: GET
+    status_code: [200]
+  register: uptime_kuma_ready
+  until: uptime_kuma_ready.status == 200
+  retries: 30
+  delay: 10
+  when:
+    - uptime_kuma_admin_username | length > 0
+    - uptime_kuma_admin_password | length > 0
+  tags:
+    - deployment
+    - uptime-kuma
+
+- name: Uptime Kuma - Create admin account on fresh database (idempotent)
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:3001/api/setup"
+    method: POST
+    body_format: json
+    body:
+      username: "{{ uptime_kuma_admin_username }}"
+      password: "{{ uptime_kuma_admin_password }}"
+    status_code: [200, 400, 403]
+  register: uptime_kuma_setup_result
+  # A 4xx on an already-initialised database is the expected no-op; any
+  # other failure (e.g. connection refused) still fails the task.
+  failed_when: >-
+    (uptime_kuma_setup_result.status == 200 and
+     not (uptime_kuma_setup_result.json | default({})).ok | default(false)) or
+    uptime_kuma_setup_result.status not in [200, 400, 403]
+  changed_when: >-
+    uptime_kuma_setup_result.status == 200 and
+    (uptime_kuma_setup_result.json | default({})).ok | default(false)
+  no_log: true
+  when:
+    - uptime_kuma_admin_username | length > 0
+    - uptime_kuma_admin_password | length > 0
+  tags:
+    - deployment
+    - uptime-kuma
