@@ -63,3 +63,9 @@
   delay: 90
   tags:
     - deployment
+
+- name: Deploy Stack - Configure Uptime Kuma first-run setup
+  ansible.builtin.import_tasks: uptime-kuma.yml
+  tags:
+    - deployment
+    - uptime-kuma

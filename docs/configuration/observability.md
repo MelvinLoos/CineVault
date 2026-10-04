@@ -54,10 +54,21 @@ Dozzle listens on container port 8080, which collides with SABnzbd's host mappin
 
 ## Uptime Kuma — Endpoint Monitoring
 
-The image is pinned to the major tag `:2` — the 1.x line is no longer
-maintained upstream — and Watchtower keeps it patched within 2.x.
+The image is patch-pinned to `2.5.5` (upstream publishes no minor rollup tag)
+to freeze the setup surface the playbook automates against — bump manually to
+the next 2.5.x release. The 1.x line is unmaintained.
 
 Uptime Kuma stores its configuration in `/opt/mediastack/appdata/uptime-kuma` (survives container recreation).
+
+### Automated first-run setup
+
+On a **fresh** database, the deployment role creates the admin account from
+`UPTIME_KUMA_ADMIN_USERNAME` / `UPTIME_KUMA_ADMIN_PASSWORD` in `.env` (the
+verified `POST /api/setup` endpoint). Re-runs are a no-op, and blank values
+skip the automation entirely. 2.x exposes no REST API for monitor CRUD, so
+everything below is a one-time manual WebUI setup.
+
+### Monitors
 
 On first login (LAN address above), create a monitor per service using the internal Docker DNS names:
 
@@ -73,6 +84,30 @@ On first login (LAN address above), create a monitor per service using the inter
 | Bazarr | `http://bazarr:6767/` |
 | Homepage | `http://homepage:3000/` |
 | Dozzle | `http://dozzle:8080/` |
+
+### Docker host
+
+To watch every container's state from the dashboard: **Settings → Docker
+Hosts → Add** and enter `tcp://docker-proxy:2375`. The Kuma container is
+attached to `socket_proxy_net` and reaches the constrained socket proxy —
+no raw socket mount is needed.
+
+!!! warning "Do not expose a Docker-connected Kuma publicly"
+    Upstream warns that a Docker-connected Uptime Kuma must not be exposed to
+    the internet. Keep any tunnel hostname (below) strictly Access-protected
+    or leave Kuma LAN-only.
+
+### Maintenance window
+
+Add a **Maintenance** period (recurring, daily `0 0 4 * * *`, 30 minutes) so
+Watchtower's 04:00 image-update cycle doesn't trigger false alarms.
+
+### Cloudflare Tunnel
+
+`UPTIME_KUMA_TRUST_PROXY=1` is set, so Kuma honours forwarded headers behind
+a proxy. To expose it through The Ingress, add `status.example.com` →
+`http://uptime-kuma:3001` in the Cloudflare Zero Trust dashboard — **above
+any catch-all rule** — and attach an Access policy.
 
 ## Homepage Widgets
 

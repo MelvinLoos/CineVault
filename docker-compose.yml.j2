@@ -547,17 +547,21 @@ services:
       retries: 3
 
   uptime-kuma:
-    # Pinned to the major version tag `:2` — the 1.x line is no longer
-    # maintained upstream (no bug or security fixes). Watchtower keeps this
-    # image patched within 2.x automatically. Unlike 1.x (upstream issue
-    # #857), the 2.x entrypoint performs no root-only chown maintenance, so
-    # the container runs directly as the non-root mediasvc user.
-    image: louislam/uptime-kuma:2
+    # Patch-pinned (`2.5.5` — upstream publishes no minor rollup tag) to
+    # freeze the unsupported setup/API surface the deployment role automates
+    # against. 1.x is unmaintained. Watchtower will NOT move a patch tag, so
+    # bump to the next 2.5.x manually. Unlike 1.x (upstream issue #857), the
+    # 2.x entrypoint performs no root-only chown maintenance, so the
+    # container runs directly as the non-root mediasvc user.
+    image: louislam/uptime-kuma:2.5.5
     container_name: uptime-kuma
     # Zero Root Execution (AGENTS.md §3): explicit non-root mediasvc runtime user.
     user: ${PUID}:${PGID}
     environment:
       - TZ=${TZ}
+      # Honour X-Forwarded-* headers once served through The Ingress
+      # (status.example.com) — harmless while LAN-only.
+      - UPTIME_KUMA_TRUST_PROXY=1
     volumes:
       - ./appdata/uptime-kuma:/app/data  # Config state (fast SSD — ARCHITECTURE.md §1)
     networks:
@@ -567,6 +571,9 @@ services:
       # attaching to the internal API and acquisition networks.
       - internal_api   # Radarr / Sonarr / Seerr health probes
       - acquisition_net  # SABnzbd / Prowlarr health probes
+      # Enables the manual Docker-host monitor (Settings -> Docker Hosts ->
+      # tcp://docker-proxy:2375) through the constrained socket proxy.
+      - socket_proxy_net
     restart: unless-stopped
     ports:
       - "3001:3001"  # WebUI. UFW-scoped to the LAN subnet by provision_host.yml.
