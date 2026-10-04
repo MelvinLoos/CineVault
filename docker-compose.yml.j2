@@ -458,6 +458,9 @@ services:
       - HOMEPAGE_VAR_SABNZBD_KEY=${SABNZBD_API_KEY}
       - HOMEPAGE_VAR_PROWLARR_KEY=${PROWLARR_API_KEY}
       - HOMEPAGE_VAR_BAZARR_KEY=${BAZARR_API_KEY}
+      - HOMEPAGE_VAR_JELLYFIN_KEY=${JELLYFIN_API_KEY}
+      - HOMEPAGE_VAR_SEERR_KEY=${SEERR_API_KEY}
+      - HOMEPAGE_VAR_TDARR_KEY=${TDARR_API_KEY}
       - UMASK=002
     ports:
       - "80:3000"
@@ -465,6 +468,7 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./appdata/homepage:/app/config
+      - ./data:/data:ro  # Media payload mount for the storage resource widget
     networks:
       - ingress_net
       - socket_proxy_net
@@ -498,6 +502,60 @@ services:
     # no shell and no HTTP client, and the binary offers no self-status
     # subcommand without a tunnel name. Liveness is covered by the restart
     # policy; tunnel connectivity is monitored in the Cloudflare dashboard.
+
+  # ---------------------------------------------------------------------------
+  # Observability Bounded Context
+  # Observability context — container log streaming (Dozzle) and endpoint
+  # status monitoring (Uptime Kuma). Internal-only: no host ports are
+  # published (zero-trust micro-segmentation, ARCHITECTURE.md §2). Both share
+  # ingress_net with homepage and cloudflared so the dashboard can link to
+  # them and The Ingress can route dedicated hostnames to them later.
+  # ---------------------------------------------------------------------------
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    # Zero Root Execution (AGENTS.md §3): run as the non-root mediasvc user
+    # with the host 'docker' group GID as a supplementary group —
+    # /var/run/docker.sock is owned root:docker (same pattern as docker-proxy).
+    user: ${PUID}:${PGID}
+    group_add:
+      - ${DOCKER_GROUP_GID}
+    volumes:
+      # Read-only: stream container logs (e.g. Watchtower update runs) without
+      # granting any write/control access to the Docker API.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ingress_net
+    restart: unless-stopped
+    # Health check: Dozzle ships a built-in healthcheck subcommand that pings
+    # its own /healthcheck endpoint and reports local Docker client liveness.
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    container_name: uptime-kuma
+    # Zero Root Execution (AGENTS.md §3): explicit non-root mediasvc runtime user.
+    user: ${PUID}:${PGID}
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./appdata/uptime-kuma:/app/data  # Config state (fast SSD — ARCHITECTURE.md §1)
+    networks:
+      - ingress_net
+    restart: unless-stopped
+    # Health check: the image ships node (no curl/wget); probe the dashboard
+    # with the http module and exit non-zero on any non-200 response.
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001', r => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)
