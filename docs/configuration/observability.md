@@ -47,9 +47,15 @@ Dozzle streams logs from every container on The Host. The most common use is ins
 
 The Docker socket is mounted **read-only** (`/var/run/docker.sock:ro`) and the container runs as the non-root `mediasvc` user with the host `docker` group GID as a supplementary group (`DOCKER_GROUP_GID`), mirroring the `docker-proxy` pattern.
 
+Users and settings (e.g. authentication and pinned containers) are persisted
+to `/opt/mediastack/appdata/dozzle`, so they survive container recreation.
+
 Dozzle listens on container port 8080, which collides with SABnzbd's host mapping — the WebUI is therefore published as **`8888:8080`**.
 
 ## Uptime Kuma — Endpoint Monitoring
+
+The image is pinned to the major tag `:2` — the 1.x line is no longer
+maintained upstream — and Watchtower keeps it patched within 2.x.
 
 Uptime Kuma stores its configuration in `/opt/mediastack/appdata/uptime-kuma` (survives container recreation).
 
