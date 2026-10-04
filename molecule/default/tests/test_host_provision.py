@@ -52,6 +52,7 @@ MEDIASTACK_DIRECTORIES = [
     "/opt/mediastack/appdata/gluetun",
     "/opt/mediastack/appdata/qbittorrent",
     "/opt/mediastack/appdata/maintainerr",
+    "/opt/mediastack/appdata/dozzle",
     "/opt/mediastack/appdata/uptime-kuma",
     # Media Payload tree (data) — "Resides on High-Capacity Drive" per ARCHITECTURE.md
     "/opt/mediastack/data",
