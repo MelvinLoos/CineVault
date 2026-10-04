@@ -52,6 +52,7 @@ MEDIASTACK_DIRECTORIES = [
     "/opt/mediastack/appdata/gluetun",
     "/opt/mediastack/appdata/qbittorrent",
     "/opt/mediastack/appdata/maintainerr",
+    "/opt/mediastack/appdata/uptime-kuma",
     # Media Payload tree (data) — "Resides on High-Capacity Drive" per ARCHITECTURE.md
     "/opt/mediastack/data",
     # The Download Client scratch space — SABnzbd active Usenet downloads
@@ -781,6 +782,8 @@ HEALTHCHECK_SERVICES = [
     "seerr",
     "qbittorrent",
     "docker-proxy",
+    "dozzle",
+    "uptime-kuma",
 ]
 
 
@@ -808,6 +811,41 @@ def test_deployed_compose_defines_healthchecks(host):
         assert "healthcheck" in service, (
             f"Service '{name}' must define a healthcheck so its state is "
             "visible via `docker ps` and the Homepage docker widget"
+        )
+
+
+def test_observability_services_are_internal_only(host):
+    """
+    Dozzle and Uptime Kuma must be deployed with NO published host ports
+    (zero-trust micro-segmentation — ARCHITECTURE.md §2) and must share
+    ingress_net with homepage and cloudflared so the dashboard can link to
+    them and The Ingress can route dedicated hostnames to them later.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+
+    for name in ("dozzle", "uptime-kuma"):
+        service = data["services"].get(name)
+        assert service is not None, (
+            f"Service '{name}' must be defined in the deployed compose file"
+        )
+        assert "ports" not in service, (
+            f"Service '{name}' must NOT publish host ports — it is "
+            "internal-only and reachable solely over Docker bridge networks"
+        )
+        assert "ingress_net" in service.get("networks", []), (
+            f"Service '{name}' must attach to ingress_net alongside "
+            "cloudflared and homepage"
+        )
+
+    for name in ("homepage", "cloudflared"):
+        service = data["services"].get(name)
+        assert service is not None, (
+            f"Service '{name}' must be defined in the deployed compose file"
+        )
+        assert "ingress_net" in service.get("networks", []), (
+            f"Service '{name}' must attach to ingress_net"
         )
 
 
