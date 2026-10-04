@@ -577,13 +577,16 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"  # WebUI. UFW-scoped to the LAN subnet by provision_host.yml.
-    # Health check: the image ships node (no curl/wget); probe the dashboard
-    # with the http module and exit non-zero on any non-200 response.
+    # Health check: use the image's own purpose-built probe (extra/healthcheck
+    # — the same binary upstream wires into the image HEALTHCHECK, incl. the
+    # rootless variant) instead of a hand-rolled HTTP probe, which can misfire
+    # when the SPA redirects unauthenticated requests. start_period is
+    # generous for the ~600MB image and DB initialisation on the N100.
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001', r => { process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"]
+      test: ["CMD", "extra/healthcheck"]
       interval: 30s
       timeout: 10s
-      start_period: 60s
+      start_period: 120s
       retries: 3
 
   # ---------------------------------------------------------------------------
