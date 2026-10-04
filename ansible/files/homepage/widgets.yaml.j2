@@ -1,7 +1,9 @@
 - resources:
     cpu: true
     memory: true
-    disk: /app/config # Monitors the appdata drive capacity
+    disk:
+      - /app/config # Monitors the appdata drive capacity
+      - /data # Monitors the media payload drive capacity (mounted read-only)
 - search:
     provider: duckduckgo
     target: _blank
