@@ -131,13 +131,13 @@
         container: watchtower
     - Dozzle:
         icon: dozzle
-        href: "http://dozzle:8080"
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8888"
         description: Container Logs (Watchtower)
         server: local-docker
         container: dozzle
     - Uptime Kuma:
         icon: uptime-kuma
-        href: "http://uptime-kuma:3001"
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:3001"
         description: Endpoint Status Monitoring
         server: local-docker
         container: uptime-kuma

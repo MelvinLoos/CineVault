@@ -59,7 +59,7 @@
     COMPOSE_PARALLEL_LIMIT: "2"
   register: deployment_deploy_result
   until: deployment_deploy_result is not failed
-  retries: 5
-  delay: 60
+  retries: 6
+  delay: 90
   tags:
     - deployment
