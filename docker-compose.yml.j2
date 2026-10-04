@@ -522,6 +522,10 @@ services:
     group_add:
       - ${DOCKER_GROUP_GID}
     volumes:
+      # Dozzle persists users & settings (auth config, pinned containers) in
+      # /data — config state on the fast SSD per ARCHITECTURE.md §1. Without
+      # this mount they are lost on every container recreation.
+      - ./appdata/dozzle:/data
       # Read-only: stream container logs (e.g. Watchtower update runs) without
       # granting any write/control access to the Docker API.
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -543,16 +547,15 @@ services:
       retries: 3
 
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    # Pinned to the major version tag `:2` — the 1.x line is no longer
+    # maintained upstream (no bug or security fixes). Watchtower keeps this
+    # image patched within 2.x automatically. Unlike 1.x (upstream issue
+    # #857), the 2.x entrypoint performs no root-only chown maintenance, so
+    # the container runs directly as the non-root mediasvc user.
+    image: louislam/uptime-kuma:2
     container_name: uptime-kuma
-    # Zero Root Execution (AGENTS.md §3): the 1.x image boots as root and its
-    # entrypoint performs a root-only `chown -R` maintenance pass over
-    # /app/data (uptime-kuma upstream issue #857), which aborts with EPERM
-    # under an explicit non-root user. We therefore bypass the entrypoint and
-    # launch the server directly as the non-root mediasvc user — the mounted
-    # data directory is provisioned mediasvc-owned, so no chown is required.
+    # Zero Root Execution (AGENTS.md §3): explicit non-root mediasvc runtime user.
     user: ${PUID}:${PGID}
-    entrypoint: ["node", "server/server.js"]
     environment:
       - TZ=${TZ}
     volumes:
