@@ -177,10 +177,10 @@ Once deployed, the following services are available on The Host:
 | **SABnzbd** | 8080 | Processing | No |
 | **Tdarr Server** | 8266 | Processing | No (Local `/24` only — laptop GPU node control plane) |
 | **Maintainerr** | 6246 | Maintenance | No (Local `/24` only — library cleanup WebUI) |
-| **Dozzle** | — | Observability | No (Internal only — no host port published) |
-| **Uptime Kuma** | — | Observability | No (Internal only — no host port published) |
+| **Dozzle** | 8888 | Observability | No (Local `/24` only — log viewer WebUI) |
+| **Uptime Kuma** | 3001 | Observability | No (Local `/24` only — status monitoring WebUI) |
 
-> The dashboard is exposed via The Ingress at `dashboard.example.com` (Cloudflare Access-protected) — see [Observability Dashboard](docs/configuration/observability.md). Dozzle and Uptime Kuma publish no host ports; they are reachable only from inside the Docker network until dedicated public hostnames are authorised in Cloudflare Zero Trust.
+> The dashboard is exposed via The Ingress at `dashboard.example.com` (Cloudflare Access-protected) — see [Observability Dashboard](docs/configuration/observability.md). Dozzle and Uptime Kuma are LAN-only operational tools: their WebUI ports are UFW-scoped to the local subnet (`mediacenter.local:8888` / `mediacenter.local:3001`).
 
 ## Development & Testing
 

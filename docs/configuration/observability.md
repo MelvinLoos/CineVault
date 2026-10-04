@@ -6,24 +6,22 @@ The CineVault stack ships three observability components that, together with the
 - **Uptime Kuma** — self-hosted endpoint status monitoring for every service in the stack.
 - **Homepage** — the dashboard that links them together, plus live widgets for Jellyfin, Seerr, the *arr stack, and Tdarr.
 
-All three are internal-only services: **no ports are published on The Host** (zero-trust micro-segmentation, ARCHITECTURE.md §2). They communicate with each other and with `cloudflared` over the `ingress_net` Docker bridge.
+The dashboard itself is exposed through the Cloudflare tunnel (`dashboard.example.com`); Dozzle and Uptime Kuma are **LAN-only operational tools** — their WebUI ports are published on The Host but UFW-scoped to the auto-detected local subnet (zero-trust micro-segmentation, ARCHITECTURE.md §2).
 
 ## Accessing the Services
 
-| Service | Internal address (Docker network) | External access |
+| Service | LAN address | External access |
 | :--- | :--- | :--- |
-| Homepage | `http://homepage:3000` | `https://dashboard.example.com` (see below) |
-| Dozzle | `http://dozzle:8080` | Internal only |
-| Uptime Kuma | `http://uptime-kuma:3001` | Internal only |
+| Homepage | `http://mediacenter.local:80` | `https://dashboard.example.com` (see below) |
+| Dozzle | `http://mediacenter.local:8888` | LAN only (UFW `/24`-scoped) |
+| Uptime Kuma | `http://mediacenter.local:3001` | LAN only (UFW `/24`-scoped) |
 
-!!! note "Dozzle and Uptime Kuma are internal-only"
-    The Homepage dashboard links to `http://dozzle:8080` and
-    `http://uptime-kuma:3001` (Docker DNS names). These resolve **only from
-    inside the stack** — from a workstation on the LAN they require a
-    VPN/Tailscale-style path, and through the tunnel they require dedicated
-    public hostnames (e.g. `logs.example.com`, `status.example.com`). Until
-    those hostnames are authorised in the Cloudflare Zero Trust dashboard, use
-    them from the LAN side or add the hostnames later.
+!!! note "Dozzle and Uptime Kuma are LAN-only"
+    Their WebUI ports (8888/3001) are allowed through UFW **only** from the
+    auto-detected local subnet — same contract as the Maintainerr WebUI
+    (6246). Remote access requires dedicated public hostnames in the
+    Cloudflare Zero Trust dashboard (e.g. `logs.example.com`,
+    `status.example.com`) or a VPN path.
 
 ## Cloudflare Zero Trust: Expose the Dashboard
 
@@ -49,11 +47,13 @@ Dozzle streams logs from every container on The Host. The most common use is ins
 
 The Docker socket is mounted **read-only** (`/var/run/docker.sock:ro`) and the container runs as the non-root `mediasvc` user with the host `docker` group GID as a supplementary group (`DOCKER_GROUP_GID`), mirroring the `docker-proxy` pattern.
 
+Dozzle listens on container port 8080, which collides with SABnzbd's host mapping — the WebUI is therefore published as **`8888:8080`**.
+
 ## Uptime Kuma — Endpoint Monitoring
 
 Uptime Kuma stores its configuration in `/opt/mediastack/appdata/uptime-kuma` (survives container recreation).
 
-On first login (internal address above), create a monitor per service using the internal Docker DNS names:
+On first login (LAN address above), create a monitor per service using the internal Docker DNS names:
 
 | Monitor | URL |
 | :--- | :--- |

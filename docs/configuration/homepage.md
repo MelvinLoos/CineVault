@@ -134,7 +134,7 @@ shows an error:
 ## Dozzle & Uptime Kuma Links
 
 The dashboard's Infrastructure group links to Dozzle (container logs, e.g.
-Watchtower update runs) and Uptime Kuma (endpoint status). Both publish **no
-host ports** — the links use the internal Docker DNS names and only resolve
-when the Zero Trust tunnel routes dedicated hostnames to them. See the
+Watchtower update runs) and Uptime Kuma (endpoint status). The links use the
+`web_hostname` pattern (`mediacenter.local:8888` / `mediacenter.local:3001`),
+and both WebUIs are UFW-scoped to the local subnet — see the
 [Observability Dashboard](observability.md) guide.
