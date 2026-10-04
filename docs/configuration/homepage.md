@@ -13,8 +13,9 @@ The Homepage UI is rendered from two Ansible templates:
 - `ansible/files/homepage/widgets.yaml.j2` — defines the top-bar widgets
   (resources, search, weather, etc.).
 - `ansible/files/homepage/services.yaml.j2` — defines the grouped service
-  tiles and their per-service widget bindings (Radarr, Sonarr, SABnzbd,
-  Prowlarr, Jellyfin, Tdarr, Maintainerr…).
+  tiles and their per-service widget bindings (Jellyfin, Seerr, Radarr,
+  Sonarr, SABnzbd, Prowlarr, Bazarr, Tdarr, Maintainerr…) plus links to the
+  Dozzle and Uptime Kuma observability tools.
 
 !!! note
     The **Maintainerr** tile displays live storage metrics (items handled,
@@ -57,6 +58,10 @@ key exists, click **Generate New Key** and save the configuration.
 Navigate to **Settings -> General -> Security -> API Key**. Copy the displayed
 value.
 
+### Seerr
+
+Navigate to **Settings -> General -> API Key**. Copy the displayed value.
+
 ### Jellyfin
 
 Navigate to **Dashboard -> Advanced -> API Keys**. Click the **+** button to
@@ -82,6 +87,7 @@ SONARR_API_KEY=replace-with-sonarr-key
 SABNZBD_API_KEY=replace-with-sabnzbd-key
 PROWLARR_API_KEY=replace-with-prowlarr-key
 JELLYFIN_API_KEY=replace-with-jellyfin-key
+SEERR_API_KEY=replace-with-seerr-key
 TDARR_API_KEY=replace-with-tdarr-key
 ```
 
@@ -124,3 +130,11 @@ shows an error:
    network — `docker compose logs homepage` will surface connection or
    401/403 errors.
 3. Restart the Homepage container once more after correcting the value.
+
+## Dozzle & Uptime Kuma Links
+
+The dashboard's Infrastructure group links to Dozzle (container logs, e.g.
+Watchtower update runs) and Uptime Kuma (endpoint status). Both publish **no
+host ports** — the links use the internal Docker DNS names and only resolve
+when the Zero Trust tunnel routes dedicated hostnames to them. See the
+[Observability Dashboard](observability.md) guide.

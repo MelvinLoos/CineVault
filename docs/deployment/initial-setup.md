@@ -42,6 +42,11 @@ To obtain the token:
 TUNNEL_TOKEN=eyJhIjoi...your-very-long-token-here...
 ```
 
+!!! tip "Exposing the dashboard"
+    Public hostnames (e.g. `dashboard.loos.stream` → `http://homepage:3000`)
+    are configured in the Zero Trust dashboard **after** deployment — see the
+    [Observability Dashboard](../configuration/observability.md) guide.
+
 ### 2.2. `PUID` and `PGID` — Host User & Group IDs
 
 These IDs map every container's internal user to the `mediasvc` service account on The Host, ensuring file permissions on bind-mounted volumes are correct and that **no container ever runs as root**.
@@ -56,7 +61,7 @@ PGID=5000
 
 ### 2.3. `DOCKER_GROUP_GID` — Docker Socket Access (auto-resolved)
 
-The `docker-proxy` socket proxy runs HAProxy as the non-root `mediasvc` user (Zero Root Execution), but HAProxy must still reach `/var/run/docker.sock`, which is group-`docker` owned on The Host. This variable grants the host `docker` group's GID to the proxy container as a supplementary group.
+The `docker-proxy` socket proxy runs HAProxy as the non-root `mediasvc` user (Zero Root Execution), but HAProxy must still reach `/var/run/docker.sock`, which is group-`docker` owned on The Host. The **Dozzle** log viewer mounts the same socket read-only and has the same requirement. This variable grants the host `docker` group's GID to both containers as a supplementary group.
 
 ```bash
 # Resolve on The Host with:

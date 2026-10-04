@@ -66,6 +66,9 @@ The media stack consists of the following services, categorized by their Bounded
     *   **Watchtower:** Automatic Docker image updates.
     *   **Docker Socket Proxy:** Secure abstraction for the Docker socket.
     *   **Maintainerr:** Rule-based cleanup of stale media from Jellyfin, the *arrs, and Seerr.
+*   **Observability:**
+    *   **Dozzle:** Real-time container log streaming (e.g. Watchtower update runs) via a read-only Docker socket mount.
+    *   **Uptime Kuma:** Self-hosted endpoint status monitoring for every service (internal-only).
 
 ## File System Layout
 
@@ -165,7 +168,7 @@ Once deployed, the following services are available on The Host:
 
 | Service | Port | Bounded Context | Ingress Access via Tunnel |
 | :--- | :--- | :--- | :--- |
-| **Homepage** | 80 | Dashboard | No (Local Only) |
+| **Homepage** | 80 | Dashboard | **Yes** (`dashboard.loos.stream`) |
 | **Seerr** | 5055 | Request / Identity | **Yes** |
 | **Jellyfin** | 8096 | Delivery | **Yes** |
 | **Radarr** | 7878 | Acquisition | No |
@@ -174,6 +177,10 @@ Once deployed, the following services are available on The Host:
 | **SABnzbd** | 8080 | Processing | No |
 | **Tdarr Server** | 8266 | Processing | No (Local `/24` only — laptop GPU node control plane) |
 | **Maintainerr** | 6246 | Maintenance | No (Local `/24` only — library cleanup WebUI) |
+| **Dozzle** | — | Observability | No (Internal only — no host port published) |
+| **Uptime Kuma** | — | Observability | No (Internal only — no host port published) |
+
+> The dashboard is exposed via The Ingress at `dashboard.loos.stream` (Cloudflare Access-protected) — see [Observability Dashboard](docs/configuration/observability.md). Dozzle and Uptime Kuma publish no host ports; they are reachable only from inside the Docker network until dedicated public hostnames are authorised in Cloudflare Zero Trust.
 
 ## Development & Testing
 
