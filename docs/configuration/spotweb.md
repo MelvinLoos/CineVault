@@ -2,7 +2,7 @@
 
 Spotweb is a Dutch Usenet indexer that consumes spots and headers from Usenet and exposes them as a Newznab-compatible feed. Because SQLite cannot scale to the millions of headers typically found in Dutch Usenet spots, this stack ships with a dedicated **MariaDB** container specifically for Spotweb.
 
-Ansible has already provisioned the necessary containers and networking, and it has automatically removed the dummy database settings file to ensure a clean start. You only need to complete the following manual UI-side steps to finalize the setup.
+Ansible has already provisioned the necessary containers and networking. The Spotweb container regenerates its database configuration file from the `SPOTWEB_DB_*` environment variables on every start (the container log shows `Creating database configuration`), so the settings always mirror `.env` — and the playbook reconciles the MariaDB user with `.env` on every deployment run, so the two sides can never drift apart. You only need to complete the following manual UI-side steps to finalize the setup.
 
 ## Step 1 — Run the Spotweb installer
 
@@ -49,6 +49,12 @@ Prowlarr will now automatically sync the Spotweb indexer to your connected appli
 
 ## Troubleshooting
 
-- **`/install.php` returns a blank page or "already installed"**: Confirm that Ansible successfully removed `dbsettings.inc.php`. You can check the container volume for this file.
-- **Spotweb cannot reach the Database**: Verify that both the `spotweb` and `spotweb-db` containers are running and attached to the `acquisition_net` network. Double-check that the credentials in `.env` match those entered in the installer.
+- **`/install.php` returns a blank page or "already installed"**: Spotweb's configuration is managed by the container image: on every start it regenerates `dbsettings.inc.php` inside the volume from the `SPOTWEB_DB_*` environment variables (look for the `Creating database configuration` line in `docker logs spotweb`). There is no manual `dbsettings.inc.php` to remove — delete `appdata/spotweb/dbsettings.inc.php` only if you need to force a full regeneration, then restart the container.
+- **`SQLSTATE[HY000] [1045] Access denied for user 'spotweb'`**: Credential drift between `.env` and the MariaDB datadir. This happens because the LinuxServer MariaDB image applies `MYSQL_USER`/`MYSQL_PASSWORD` **only on the first datadir initialisation** — if the password in `.env` ever changes afterwards (e.g. a regenerated secrets file), the datadir keeps the old password and every Spotweb connection fails. The deployment role reconciles the DB user with `.env` on every run (`--tags deployment,spotweb` fixes it standalone). Manual procedure, if ever needed:
+    ```bash
+    PW=$(awk -F= '/^SPOTWEB_DB_PASSWORD=/{print $2}' /opt/mediastack/.env)
+    docker exec spotweb-db mariadb -uroot \
+      -e "ALTER USER 'spotweb'@'%' IDENTIFIED BY '${PW}';"
+    ```
+- **Spotweb cannot reach the Database**: Verify that both the `spotweb` and `spotweb-db` containers are running and attached to the `acquisition_net` network. The compose file gates Spotweb's startup on `spotweb-db` reporting **healthy** (`condition: service_healthy`), so a startup race with MariaDB's ~60s InnoDB initialisation can no longer produce "Can't connect to MySQL server" errors.
 - **Prowlarr test fails**: Ensure that the **Base URL** in Prowlarr uses the container name `spotweb` rather than `localhost` or the host IP, as they communicate over the internal Docker network.

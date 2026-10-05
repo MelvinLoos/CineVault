@@ -41,16 +41,76 @@ The `cloudflared` container is a **remotely-managed** tunnel (it authenticates w
 4. **Ordering matters:** routing rules are evaluated top-down. Make sure the `dashboard.example.com` rule sits **strictly above any catch-all `*` / 404 rule** for the domain — a catch-all above it would shadow the dashboard hostname.
 5. Attach a Cloudflare Access policy to `dashboard.example.com` so only authorised identities can reach the dashboard (CONSTITUTION.MD §2 Maxim 4 — Zero Trust access).
 
-## Dozzle — Watchtower Logs
+## Dozzle — Watchtower Logs & MCP for AI Agents
 
 Dozzle streams logs from every container on The Host. The most common use is inspecting **Watchtower** update runs (the 04:00 maintenance window): open Dozzle, select the `watchtower` container, and check the most recent "Session done" line for `Failed=N`.
 
-The Docker socket is mounted **read-only** (`/var/run/docker.sock:ro`) and the container runs as the non-root `mediasvc` user with the host `docker` group GID as a supplementary group (`DOCKER_GROUP_GID`), mirroring the `docker-proxy` pattern.
+### Docker access — constrained socket proxy (no raw socket)
 
-Users and settings (e.g. authentication and pinned containers) are persisted
-to `/opt/mediastack/appdata/dozzle`, so they survive container recreation.
+Dozzle does **not** mount `/var/run/docker.sock`. The previous `:ro` mount gave
+a false sense of safety: the read-only flag only marks the socket file
+read-only on disk while every Docker API call — including create/delete — still
+passes through it. Dozzle instead connects to `tcp://docker-proxy:2375`
+(`DOZZLE_REMOTE_HOST`, Dozzle's documented socket-proxy transport) over
+`socket_proxy_net`, so all of its Docker traffic is filtered by
+`tecnativa/docker-socket-proxy` — the same constrained path used by Watchtower
+and Uptime Kuma. The container runs as the non-root `mediasvc` user and needs
+no `docker` group supplementary membership.
 
-Dozzle listens on container port 8080, which collides with SABnzbd's host mapping — the WebUI is therefore published as **`8888:8080`**.
+### Authentication (simple auth)
+
+Dozzle runs with `DOZZLE_AUTH_PROVIDER=simple`. Users live in
+`/opt/mediastack/appdata/dozzle/users.yml` (config state on the fast SSD —
+ARCHITECTURE.md §1), so they survive container recreation. The playbook seeds
+the `admin` account on first run by piping a random password (from
+`ansible/credentials/dozzle.key`) through Dozzle's `generate` subcommand; the
+plaintext is injected into `.env` as **`DOZZLE_ADMIN_PASSWORD`**.
+
+- WebUI sign-in: `http://mediacenter.local:8888` with user `admin` and
+  `DOZZLE_ADMIN_PASSWORD` from `.env`.
+- To reset credentials, delete `appdata/dozzle/users.yml` and re-run the
+  playbook (`--tags secrets,configuration`).
+
+### MCP endpoint — container tools for AI coding assistants
+
+When `DOZZLE_ENABLE_MCP=true`, Dozzle serves a **Model Context Protocol**
+endpoint at **`http://mediacenter.local:8888/api/mcp`** (Streamable HTTP
+transport). It exposes five **read-only** tools:
+
+| Tool | Description |
+| :--- | :--- |
+| `list_containers` | List all containers (optional state filter) |
+| `get_container_logs` | Structured logs with level detection & JSON parsing |
+| `search_container_logs` | Keyword search across a container's logs |
+| `list_hosts` | All connected Docker hosts |
+| `get_container_stats` | CPU / memory usage for a container |
+
+Because simple auth is enabled, the MCP endpoint is **never anonymous**: the
+first time a client connects, it opens a browser tab where you sign in to
+Dozzle and approve the client (one-time OAuth consent). The client then stores
+and refreshes its token automatically (access tokens last an hour, refresh
+tokens 30 days). Example client configuration (VS Code `.vscode/mcp.json`):
+
+```json
+{
+  "servers": {
+    "dozzle": { "type": "http", "url": "http://mediacenter.local:8888/api/mcp" }
+  }
+}
+```
+
+Clients without OAuth support can instead exchange credentials once at
+`POST /api/token` (form-encoded `username`/`password`) and send the returned
+JWT as an `Authorization: Bearer` header.
+
+The endpoint stays LAN-only: it is served from the same published port as the
+WebUI (`8888:8080`), which UFW scopes to the local subnet.
+
+Users and settings (pinned containers, etc.) are persisted in
+`/opt/mediastack/appdata/dozzle`, so they survive container recreation.
+
+Dozzle listens on container port 8080, which collides with SABnzbd's host mapping — the WebUI is therefore published as **`8888:8080`**. Its `/healthcheck` endpoint is served without authentication, so the compose healthcheck probe keeps working with auth enabled.
+
 
 ## Uptime Kuma — Endpoint Monitoring
 

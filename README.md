@@ -67,7 +67,7 @@ The media stack consists of the following services, categorized by their Bounded
     *   **Docker Socket Proxy:** Secure abstraction for the Docker socket.
     *   **Maintainerr:** Rule-based cleanup of stale media from Jellyfin, the *arrs, and Seerr.
 *   **Observability:**
-    *   **Dozzle:** Real-time container log streaming (e.g. Watchtower update runs) via a read-only Docker socket mount.
+    *   **Dozzle:** Real-time container log streaming (e.g. Watchtower update runs) via the constrained Docker socket proxy, with an authenticated MCP endpoint (`/api/mcp`) exposing read-only container tools to AI coding agents.
     *   **Uptime Kuma:** Self-hosted endpoint status monitoring for every service (internal-only).
 
 ## File System Layout
