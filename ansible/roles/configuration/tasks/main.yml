@@ -50,6 +50,66 @@
   tags:
     - configuration
 
+- name: Deploy Stack - Remove Stale Recyclarr Config Templates
+  # Recyclarr v8 loads EVERY *.yml under /config/configs/ in addition to
+  # recyclarr.yml. Template files created there (e.g. by `recyclarr config
+  # create -t web-1080p -t hd-bluray-web`) define duplicate instances at the
+  # same base URLs and abort every sync with a "Split Instances" configuration
+  # error. recyclarr.yml (deployed above) is the SSOT, so any leftovers here
+  # must be purged. state: absent is idempotent (no-op once removed).
+  ansible.builtin.file:
+    path: "/opt/mediastack/appdata/recyclarr/configs"
+    state: absent
+  tags:
+    - configuration
+
+- name: Deploy Stack - Push Recyclarr Settings
+  # settings.yml declares the `custom-formats` resource providers that expose
+  # the locally shipped Dutch language preference CF ("Language: Prefer
+  # Dutch"). TRaSH publishes it as guide-only (placeholder trash_id), so it
+  # cannot be referenced from the official collection. The file lands inside
+  # the existing ./appdata/recyclarr bind mount — no compose change required.
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/../files/recyclarr/settings.yml.j2"
+    dest: "/opt/mediastack/appdata/recyclarr/settings.yml"
+    owner: mediasvc
+    group: mediasvc
+    mode: "0600"
+  tags:
+    - configuration
+
+- name: Deploy Stack - Create Recyclarr Custom Formats Directories
+  # Directories mirror the provider paths declared in settings.yml.j2
+  # (/config/custom-formats/... inside the recyclarr container). mediasvc
+  # ownership keeps Zero Root Execution (AGENTS.md §3) intact.
+  ansible.builtin.file:
+    path: "/opt/mediastack/appdata/recyclarr/custom-formats/{{ item }}"
+    state: directory
+    owner: mediasvc
+    group: mediasvc
+    mode: "0755"
+  loop:
+    - sonarr
+    - radarr
+  tags:
+    - configuration
+
+- name: Deploy Stack - Push Recyclarr Custom Formats
+  # "Language: Prefer Dutch" (+10 when Dutch/Flemish audio is present),
+  # synced onto the guide-backed quality profiles via the custom_formats
+  # sections of recyclarr.yml.j2.
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../files/recyclarr/custom-formats/{{ item }}/language-prefer-dutch.json"
+    dest: "/opt/mediastack/appdata/recyclarr/custom-formats/{{ item }}/language-prefer-dutch.json"
+    owner: mediasvc
+    group: mediasvc
+    mode: "0644"
+  loop:
+    - sonarr
+    - radarr
+  tags:
+    - configuration
+
 - name: Configuration - Generate Dozzle users.yml (first run only)
   # Seeds the simple-auth user database required by DOZZLE_AUTH_PROVIDER=simple
   # (Observability bounded context). The `dozzle generate` subcommand bcrypt-
