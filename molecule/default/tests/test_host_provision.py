@@ -957,6 +957,45 @@ def test_docker_proxy_grants_watchtower_lifecycle_permissions(host):
     )
 
 
+def test_docker_proxy_grants_uptime_kuma_docker_host_permissions(host):
+    """
+    docker-proxy must grant Uptime Kuma the endpoints its Docker-host
+    connection test calls: /containers/json (CONTAINERS), /info (INFO)
+    and /version (VERSION).
+
+    INFO and VERSION both default to 0 in the proxy image; without them
+    HAProxy's catch-all deny returns 403 when the Docker host is saved
+    via Settings -> Docker Hosts -> Add (tcp://docker-proxy:2375).
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+    proxy = data["services"]["docker-proxy"]
+    env = set(proxy.get("environment", []))
+    required = {"CONTAINERS=1", "INFO=1", "VERSION=1"}
+    assert required.issubset(env), (
+        f"docker-proxy environment must grant Uptime Kuma the Docker-host "
+        f"endpoints {sorted(required)}; got {sorted(env)}"
+    )
+
+
+def test_docker_proxy_image_pinned_to_stable_line(host):
+    """
+    docker-proxy must be patch-pinned to v0.4.2 (pre-HAProxy-3.4.2).
+    v0.5.0 bumped HAProxy to 3.4.2 and upstream issue #180 reports it
+    breaking endpoint handling; :latest would silently pull that in.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+    proxy = data["services"]["docker-proxy"]
+    image = proxy.get("image", "")
+    assert image == "tecnativa/docker-socket-proxy:v0.4.2", (
+        f"docker-proxy must be pinned to tecnativa/docker-socket-proxy:v0.4.2 "
+        f"(the pre-HAProxy-3.4.2 line); got {image!r}"
+    )
+
+
 def test_docker_proxy_excluded_from_watchtower_updates(host):
     """
     docker-proxy must carry the watchtower disable label so it is never
