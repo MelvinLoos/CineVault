@@ -43,8 +43,10 @@ networks:
 
   socket_proxy_net:
     driver: bridge
-    # Boundary: homepage / watchtower → docker-proxy
-    # Scoped to Docker socket abstraction for security.
+    # Boundary: homepage / uptime-kuma / watchtower / dozzle → docker-proxy
+    # Scoped to Docker socket abstraction for security. Services here reach
+    # the Docker API only through the constrained proxy — never a raw
+    # /var/run/docker.sock mount.
 
 # ---------------------------------------------------------------------------
 # Service Definitions
@@ -520,30 +522,52 @@ services:
   dozzle:
     image: amir20/dozzle:latest
     container_name: dozzle
-    # Zero Root Execution (AGENTS.md §3): run as the non-root mediasvc user
-    # with the host 'docker' group GID as a supplementary group —
-    # /var/run/docker.sock is owned root:docker (same pattern as docker-proxy).
+    # Zero Root Execution (AGENTS.md §3): run as the non-root mediasvc user.
+    # SECURITY (MCP migration): the raw /var/run/docker.sock mount is GONE.
+    # The `:ro` flag only marks the socket file read-only on disk — it does
+    # NOT restrict Docker API operations, so the socket was root-equivalent
+    # either way. Dozzle now reaches the daemon exclusively through the
+    # constrained socket proxy over socket_proxy_net (its documented
+    # socket-proxy path; Dozzle does not honour DOCKER_HOST — its TCP
+    # transport is DOZZLE_REMOTE_HOST). The proxy surface (CONTAINERS,
+    # EVENTS, INFO, VERSION, PING) covers every Dozzle and MCP tool call:
+    # list/inspect containers, log streaming, stats and host info.
     user: ${PUID}:${PGID}
-    group_add:
-      - ${DOCKER_GROUP_GID}
+    environment:
+      - TZ=${TZ}
+      # MCP endpoint (/api/mcp): exposes five read-only container tools
+      # (list_containers, get_container_logs, search_container_logs,
+      # list_hosts, get_container_stats) to AI coding assistants over the
+      # Model Context Protocol. Disabled by default upstream — opt in here.
+      - DOZZLE_ENABLE_MCP=true
+      # Simple auth (users.yml in /data — seeded by the configuration role):
+      # required because the MCP endpoint lives in the authenticated API
+      # group. Without it /api/mcp would be anonymous access to container
+      # logs. MCP clients complete a one-time browser OAuth consent on first
+      # connect; see docs/configuration/observability.md.
+      - DOZZLE_AUTH_PROVIDER=simple
+      # Constrained socket proxy (see comment above). The |mediacenter
+      # suffix is the display label for The Host in the UI.
+      - DOZZLE_REMOTE_HOST=tcp://docker-proxy:2375|mediacenter
     volumes:
-      # Dozzle persists users & settings (auth config, pinned containers) in
-      # /data — config state on the fast SSD per ARCHITECTURE.md §1. Without
-      # this mount they are lost on every container recreation.
+      # Dozzle persists users & settings (users.yml for simple auth, pinned
+      # containers) in /data — config state on the fast SSD per
+      # ARCHITECTURE.md §1. Without this mount they are lost on every
+      # container recreation. No Docker socket mount: Docker access goes
+      # through tcp://docker-proxy:2375 (environment above).
       - ./appdata/dozzle:/data
-      # Read-only: stream container logs (e.g. Watchtower update runs) without
-      # granting any write/control access to the Docker API.
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - ingress_net
+      - ingress_net      # Homepage links / future Ingress routing
+      - socket_proxy_net # Constrained Docker API via docker-proxy
     restart: unless-stopped
     ports:
       # Container port 8080 collides with SABnzbd's host mapping, so the
-      # WebUI is published on 8888. UFW-scoped to the LAN subnet by
-      # provision_host.yml (security role).
+      # WebUI (and the MCP endpoint /api/mcp) is published on 8888.
+      # UFW-scoped to the LAN subnet by provision_host.yml (security role).
       - "8888:8080"
     # Health check: Dozzle ships a built-in healthcheck subcommand that pings
-    # its own /healthcheck endpoint and reports local Docker client liveness.
+    # its own /healthcheck endpoint (served without authentication, so the
+    # probe is unaffected by DOZZLE_AUTH_PROVIDER) and reports client liveness.
     healthcheck:
       test: ["CMD", "/dozzle", "healthcheck"]
       interval: 30s

@@ -50,6 +50,54 @@
   tags:
     - configuration
 
+- name: Configuration - Generate Dozzle users.yml (first run only)
+  # Seeds the simple-auth user database required by DOZZLE_AUTH_PROVIDER=simple
+  # (Observability bounded context). The `dozzle generate` subcommand bcrypt-
+  # hashes the admin password piped on stdin — the credential never lands in
+  # argv or shell history — and emits the YAML document to stdout. Password
+  # comes from the secrets role (credentials/dozzle.key), surfaced in .env as
+  # DOZZLE_ADMIN_PASSWORD for WebUI sign-in and the one-time MCP OAuth consent.
+  #
+  # Idempotency (AGENTS.md §3): `creates:` skips the task once users.yml
+  # exists, so existing users/credentials survive re-provisioning and the
+  # Molecule idempotence test stays green. A failed generation aborts the run
+  # BEFORE anything is written (output goes to a temp file, moved atomically),
+  # so an empty users.yml can never lock every account out.
+  #
+  # Zero Root Execution (AGENTS.md §3): the helper container runs as the
+  # mediasvc UID/GID; ownership of the output is normalised by the task below.
+  ansible.builtin.shell:
+    cmd: >-
+      set -o pipefail;
+      printf '%s\n' "$DOZZLE_ADMIN_PASSWORD"
+      | docker run --rm -i --user {{ mediasvc_uid }}:{{ mediasvc_gid }}
+      amir20/dozzle:latest generate admin
+      --email admin@mediacenter.local --name Admin
+      > /opt/mediastack/appdata/dozzle/users.yml.tmp
+      && mv /opt/mediastack/appdata/dozzle/users.yml.tmp
+      /opt/mediastack/appdata/dozzle/users.yml
+    executable: /bin/bash
+  environment:
+    DOZZLE_ADMIN_PASSWORD: "{{ secrets_dozzle_admin_password }}"
+  args:
+    creates: /opt/mediastack/appdata/dozzle/users.yml
+  tags:
+    - configuration
+
+- name: Configuration - Lock down Dozzle users.yml ownership and mode
+  # The generation task runs as root (become), so the file lands root-owned;
+  # Dozzle reads it as the mediasvc runtime user (PUID/PGID). 0600 keeps the
+  # bcrypt credential database readable by nobody else. Idempotent: reports
+  # ok (not changed) on every re-run once ownership matches.
+  ansible.builtin.file:
+    path: /opt/mediastack/appdata/dozzle/users.yml
+    state: file
+    owner: mediasvc
+    group: mediasvc
+    mode: '0600'
+  tags:
+    - configuration
+
 - name: Deploy Stack - Seed host .env from local .env (first run only)
   ansible.builtin.copy:
     src: "{{ lookup('ansible.builtin.first_found', env_seed_candidates) }}"
@@ -133,5 +181,10 @@
     - { key: 'SABNZBD_API_KEY', value: "{{ configuration_final_sabnzbd_key }}" }
     - { key: 'SPOTWEB_DB_ROOT_PASSWORD', value: "{{ secrets_spotweb_db_root_password }}" }
     - { key: 'SPOTWEB_DB_PASSWORD', value: "{{ secrets_spotweb_db_password }}" }
+    # Dozzle simple-auth admin password (users.yml seed). Consumed by humans
+    # and MCP clients — WebUI sign-in at :8888 and the one-time OAuth consent
+    # when an MCP client first connects to /api/mcp. Mirrors the
+    # UPTIME_KUMA_ADMIN_* pattern: read by Ansible/docs, not by Compose.
+    - { key: 'DOZZLE_ADMIN_PASSWORD', value: "{{ secrets_dozzle_admin_password }}" }
   tags:
     - configuration
