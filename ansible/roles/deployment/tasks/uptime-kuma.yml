@@ -1,15 +1,17 @@
 ---
-# Uptime Kuma first-run automation (Observability bounded context).
+# Uptime Kuma first-run verification (Observability bounded context).
 #
-# 2.x exposes NO REST API for monitor CRUD (monitors are configured via the
-# WebUI or the unsupported Socket.IO protocol), so the automatable surface is
-# deliberately limited to the one verified REST endpoint: the fresh-database
-# admin setup (server/routers/better-auth-router.ts -> POST /api/setup).
+# The pinned 2.5.5 image exposes NO REST endpoint for admin creation (the
+# POST /api/setup route only exists on newer, better-auth-based master), so
+# the playbook cannot create the account itself. It verifies instead:
 #
-# Idempotency: the setup endpoint only creates the FIRST admin account.
-# Re-runs receive "Uptime Kuma has been initialized." (HTTP 4xx) and are
-# treated as unchanged. Without credentials in /opt/mediastack/.env the
-# remaining tasks self-skip (which also keeps Molecule CI green).
+#   GET /api/entry-page -> entryPage == "setup" while first-run setup is
+#   pending, "dashboard" once an admin account exists.
+#
+# With UPTIME_KUMA_ADMIN_USERNAME/PASSWORD configured in
+# /opt/mediastack/.env the check is STRICT (fails the play with setup
+# instructions); without credentials (e.g. Molecule CI) it degrades to a
+# warning so ephemeral test VMs stay green.
 
 - name: Uptime Kuma - Extract admin credentials from host .env
   ansible.builtin.shell:
@@ -39,34 +41,45 @@
   until: uptime_kuma_ready.status == 200
   retries: 30
   delay: 10
-  when:
-    - uptime_kuma_admin_username | length > 0
-    - uptime_kuma_admin_password | length > 0
   tags:
     - deployment
     - uptime-kuma
 
-- name: Uptime Kuma - Create admin account on fresh database (idempotent)
+- name: Uptime Kuma - Query entry page state
   ansible.builtin.uri:
-    url: "http://127.0.0.1:3001/api/setup"
-    method: POST
-    body_format: json
-    body:
-      username: "{{ uptime_kuma_admin_username }}"
-      password: "{{ uptime_kuma_admin_password }}"
-    status_code: [200, 400, 403]
-  register: uptime_kuma_setup_result
-  # A 4xx on an already-initialised database is the expected no-op; any
-  # other failure (e.g. connection refused) still fails the task.
-  failed_when: >-
-    (uptime_kuma_setup_result.status == 200 and
-     not (uptime_kuma_setup_result.json | default({})).ok | default(false)) or
-    uptime_kuma_setup_result.status not in [200, 400, 403]
-  changed_when: >-
-    uptime_kuma_setup_result.status == 200 and
-    (uptime_kuma_setup_result.json | default({})).ok | default(false)
-  no_log: true
+    url: "http://127.0.0.1:3001/api/entry-page"
+    method: GET
+    status_code: [200]
+  register: uptime_kuma_entry_page
+  changed_when: false
+  tags:
+    - deployment
+    - uptime-kuma
+
+- name: Uptime Kuma - Warn when first-run setup is still pending
+  ansible.builtin.debug:
+    msg: >-
+      [WARNING] Uptime Kuma first-run setup is pending: open
+      http://{{ web_hostname | default('mediacenter.local') }}:3001 and create
+      the admin account (or run `docker exec -it uptime-kuma npm run
+      reset-password`), then re-run this playbook.
   when:
+    - (uptime_kuma_entry_page.json | default({})).entryPage | default('') == 'setup'
+    - not (uptime_kuma_admin_username | length > 0 and uptime_kuma_admin_password | length > 0)
+  tags:
+    - deployment
+    - uptime-kuma
+
+- name: Uptime Kuma - Fail fast when first-run setup is pending (strict mode)
+  ansible.builtin.fail:
+    msg: >-
+      Uptime Kuma first-run setup is still pending, but
+      UPTIME_KUMA_ADMIN_USERNAME/PASSWORD are configured. Open
+      http://{{ web_hostname | default('mediacenter.local') }}:3001 and create
+      the admin account (or run `docker exec -it uptime-kuma npm run
+      reset-password`), then re-run this playbook.
+  when:
+    - (uptime_kuma_entry_page.json | default({})).entryPage | default('') == 'setup'
     - uptime_kuma_admin_username | length > 0
     - uptime_kuma_admin_password | length > 0
   tags:

@@ -60,13 +60,18 @@ the next 2.5.x release. The 1.x line is unmaintained.
 
 Uptime Kuma stores its configuration in `/opt/mediastack/appdata/uptime-kuma` (survives container recreation).
 
-### Automated first-run setup
+### First-run setup verification
 
-On a **fresh** database, the deployment role creates the admin account from
-`UPTIME_KUMA_ADMIN_USERNAME` / `UPTIME_KUMA_ADMIN_PASSWORD` in `.env` (the
-verified `POST /api/setup` endpoint). Re-runs are a no-op, and blank values
-skip the automation entirely. 2.x exposes no REST API for monitor CRUD, so
-everything below is a one-time manual WebUI setup.
+The pinned 2.5.5 image has no REST endpoint to create the admin account (a
+`POST /api/setup` route only exists on newer, better-auth-based versions), so
+account creation is manual: open the WebUI once and create the admin (or run
+`docker exec -it uptime-kuma npm run reset-password`).
+
+The playbook verifies instead: it queries `/api/entry-page` and — when
+`UPTIME_KUMA_ADMIN_USERNAME` / `UPTIME_KUMA_ADMIN_PASSWORD` are set in `.env`
+— fails the run with instructions while first-run setup is still pending;
+with blank credentials it degrades to a warning. 2.x exposes no REST API for
+monitor CRUD either, so everything below is a one-time manual WebUI setup.
 
 ### Monitors
 
