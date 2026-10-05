@@ -9,6 +9,13 @@
             type: jellyfin
             url: http://jellyfin:8096
             key: "{{ '{{HOMEPAGE_VAR_JELLYFIN_KEY}}' }}"
+            # Jellyfin >= 12 removed the legacy /emby and /mediabrowser API
+            # route prefixes. Widget API version 2 calls the native endpoints
+            # (Items/Counts, Sessions) with an Authorization header instead of
+            # the emby/*?api_key= style of version 1 (gethomepage#7113).
+            # Without this the widget surfaces "API Error: Failed to execute
+            # 'json' on 'Response': Unexpected end of JSON input".
+            version: 2
             enableNowPlaying: true  # Active sessions / streams
             enableUser: true
     - Seerr:
@@ -32,7 +39,6 @@
         container: wizarr
 
 - The Acquisition Pipeline:
-    - The Acquisition Pipeline:
     - Radarr:
         icon: radarr
         href: "http://{{ web_hostname | default('mediacenter.local') }}:7878"
