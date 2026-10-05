@@ -20,6 +20,7 @@ Tests are deterministic and order-independent.
 """
 
 import ipaddress
+import time
 
 import pytest
 import yaml
@@ -885,6 +886,181 @@ def test_observability_webuis_publish_lan_scoped_ports(host):
         assert "ingress_net" in service.get("networks", []), (
             f"Service '{name}' must attach to ingress_net"
         )
+
+
+def test_dozzle_mcp_socket_proxy_contract(host):
+    """
+    Dozzle must expose the MCP endpoint behind simple auth and reach Docker
+    exclusively through the constrained socket proxy — never a raw socket
+    mount.
+
+    Security: a `:ro` docker.sock mount does not restrict Docker API calls
+    (the flag only marks the socket file read-only on disk; API traffic still
+    passes through), so Dozzle now connects to tcp://docker-proxy:2375 over
+    socket_proxy_net — the same constrained path watchtower and Uptime Kuma
+    use. MCP (DOZZLE_ENABLE_MCP) is opt-in and gated by
+    DOZZLE_AUTH_PROVIDER=simple so /api/mcp is never anonymous.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+    assert data and "services" in data, (
+        "The deployed compose file must define a 'services' map"
+    )
+
+    dozzle = data["services"]["dozzle"]
+
+    env = {}
+    for entry in dozzle.get("environment", []):
+        key, _, value = str(entry).partition("=")
+        env[key] = value
+
+    assert env.get("DOZZLE_ENABLE_MCP") == "true", (
+        "dozzle must set DOZZLE_ENABLE_MCP=true so AI agents can use the "
+        "read-only MCP endpoint (/api/mcp)"
+    )
+    assert env.get("DOZZLE_AUTH_PROVIDER") == "simple", (
+        "dozzle must run with DOZZLE_AUTH_PROVIDER=simple — without "
+        "authentication the MCP endpoint would expose container logs "
+        "to anyone on the network"
+    )
+    assert env.get("DOZZLE_REMOTE_HOST", "").startswith(
+        "tcp://docker-proxy:2375"
+    ), (
+        "dozzle must reach Docker via the constrained socket proxy "
+        "(DOZZLE_REMOTE_HOST=tcp://docker-proxy:2375); got "
+        f"{env.get('DOZZLE_REMOTE_HOST')!r}"
+    )
+
+    volumes = dozzle.get("volumes", [])
+    for volume in volumes:
+        assert "docker.sock" not in str(volume), (
+            "dozzle must NOT mount /var/run/docker.sock — the :ro flag does "
+            "not restrict API operations; use tcp://docker-proxy:2375 over "
+            f"socket_proxy_net instead (found {str(volume)!r})"
+        )
+    assert "./appdata/dozzle:/data" in volumes, (
+        "dozzle must persist /data (users.yml) on the appdata SSD "
+        "(State vs. Compute — AGENTS.md §3)"
+    )
+
+    networks = dozzle.get("networks", [])
+    assert "socket_proxy_net" in networks, (
+        "dozzle must attach to socket_proxy_net to reach docker-proxy"
+    )
+    assert "ingress_net" in networks, (
+        "dozzle must stay attached to ingress_net (Homepage links contract)"
+    )
+    assert "group_add" not in dozzle, (
+        "dozzle no longer touches the Docker socket, so the docker-group "
+        "supplementary group (group_add) must be removed"
+    )
+
+
+def test_dozzle_users_yml_seeds_admin_account(host):
+    """
+    Simple auth requires /data/users.yml to exist BEFORE Dozzle boots with
+    DOZZLE_AUTH_PROVIDER=simple — a missing users.yml means no account can
+    sign in to the WebUI or complete the MCP OAuth consent (total lockout).
+    The configuration role seeds it idempotently via `dozzle generate`.
+    """
+    users = host.file("/opt/mediastack/appdata/dozzle/users.yml")
+    assert users.exists, (
+        "appdata/dozzle/users.yml must exist — Dozzle runs with simple auth "
+        "and a missing users.yml means no account can ever sign in"
+    )
+    content = yaml.safe_load(users.content_string)
+    assert content and isinstance(content.get("users"), dict), (
+        "users.yml must contain a 'users' map"
+    )
+    assert "admin" in content["users"], (
+        "users.yml must seed the 'admin' account for WebUI/MCP sign-in"
+    )
+    password = content["users"]["admin"].get("password", "")
+    assert password.startswith("$2a$") or password.startswith("$2b$"), (
+        "the admin password must be stored as a bcrypt hash"
+    )
+    assert users.user == "mediasvc", (
+        f"users.yml must be owned by mediasvc (got {users.user!r}) so the "
+        "non-root Dozzle container can read it"
+    )
+    assert users.mode == 0o600, (
+        f"users.yml holds a credential hash — mode must be 0600 "
+        f"(got {oct(users.mode)})"
+    )
+
+
+def test_spotweb_waits_for_healthy_database(host):
+    """
+    spotweb must gate its startup on spotweb-db reporting HEALTHY, not merely
+    on the container starting.
+
+    The MariaDB healthcheck carries a 60s start_period while InnoDB
+    initialises; the previous short-form depends_on raced it and spotweb
+    failed with "Can't connect to MySQL server on 'spotweb-db'" (spotweb
+    DB-connection postmortem — docs/configuration/spotweb.md).
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+    assert data and "services" in data, (
+        "The deployed compose file must define a 'services' map"
+    )
+
+    spotweb = data["services"]["spotweb"]
+    depends_on = spotweb.get("depends_on")
+    assert isinstance(depends_on, dict), (
+        "spotweb.depends_on must use the long syntax with a health condition "
+        f"(got {depends_on!r})"
+    )
+    condition = depends_on.get("spotweb-db", {}).get("condition")
+    assert condition == "service_healthy", (
+        "spotweb must wait for spotweb-db with condition 'service_healthy' "
+        f"to prevent the DB-startup race (got {condition!r})"
+    )
+
+
+def test_spotweb_db_user_authenticates_with_container_password(host):
+    """
+    The MariaDB 'spotweb' user must authenticate with the password the
+    spotweb container actually presents.
+
+    Postmortem (2026-09-26): a secrets-role refactor renamed its lookup files
+    (spotweb_db.password -> spotweb.key), generating a NEW random password
+    that was injected into .env — while the MariaDB datadir kept the original
+    one (LSIO applies MYSQL_USER/MYSQL_PASSWORD only on first datadir
+    initialisation). Every spotweb operation failed with
+    "SQLSTATE[HY000] [1045] Access denied for user 'spotweb'" until the DB
+    user was realigned by hand. The deployment role now reconciles the DB
+    user with .env on every run; this test asserts the reconciled end state
+    by reproducing the exact connection the application makes.
+    """
+    # The spotweb container may still be starting when verification begins —
+    # wait (bounded) for it to accept exec calls.
+    pw_cmd = None
+    for _ in range(12):
+        pw_cmd = host.run("sudo docker exec spotweb printenv SPOTWEB_DB_PASS")
+        if pw_cmd.rc == 0 and pw_cmd.stdout.strip():
+            break
+        time.sleep(10)
+    assert pw_cmd is not None and pw_cmd.rc == 0, (
+        "spotweb container must be running (docker exec failed): "
+        f"{'' if pw_cmd is None else pw_cmd.stderr}"
+    )
+
+    password = pw_cmd.stdout.strip()
+    assert password, "SPOTWEB_DB_PASS must be non-empty in the spotweb container"
+
+    auth = host.run(
+        f"sudo docker exec -e MYSQL_PWD='{password}' spotweb-db "
+        "mariadb -uspotweb -h127.0.0.1 -e 'SELECT 1'"
+    )
+    assert auth.rc == 0, (
+        "spotweb must authenticate against spotweb-db with the password "
+        "from its own container environment — credential drift between .env "
+        "and the MariaDB datadir breaks every spotweb operation "
+        f"(rc={auth.rc}, stderr={auth.stderr.strip()!r})"
+    )
 
 
 def test_homepage_jellyfin_widget_uses_api_version_2(host):
