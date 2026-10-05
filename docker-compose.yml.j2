@@ -594,7 +594,10 @@ services:
   # Security context — Docker Socket Proxy to avoid mounting /var/run/docker.sock in user-facing/app containers.
   # ---------------------------------------------------------------------------
   docker-proxy:
-    image: tecnativa/docker-socket-proxy:latest
+    # Patch-pinned to v0.4.2 (the pre-HAProxy-3.4.2 line). v0.5.0 bumped
+    # HAProxy to 3.4.2 and upstream issue #180 reports it breaking endpoint
+    # handling (regression introduced by PR #179). Bump manually once fixed.
+    image: tecnativa/docker-socket-proxy:v0.4.2
     container_name: docker-proxy
     # Zero Root Execution (AGENTS.md §3): the bundled HAProxy must not run as root.
     # - user: run every process as the mediasvc service account.
@@ -618,6 +621,12 @@ services:
       - IMAGES=1
       - POST=1
       - DELETE=1
+      # Uptime Kuma's Docker-host connection test performs an /info handshake
+      # alongside /containers/json (server/docker.js). INFO defaults to 0 in
+      # the proxy image, so without this flag HAProxy's catch-all deny
+      # returns 403 when Settings -> Docker Hosts -> Add is used.
+      - INFO=1
+      - VERSION=1
       # Watchtower lifecycle permissions. CONTAINERS alone grants kill/create
       # but NOT the start/stop/restart verbs or network attachment that a
       # full container update requires. Without these, watchtower creates
