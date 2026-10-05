@@ -64,6 +64,78 @@
   tags:
     - deployment
 
+- name: Deploy Stack - Extract Spotweb DB password from host .env
+  # Consumed by the credential-reconciliation task below. Read from the host
+  # .env (the runtime SSOT) rather than the secrets fact so the deployment
+  # slice stays self-contained — mirrors the Uptime Kuma credential
+  # extraction in uptime-kuma.yml.
+  ansible.builtin.shell:
+    cmd: awk -F '=' '/^SPOTWEB_DB_PASSWORD=/ {print $2}' /opt/mediastack/.env
+  register: deployment_spotweb_db_password_cmd
+  changed_when: false
+  failed_when: false
+  no_log: true
+  tags:
+    - deployment
+    - spotweb
+
+- name: Deploy Stack - Check whether the Spotweb DB container is running
+  ansible.builtin.command:
+    cmd: docker ps --filter "name=^spotweb-db$" --filter "status=running" -q
+  register: deployment_spotweb_db_running
+  changed_when: false
+  failed_when: false
+  tags:
+    - deployment
+    - spotweb
+
+- name: Deploy Stack - Reconcile Spotweb DB credentials with .env (drift repair)
+  # Postmortem (2026-09-26): the secrets role renamed its lookup files
+  # (spotweb_db.password -> spotweb.key), which generated a NEW random
+  # password that was injected into .env — while the MariaDB datadir kept the
+  # original one, because the LSIO MYSQL_USER/MYSQL_PASSWORD variables are
+  # applied only on FIRST datadir initialisation. spotweb then failed every
+  # connection with "SQLSTATE[HY000] [1045] Access denied for user 'spotweb'"
+  # until the DB user was realigned by hand. This task reconciles the datadir
+  # user with .env on every run so a future credential change can no longer
+  # silently orphan the database.
+  #
+  # Idempotency: the guard query compares mysql.user.authentication_string
+  # against PASSWORD(<current pw>) and reports 'drifted' only when they
+  # differ — the ALTER runs at most once per real drift (AGENTS.md §3).
+  # The until/retries block absorbs MariaDB's first-start initialisation
+  # window (~60s) right after `docker compose up` (retries: 12 x 10s).
+  ansible.builtin.shell:
+    cmd: |-
+      set -euo pipefail
+      PW="$SPOTWEB_DB_PASSWORD"
+      MATCH=$(docker exec spotweb-db mariadb -uroot -N -B -e \
+        "SELECT COUNT(*) FROM mysql.user WHERE user='spotweb' AND host='%' AND authentication_string=PASSWORD('${PW}')")
+      if [ "$MATCH" = "1" ]; then
+        echo "in-sync"
+      else
+        echo "drifted"
+        docker exec spotweb-db mariadb -uroot -e \
+          "CREATE USER IF NOT EXISTS 'spotweb'@'%' IDENTIFIED BY '${PW}';
+           ALTER USER 'spotweb'@'%' IDENTIFIED BY '${PW}';
+           GRANT ALL PRIVILEGES ON spotweb.* TO 'spotweb'@'%';"
+      fi
+    executable: /bin/bash
+  environment:
+    SPOTWEB_DB_PASSWORD: "{{ deployment_spotweb_db_password_cmd.stdout | trim }}"
+  register: deployment_spotweb_reconcile
+  changed_when: "'drifted' in deployment_spotweb_reconcile.stdout"
+  no_log: true
+  until: deployment_spotweb_reconcile.rc == 0
+  retries: 12
+  delay: 10
+  when:
+    - deployment_spotweb_db_password_cmd.stdout | trim | length > 0
+    - deployment_spotweb_db_running.stdout | trim | length > 0
+  tags:
+    - deployment
+    - spotweb
+
 - name: Deploy Stack - Configure Uptime Kuma first-run setup
   ansible.builtin.import_tasks: uptime-kuma.yml
   tags:

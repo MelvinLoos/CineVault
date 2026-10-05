@@ -217,7 +217,12 @@ services:
     container_name: spotweb
     restart: unless-stopped
     depends_on:
-      - spotweb-db
+      # Gate on health, not merely on container start: MariaDB's healthcheck
+      # carries a 60s start_period while InnoDB initialises, and spotweb used
+      # to race it and fail with "Can't connect to MySQL server on
+      # 'spotweb-db'" (see docs/configuration/spotweb.md troubleshooting).
+      spotweb-db:
+        condition: service_healthy
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
