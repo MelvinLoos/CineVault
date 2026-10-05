@@ -1,0 +1,29 @@
+{
+  "trash_id": "f8318a20e9e8a8680aeb59bd5bf70dd0",
+  "trash_scores": {
+    "default": 10
+  },
+  "trash_description": "Language: Prefer Dutch. Mirrors the TRaSH Guides guide-only custom format (docs/json/guide-only/language-prefer-dutch.json): +10 when Dutch or Flemish audio is present.",
+  "name": "Language: Prefer Dutch",
+  "includeCustomFormatWhenRenaming": false,
+  "specifications": [
+    {
+      "name": "Dutch Language",
+      "implementation": "LanguageSpecification",
+      "negate": false,
+      "required": false,
+      "fields": {
+        "value": 7
+      }
+    },
+    {
+      "name": "Flemish Language",
+      "implementation": "LanguageSpecification",
+      "negate": false,
+      "required": false,
+      "fields": {
+        "value": 19
+      }
+    }
+  ]
+}

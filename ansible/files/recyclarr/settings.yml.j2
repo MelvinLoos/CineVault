@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://schemas.recyclarr.dev/latest/settings-schema.json
+# Recyclarr application settings — rendered by the configuration role to
+# /opt/mediastack/appdata/recyclarr/settings.yml.
+#
+# Resource providers expose the locally shipped custom formats to Recyclarr.
+# "Language: Prefer Dutch" is a TRaSH Guides "guide-only" custom format: it
+# lives under docs/json/guide-only/ with a placeholder trash_id and is
+# therefore NOT part of the syncable collection. Shipping it through
+# `custom-formats` providers is the documented way to sync it.
+# Reference: https://recyclarr.dev/reference/settings/resource-providers/
+#
+# Official sources (TRaSH Guides + config templates) are always implicit and
+# keep the lowest precedence — these providers only ADD resources.
+
+resource_providers:
+  # Custom formats for Sonarr (Language: Prefer Dutch).
+  - name: mediastack-custom-formats-sonarr
+    type: custom-formats
+    path: /config/custom-formats/sonarr
+    service: sonarr
+  # Custom formats for Radarr (Language: Prefer Dutch).
+  - name: mediastack-custom-formats-radarr
+    type: custom-formats
+    path: /config/custom-formats/radarr
+    service: radarr

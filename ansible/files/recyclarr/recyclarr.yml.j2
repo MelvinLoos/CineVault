@@ -11,6 +11,19 @@
 # seeded via ansible/files/servarr/config.xml.j2 using the SSOT variable
 # `sonarr_sabnzbd_category`. A `download_clients` key here is rejected by the
 # strict v8 config parser (additionalProperties: false) and breaks every sync.
+#
+# Dutch prioritisation ("[Streaming Services] Dutch"):
+#   - Sonarr: NLZ + VDL   (group trash_id f60f4401ce880aad62e9d21c8bb6b91a)
+#   - Radarr: Pathé + VDL (group trash_id 088a792e0561c927fb396664b0db5c8f)
+#   Both groups contain only required CFs, so enabling the group is the whole
+#   sync; scores come from the TRaSH Guide.
+#
+# Dutch language preference ("Language: Prefer Dutch", +10):
+#   TRaSH publishes this CF as "guide-only" (placeholder trash_id, manual
+#   import in their workflow) — it is NOT part of the syncable collection.
+#   It is therefore shipped locally via ansible/files/recyclarr/custom-formats/
+#   and exposed through the `custom-formats` resource providers declared in
+#   settings.yml.j2. The trash_ids used below are stable, repo-owned IDs.
 
 sonarr:
   sonarr:
@@ -24,6 +37,16 @@ sonarr:
       - trash_id: 72dae194fc92bf828f32cde7744e51a1  # WEB-1080p
         reset_unmatched_scores:
           enabled: true
+
+    custom_formats:
+      # "Language: Prefer Dutch" — +10 when Dutch or Flemish audio is
+      # present. Shipped via the custom-formats resource provider declared in
+      # settings.yml.j2 (TRaSH guide-only CF, not in the official collection).
+      - trash_ids:
+          - f8318a20e9e8a8680aeb59bd5bf70dd0  # Language: Prefer Dutch
+        score: 10
+        assign_scores_to:
+          - trash_id: 72dae194fc92bf828f32cde7744e51a1  # WEB-1080p
 
     custom_format_groups:
       ################################################################################
@@ -84,7 +107,7 @@ sonarr:
         # - trash_id: d920fd959d220306888f40b6f38e1578  # [Optional] Season Packs
         # - trash_id: f54985e5e96747cef58731f1cf4c9181  # [Streaming Services] Anime
         # - trash_id: 35fb4585dcd9e2a5ac732e4309f5a45a  # [Streaming Services] Asian
-        # - trash_id: f60f4401ce880aad62e9d21c8bb6b91a  # [Streaming Services] Dutch
+        - trash_id: f60f4401ce880aad62e9d21c8bb6b91a  # [Streaming Services] Dutch
         # - trash_id: 848fd356c200568fc5a6248150e7e7ea  # [Streaming Services] French
         # - trash_id: ddab3095a5d2f436f369263840af34f9  # [Streaming Services] UK
         # - trash_id: bad5bc85573a0134e1e1987c46f67e98  # [Optional] Accessibility
@@ -142,6 +165,16 @@ radarr:
         reset_unmatched_scores:
           enabled: true
 
+    custom_formats:
+      # "Language: Prefer Dutch" — +10 when Dutch or Flemish audio is
+      # present. Shipped via the custom-formats resource provider declared in
+      # settings.yml.j2 (TRaSH guide-only CF, not in the official collection).
+      - trash_ids:
+          - ab5925ee79196232e7b91e477cd4703e  # Language: Prefer Dutch
+        score: 10
+        assign_scores_to:
+          - trash_id: d1d67249d3890e49bc12e275d989a7e9  # HD Bluray + WEB
+
     custom_format_groups:
       ################################################################################
       ## Uncommented groups are synced by default. They are listed here so you can
@@ -185,7 +218,7 @@ radarr:
             # - f537cf427b64c38c8e36298f657e4828  # Scene
         # - trash_id: f993ad37540147e4d00e66503545d81b  # [Streaming Services] Anime
         # - trash_id: b22449f789b16a4163b59f1b70cbc580  # [Streaming Services] Asian
-        # - trash_id: 088a792e0561c927fb396664b0db5c8f  # [Streaming Services] Dutch
+        - trash_id: 088a792e0561c927fb396664b0db5c8f  # [Streaming Services] Dutch
         # - trash_id: f737e18b5824d6ebb2d57b957ae2fd6c  # [Streaming Services] UK
         # - trash_id: bc3c13e52f2971319bc1748ffa3d1078  # [Optional] Accessibility
         #   select:
