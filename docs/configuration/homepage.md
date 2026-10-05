@@ -68,6 +68,14 @@ Navigate to **Dashboard -> Advanced -> API Keys**. Click the **+** button to
 create a new key, give it a descriptive application name such as `homepage`,
 and copy the generated value — Jellyfin will only display it once.
 
+!!! note "Jellyfin ≥ 12 requires widget API version 2"
+    The dashboard template pins the Jellyfin widget to API `version: 2`.
+    Jellyfin 12.0 removed the legacy `/emby/` and `/mediabrowser/` route
+    prefixes that widget version 1 (Homepage's default) calls. Running
+    version 1 against Jellyfin ≥ 12 surfaces as
+    `API Error: Failed to execute 'json' on 'Response': Unexpected end of
+    JSON input` on the dashboard.
+
 ### Tdarr
 
 Open the Tdarr WebUI and click the gear/cog icon in the left sidebar to open
@@ -130,6 +138,16 @@ shows an error:
    network — `docker compose logs homepage` will surface connection or
    401/403 errors.
 3. Restart the Homepage container once more after correcting the value.
+4. If the Jellyfin widget still fails with `Unexpected end of JSON input` and
+   `docker compose logs homepage` shows `HTTP Error 404` for `/emby/...`
+   URLs, the widget is using the legacy API. Ensure the rendered
+   `appdata/homepage/services.yaml` sets `version: 2` on the Jellyfin widget
+   — Jellyfin ≥ 12 dropped the `/emby` routes entirely.
+5. If Jellyfin's own logs (`appdata/jellyfin/log/`) show
+   `"CustomAuthentication" ... "Invalid token."`, the API key no longer
+   exists on the server (e.g. after a Jellyfin database reset). Recreate it
+   under **Dashboard → Advanced → API Keys**, update `JELLYFIN_API_KEY` in
+   `.env` and restart the Homepage container.
 
 ## Dozzle & Uptime Kuma Links
 
