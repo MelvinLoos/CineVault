@@ -5,12 +5,25 @@
         description: Watch Movies & TV
         server: local-docker
         container: jellyfin
+        widget:
+            type: jellyfin
+            url: http://jellyfin:8096
+            key: "{{ '{{HOMEPAGE_VAR_JELLYFIN_KEY}}' }}"
+            enableNowPlaying: true  # Active sessions / streams
+            enableUser: true
     - Seerr:
         icon: seerr
         href: "http://{{ web_hostname | default('mediacenter.local') }}:5055"
         description: Request New Media
         server: local-docker
         container: seerr
+        widget:
+            # Jellyseerr/Overseerr merged into Seerr; Homepage aliases their
+            # widget types to 'seerr'. The default fields (pending/approved/
+            # completed) render the open-requests widget.
+            type: seerr
+            url: http://seerr:5055
+            key: "{{ '{{HOMEPAGE_VAR_SEERR_KEY}}' }}"
     - Wizarr:
         icon: wizarr
         href: "http://{{ web_hostname | default('mediacenter.local') }}:5690"
@@ -102,6 +115,7 @@
         widget:
             type: tdarr
             url: http://tdarr:8265
+            key: "{{ '{{HOMEPAGE_VAR_TDARR_KEY}}' }}"  # optional
 
 
 - Infrastructure:
@@ -115,6 +129,18 @@
         description: Auto Updater
         server: local-docker
         container: watchtower
+    - Dozzle:
+        icon: dozzle
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8888"
+        description: Container Logs (Watchtower)
+        server: local-docker
+        container: dozzle
+    - Uptime Kuma:
+        icon: uptime-kuma
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:3001"
+        description: Endpoint Status Monitoring
+        server: local-docker
+        container: uptime-kuma
     - Recyclarr:
         icon: recyclarr
         description: Arr Config Sync

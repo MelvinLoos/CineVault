@@ -458,6 +458,9 @@ services:
       - HOMEPAGE_VAR_SABNZBD_KEY=${SABNZBD_API_KEY}
       - HOMEPAGE_VAR_PROWLARR_KEY=${PROWLARR_API_KEY}
       - HOMEPAGE_VAR_BAZARR_KEY=${BAZARR_API_KEY}
+      - HOMEPAGE_VAR_JELLYFIN_KEY=${JELLYFIN_API_KEY}
+      - HOMEPAGE_VAR_SEERR_KEY=${SEERR_API_KEY}
+      - HOMEPAGE_VAR_TDARR_KEY=${TDARR_API_KEY}
       - UMASK=002
     ports:
       - "80:3000"
@@ -465,6 +468,7 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - ./appdata/homepage:/app/config
+      - ./data:/data:ro  # Media payload mount for the storage resource widget
     networks:
       - ingress_net
       - socket_proxy_net
@@ -498,6 +502,92 @@ services:
     # no shell and no HTTP client, and the binary offers no self-status
     # subcommand without a tunnel name. Liveness is covered by the restart
     # policy; tunnel connectivity is monitored in the Cloudflare dashboard.
+
+  # ---------------------------------------------------------------------------
+  # Observability Bounded Context
+  # Observability context — container log streaming (Dozzle) and endpoint
+  # status monitoring (Uptime Kuma). LAN-only operational tools: their WebUI
+  # ports are published on The Host but UFW-scoped to the auto-detected local
+  # subnet (zero-trust micro-segmentation, ARCHITECTURE.md §2). Both share
+  # ingress_net with homepage and cloudflared so the dashboard can link to
+  # them and The Ingress can route dedicated hostnames to them later.
+  # ---------------------------------------------------------------------------
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    # Zero Root Execution (AGENTS.md §3): run as the non-root mediasvc user
+    # with the host 'docker' group GID as a supplementary group —
+    # /var/run/docker.sock is owned root:docker (same pattern as docker-proxy).
+    user: ${PUID}:${PGID}
+    group_add:
+      - ${DOCKER_GROUP_GID}
+    volumes:
+      # Dozzle persists users & settings (auth config, pinned containers) in
+      # /data — config state on the fast SSD per ARCHITECTURE.md §1. Without
+      # this mount they are lost on every container recreation.
+      - ./appdata/dozzle:/data
+      # Read-only: stream container logs (e.g. Watchtower update runs) without
+      # granting any write/control access to the Docker API.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ingress_net
+    restart: unless-stopped
+    ports:
+      # Container port 8080 collides with SABnzbd's host mapping, so the
+      # WebUI is published on 8888. UFW-scoped to the LAN subnet by
+      # provision_host.yml (security role).
+      - "8888:8080"
+    # Health check: Dozzle ships a built-in healthcheck subcommand that pings
+    # its own /healthcheck endpoint and reports local Docker client liveness.
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  uptime-kuma:
+    # Patch-pinned (`2.5.5` — upstream publishes no minor rollup tag) to
+    # freeze the unsupported setup/API surface the deployment role automates
+    # against. 1.x is unmaintained. Watchtower will NOT move a patch tag, so
+    # bump to the next 2.5.x manually. Unlike 1.x (upstream issue #857), the
+    # 2.x entrypoint performs no root-only chown maintenance, so the
+    # container runs directly as the non-root mediasvc user.
+    image: louislam/uptime-kuma:2.5.5
+    container_name: uptime-kuma
+    # Zero Root Execution (AGENTS.md §3): explicit non-root mediasvc runtime user.
+    user: ${PUID}:${PGID}
+    environment:
+      - TZ=${TZ}
+      # Honour X-Forwarded-* headers once served through The Ingress
+      # (status.example.com) — harmless while LAN-only.
+      - UPTIME_KUMA_TRUST_PROXY=1
+    volumes:
+      - ./appdata/uptime-kuma:/app/data  # Config state (fast SSD — ARCHITECTURE.md §1)
+    networks:
+      - ingress_net
+      # Health probes for the *arr stack cross the micro-segmentation
+      # boundaries, so the monitor shares homepage's justified exception of
+      # attaching to the internal API and acquisition networks.
+      - internal_api   # Radarr / Sonarr / Seerr health probes
+      - acquisition_net  # SABnzbd / Prowlarr health probes
+      # Enables the manual Docker-host monitor (Settings -> Docker Hosts ->
+      # tcp://docker-proxy:2375) through the constrained socket proxy.
+      - socket_proxy_net
+    restart: unless-stopped
+    ports:
+      - "3001:3001"  # WebUI. UFW-scoped to the LAN subnet by provision_host.yml.
+    # Health check: use the image's own purpose-built probe (extra/healthcheck
+    # — the same binary upstream wires into the image HEALTHCHECK, incl. the
+    # rootless variant) instead of a hand-rolled HTTP probe, which can misfire
+    # when the SPA redirects unauthenticated requests. start_period is
+    # generous for the ~600MB image and DB initialisation on the N100.
+    healthcheck:
+      test: ["CMD", "extra/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 3
 
   # ---------------------------------------------------------------------------
   # Maintenance Bounded Context (PRODUCT_SPECIFICATION.md §2)

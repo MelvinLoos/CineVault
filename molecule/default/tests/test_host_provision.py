@@ -52,6 +52,8 @@ MEDIASTACK_DIRECTORIES = [
     "/opt/mediastack/appdata/gluetun",
     "/opt/mediastack/appdata/qbittorrent",
     "/opt/mediastack/appdata/maintainerr",
+    "/opt/mediastack/appdata/dozzle",
+    "/opt/mediastack/appdata/uptime-kuma",
     # Media Payload tree (data) — "Resides on High-Capacity Drive" per ARCHITECTURE.md
     "/opt/mediastack/data",
     # The Download Client scratch space — SABnzbd active Usenet downloads
@@ -757,6 +759,44 @@ def test_ufw_allows_maintainerr_webui_from_local_subnet(host):
     )
 
 
+def test_ufw_allows_observability_webuis_from_local_subnet(host):
+    """
+    UFW must allow inbound Dozzle (8888/tcp) and Uptime Kuma (3001/tcp)
+    WebUI traffic from the local subnet ONLY.
+
+    Both are LAN-only operational tools (CONSTITUTION.md §2 Maxim 4) and are
+    never published through The Ingress. Their allow rules must be scoped to
+    the auto-detected local subnet — mirroring the Maintainerr (6246) rule —
+    per zero-trust micro-segmentation (ARCHITECTURE.md §2).
+    """
+    ufw_status = host.run("sudo ufw status verbose")
+    assert ufw_status.rc == 0, "ufw status verbose must succeed"
+    output = ufw_status.stdout
+    expected_cidr = get_expected_subnet(host)
+
+    for port, tool in (("8888", "Dozzle"), ("3001", "Uptime Kuma")):
+        assert port in output, (
+            f"UFW must have an ALLOW rule for port {port} ({tool} WebUI) "
+            "so LAN clients can reach it"
+        )
+        for line in output.splitlines():
+            if port in line and "Anywhere" in line:
+                pytest.fail(
+                    f"UFW rule for {tool} (port {port}) is scoped to "
+                    f"'Anywhere': '{line.strip()}'. The WebUI must be "
+                    f"restricted to {expected_cidr} "
+                    "(zero-trust micro-segmentation)."
+                )
+        scoped_rule = any(
+            port in line and expected_cidr in line
+            for line in output.splitlines()
+        )
+        assert scoped_rule, (
+            f"UFW {tool} WebUI rule (port {port}) must be scoped to subnet "
+            f"'{expected_cidr}' (zero-trust micro-segmentation)"
+        )
+
+
 # ---------------------------------------------------------------------------
 # Deployed stack health-check contract
 # Motivated by the 2026-10-03 Jellyfin outage postmortem: a watchtower
@@ -781,6 +821,8 @@ HEALTHCHECK_SERVICES = [
     "seerr",
     "qbittorrent",
     "docker-proxy",
+    "dozzle",
+    "uptime-kuma",
 ]
 
 
@@ -808,6 +850,40 @@ def test_deployed_compose_defines_healthchecks(host):
         assert "healthcheck" in service, (
             f"Service '{name}' must define a healthcheck so its state is "
             "visible via `docker ps` and the Homepage docker widget"
+        )
+
+
+def test_observability_webuis_publish_lan_scoped_ports(host):
+    """
+    Dozzle and Uptime Kuma are LAN-only operational tools: their WebUIs must
+    be published on The Host (so the Homepage links via mediacenter.local
+    work) and restricted to the local subnet by UFW — mirroring the
+    Maintainerr WebUI (6246) contract. Dozzle must NOT collide with SABnzbd's
+    host port (8080): it is published on 8888. Both must stay attached to
+    ingress_net alongside homepage and cloudflared.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+
+    dozzle = data["services"]["dozzle"]
+    kuma = data["services"]["uptime-kuma"]
+
+    assert "8888:8080" in dozzle.get("ports", []), (
+        "dozzle must publish its WebUI as 8888:8080 — container port 8080 "
+        "collides with SABnzbd's host mapping"
+    )
+    assert "3001:3001" in kuma.get("ports", []), (
+        "uptime-kuma must publish its WebUI as 3001:3001"
+    )
+
+    for name in ("dozzle", "uptime-kuma", "homepage", "cloudflared"):
+        service = data["services"].get(name)
+        assert service is not None, (
+            f"Service '{name}' must be defined in the deployed compose file"
+        )
+        assert "ingress_net" in service.get("networks", []), (
+            f"Service '{name}' must attach to ingress_net"
         )
 
 
