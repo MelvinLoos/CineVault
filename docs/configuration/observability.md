@@ -97,6 +97,12 @@ Hosts → Add** and enter `tcp://docker-proxy:2375`. The Kuma container is
 attached to `socket_proxy_net` and reaches the constrained socket proxy —
 no raw socket mount is needed.
 
+The proxy must grant `CONTAINERS=1` (list/inspect), `INFO=1` (handshake
+during the connection test) and `VERSION=1` or the save action returns
+**403 Forbidden** from HAProxy's catch-all deny. `tecnativa/docker-socket-proxy`
+is patch-pinned to `v0.4.2` — the pre-HAProxy-3.4.2 line — because upstream
+issue #180 reports a v0.5.0 regression breaking endpoint handling.
+
 !!! warning "Do not expose a Docker-connected Kuma publicly"
     Upstream warns that a Docker-connected Uptime Kuma must not be exposed to
     the internet. Keep any tunnel hostname (below) strictly Access-protected
