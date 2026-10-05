@@ -887,6 +887,53 @@ def test_observability_webuis_publish_lan_scoped_ports(host):
         )
 
 
+def test_homepage_jellyfin_widget_uses_api_version_2(host):
+    """
+    The Homepage Jellyfin widget must pin widget API version 2.
+
+    Postmortem (2026-10-05): Watchtower auto-upgraded Jellyfin to 12.x,
+    which removed the legacy /emby and /mediabrowser route prefixes.
+    Homepage widget version 1 (the default) still calls emby/Items/Counts
+    and emby/Sessions, so every request 404'd with an empty body and the
+    dashboard widget failed with "API Error: Failed to execute 'json' on
+    'Response': Unexpected end of JSON input" (gethomepage#7113).
+    Version 2 uses the native endpoints (Items/Counts, Sessions) with an
+    Authorization header.
+    """
+    services_yaml = host.file("/opt/mediastack/appdata/homepage/services.yaml")
+    assert services_yaml.exists, (
+        "The rendered Homepage services.yaml must exist on The Host"
+    )
+    data = yaml.safe_load(services_yaml.content_string)
+    assert data, "The rendered Homepage services.yaml must not be empty"
+
+    jellyfin_widget = None
+    for group in data:
+        if not isinstance(group, dict):
+            continue
+        for services in group.values():
+            if not isinstance(services, list):
+                continue
+            for service in services:
+                if not isinstance(service, dict):
+                    continue
+                if "Jellyfin" in service:
+                    jellyfin_widget = service["Jellyfin"].get("widget")
+                    break
+            if jellyfin_widget is not None:
+                break
+        if jellyfin_widget is not None:
+            break
+
+    assert jellyfin_widget is not None, (
+        "The Jellyfin service tile must define a widget in services.yaml"
+    )
+    assert jellyfin_widget.get("version") == 2, (
+        "The Jellyfin widget must set version: 2 — Jellyfin >= 12 removed "
+        "the legacy /emby API routes used by widget version 1"
+    )
+
+
 def test_docker_proxy_grants_watchtower_lifecycle_permissions(host):
     """
     docker-proxy must grant watchtower (and Homepage's Docker widget) the
