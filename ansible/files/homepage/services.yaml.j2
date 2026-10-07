@@ -1,7 +1,42 @@
+{# ---------------------------------------------------------------------------
+   Link mode — dual-Homepage contract (docs/configuration/homepage.md).
+   The configuration role renders this template twice:
+     - 'lan'    -> /opt/mediastack/appdata/homepage (mediacenter.local:80):
+                   every tile links to The Host directly on the local network.
+     - 'remote' -> /opt/mediastack/appdata/homepage-remote
+                   (dashboard.example.com via The Ingress): tiles link to the
+                   Cloudflare Tunnel hostnames where one exists; LAN-only
+                   services render WITHOUT an href so the remote dashboard
+                   never links to an unreachable address (the tile stays
+                   status-only, live widgets keep working).
+   The ingress_href map is the SSOT for public hostnames — add an entry when
+   a new Access-protected Public Hostname is created in the Cloudflare Zero
+   Trust dashboard. Jellyfin's remote hostname is the apex domain itself.
+--------------------------------------------------------------------------- #}
+{% set link_mode = homepage_link_mode | default('lan') %}
+{% set ingress_href = {
+    'jellyfin': 'https://example.com',
+    'seerr': 'https://request.example.com',
+    'wizarr': 'https://join.example.com',
+    'uptime-kuma': 'https://status.example.com',
+} %}
+{# Emit the tile href for the active link mode: a single `        href: "..."`
+   line (prefixed with an explicit newline escape so it can follow the icon
+   line inline) or nothing at all (remote mode, service without a public
+   hostname). The explicit newline is required because ansible.builtin.template
+   renders with trim_blocks=True, which would otherwise strip the newline
+   after the if tags and jam the href onto the icon line. #}
+{% macro tile_href(service_key, port) -%}
+{%- if link_mode == 'remote' -%}
+{%- if ingress_href.get(service_key) %}{{ '\n' }}        href: "{{ ingress_href.get(service_key) }}"
+{%- endif -%}
+{%- else %}{{ '\n' }}        href: "http://{{ web_hostname | default('mediacenter.local') }}:{{ port }}"
+{%- endif -%}
+{%- endmacro %}
+
 - The Theater:
     - Jellyfin:
-        icon: jellyfin
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:8096"
+        icon: jellyfin{{ tile_href('jellyfin', 8096) }}
         description: Watch Movies & TV
         server: local-docker
         container: jellyfin
@@ -19,8 +54,7 @@
             enableNowPlaying: true  # Active sessions / streams
             enableUser: true
     - Seerr:
-        icon: seerr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:5055"
+        icon: seerr{{ tile_href('seerr', 5055) }}
         description: Request New Media
         server: local-docker
         container: seerr
@@ -32,16 +66,14 @@
             url: http://seerr:5055
             key: "{{ '{{HOMEPAGE_VAR_SEERR_KEY}}' }}"
     - Wizarr:
-        icon: wizarr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:5690"
+        icon: wizarr{{ tile_href('wizarr', 5690) }}
         description: User Invitations
         server: local-docker
         container: wizarr
 
 - The Acquisition Pipeline:
     - Radarr:
-        icon: radarr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:7878"
+        icon: radarr{{ tile_href('radarr', 7878) }}
         description: Movie Manager
         server: local-docker
         container: radarr
@@ -52,8 +84,7 @@
             key: "{{ '{{HOMEPAGE_VAR_RADARR_KEY}}' }}"
 {% endif %}
     - Sonarr:
-        icon: sonarr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:8989"
+        icon: sonarr{{ tile_href('sonarr', 8989) }}
         description: TV Show Manager
         server: local-docker
         container: sonarr
@@ -64,8 +95,7 @@
             key: "{{ '{{HOMEPAGE_VAR_SONARR_KEY}}' }}"
 {% endif %}
     - Prowlarr:
-        icon: prowlarr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:9696"
+        icon: prowlarr{{ tile_href('prowlarr', 9696) }}
         description: Indexer Manager
         server: local-docker
         container: prowlarr
@@ -79,8 +109,7 @@
         # No dedicated Spotweb icon exists in the dashboard-icons library;
         # `spotnet` (the same Dutch spots/Usenet ecosystem) is the closest
         # match. Homepage falls back to the initial letter if it ever 404s.
-        icon: spotnet
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:8085"
+        icon: spotnet{{ tile_href('spotweb', 8085) }}
         description: Dutch Usenet Indexer
         server: local-docker
         container: spotweb
@@ -89,8 +118,7 @@
         # container status/stats (both read-only probes).
         siteMonitor: http://spotweb:80
     - Bazarr:
-        icon: bazarr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:6767"
+        icon: bazarr{{ tile_href('bazarr', 6767) }}
         description: Subtitle Manager
         server: local-docker
         container: bazarr
@@ -102,8 +130,7 @@
 {% endif %}
 
     - SABnzbd:
-        icon: sabnzbd
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:8080"
+        icon: sabnzbd{{ tile_href('sabnzbd', 8080) }}
         description: Usenet Downloader
         server: local-docker
         container: sabnzbd
@@ -115,8 +142,7 @@
 {% endif %}
 
     - qBittorrent:
-        icon: qbittorrent
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:8090"
+        icon: qbittorrent{{ tile_href('qbittorrent', 8090) }}
         description: Torrent Downloader
         server: local-docker
         container: gluetun
@@ -126,8 +152,7 @@
 
 
     - Tdarr:
-        icon: tdarr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:8265"
+        icon: tdarr{{ tile_href('tdarr', 8265) }}
         description: Media Transcoder
         server: local-docker
         container: tdarr
@@ -149,14 +174,12 @@
         server: local-docker
         container: watchtower
     - Dozzle:
-        icon: dozzle
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:8888"
+        icon: dozzle{{ tile_href('dozzle', 8888) }}
         description: Container Logs (Watchtower)
         server: local-docker
         container: dozzle
     - Uptime Kuma:
-        icon: uptime-kuma
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:3001"
+        icon: uptime-kuma{{ tile_href('uptime-kuma', 3001) }}
         description: Endpoint Status Monitoring
         server: local-docker
         container: uptime-kuma
@@ -171,8 +194,7 @@
         server: local-docker
         container: docker-proxy
     - Maintainerr:
-        icon: maintainerr
-        href: "http://{{ web_hostname | default('mediacenter.local') }}:6246"
+        icon: maintainerr{{ tile_href('maintainerr', 6246) }}
         description: Library Cleanup
         server: local-docker
         container: maintainerr

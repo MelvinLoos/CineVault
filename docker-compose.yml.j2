@@ -486,6 +486,48 @@ services:
     # HEALTHCHECK (visible as (healthy) in `docker ps`).
 
   # ---------------------------------------------------------------------------
+  # Homepage — remote instance (The Ingress / dashboard.example.com)
+  # Sibling dashboard rendered with The Ingress hostnames (services.yaml.j2,
+  # homepage_link_mode=remote): tiles link to *.example.com where a public
+  # hostname exists, and LAN-only services render status-only. No published
+  # ports — reachable exclusively through cloudflared on ingress_net
+  # (zero-trust micro-segmentation, ARCHITECTURE.md §2). The Cloudflare Zero
+  # Trust public hostname dashboard.example.com must target
+  # http://homepage-remote:3000 (docs/configuration/observability.md).
+  # ---------------------------------------------------------------------------
+  homepage-remote:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage-remote
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - "HOMEPAGE_ALLOWED_HOSTS=*"
+      - HOMEPAGE_VAR_RADARR_KEY=${RADARR_API_KEY}
+      - HOMEPAGE_VAR_SONARR_KEY=${SONARR_API_KEY}
+      - HOMEPAGE_VAR_SABNZBD_KEY=${SABNZBD_API_KEY}
+      - HOMEPAGE_VAR_PROWLARR_KEY=${PROWLARR_API_KEY}
+      - HOMEPAGE_VAR_BAZARR_KEY=${BAZARR_API_KEY}
+      - HOMEPAGE_VAR_JELLYFIN_KEY=${JELLYFIN_API_KEY}
+      - HOMEPAGE_VAR_SEERR_KEY=${SEERR_API_KEY}
+      - HOMEPAGE_VAR_TDARR_KEY=${TDARR_API_KEY}
+      - UMASK=002
+    # No ports: The Ingress reaches this instance over ingress_net only.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./appdata/homepage-remote:/app/config
+      - ./data:/data:ro  # Media payload mount for the storage resource widget
+    networks:
+      - ingress_net
+      - socket_proxy_net
+      - internal_api
+      - acquisition_net
+    restart: unless-stopped
+    # No compose-level healthcheck: the Homepage image ships its own
+    # HEALTHCHECK (visible as (healthy) in `docker ps`).
+
+  # ---------------------------------------------------------------------------
   # Ingress Bounded Context — The Ingress (PRODUCT_SPECIFICATION.md §1)
   # Ingress context — The Ingress. Zero-trust Cloudflare Tunnel. No port-forwarding required (CONSTITUTION.MD Maxim 4).
   # PUID/PGID intentionally omitted: cloudflared manages its own non-root internal user.

@@ -27,16 +27,28 @@
     - configuration
 
 - name: Deploy Stack - Push Homepage Dashboard Configuration
+  # Dual-instance contract (docs/configuration/homepage.md): one set of
+  # templates renders twice — 'lan' into appdata/homepage (mediacenter.local,
+  # local-links dashboard) and 'remote' into appdata/homepage-remote
+  # (dashboard.example.com via The Ingress, *.example.com links with
+  # status-only tiles for LAN-only services). homepage_link_mode is consumed
+  # by services.yaml.j2; widgets.yaml/docker.yaml render identically.
   ansible.builtin.template:
-    src: "{{ playbook_dir }}/../files/homepage/{{ item }}.j2"
-    dest: "/opt/mediastack/appdata/homepage/{{ item }}"
+    src: "{{ playbook_dir }}/../files/homepage/{{ item.1 }}.j2"
+    dest: "/opt/mediastack/appdata/{{ item.0.instance }}/{{ item.1 }}"
     owner: mediasvc
     group: mediasvc
     mode: '0644'
-  loop:
-    - docker.yaml
-    - widgets.yaml
-    - services.yaml
+  loop: "{{ homepage_instances | product(homepage_config_files) | list }}"
+  vars:
+    homepage_instances:
+      - { instance: homepage, link_mode: lan }
+      - { instance: homepage-remote, link_mode: remote }
+    homepage_config_files:
+      - docker.yaml
+      - widgets.yaml
+      - services.yaml
+    homepage_link_mode: "{{ item.0.link_mode }}"
   tags:
     - configuration
 
