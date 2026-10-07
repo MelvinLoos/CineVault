@@ -168,19 +168,23 @@ Once deployed, the following services are available on The Host:
 
 | Service | Port | Bounded Context | Ingress Access via Tunnel |
 | :--- | :--- | :--- | :--- |
-| **Homepage** | 80 | Dashboard | **Yes** (`dashboard.example.com`) |
-| **Seerr** | 5055 | Request / Identity | **Yes** |
-| **Jellyfin** | 8096 | Delivery | **Yes** |
+| **Homepage** | 80 | Dashboard | **Yes** (`dashboard.example.com` — served by `homepage-remote`) |
+| **Seerr** | 5055 | Request / Identity | **Yes** (`request.example.com`) |
+| **Jellyfin** | 8096 | Delivery | **Yes** (`example.com`) |
+| **Wizarr** | 5690 | Request / Identity | **Yes** (`join.example.com`) |
 | **Radarr** | 7878 | Acquisition | No |
 | **Sonarr** | 8989 | Acquisition | No |
+| **Bazarr** | 6767 | Acquisition | No |
 | **Prowlarr** | 9696 | Indexers | No |
+| **Spotweb** | 8085 | Indexers | No |
 | **SABnzbd** | 8080 | Processing | No |
+| **qBittorrent** | 8090 | Processing | No |
 | **Tdarr Server** | 8266 | Processing | No (Local `/24` only — laptop GPU node control plane) |
 | **Maintainerr** | 6246 | Maintenance | No (Local `/24` only — library cleanup WebUI) |
 | **Dozzle** | 8888 | Observability | No (Local `/24` only — log viewer WebUI) |
-| **Uptime Kuma** | 3001 | Observability | No (Local `/24` only — status monitoring WebUI) |
+| **Uptime Kuma** | 3001 | Observability | **Yes** (`status.example.com`) |
 
-> The dashboard is exposed via The Ingress at `dashboard.example.com` (Cloudflare Access-protected) — see [Observability Dashboard](docs/configuration/observability.md). Dozzle and Uptime Kuma are LAN-only operational tools: their WebUI ports are UFW-scoped to the local subnet (`mediacenter.local:8888` / `mediacenter.local:3001`).
+> The dashboard runs twice: the LAN instance (`mediacenter.local:80`) keeps local links, while `dashboard.example.com` (Cloudflare Access-protected) is served by the internal-only `homepage-remote` instance, whose tiles link to the public `*.example.com` hostnames — see [Homepage Dashboard](docs/configuration/homepage.md) and [Observability Dashboard](docs/configuration/observability.md). Dozzle remains a LAN-only operational tool (WebUI port UFW-scoped to the local subnet, `mediacenter.local:8888`); Uptime Kuma is reachable at `status.example.com` behind Cloudflare Access.
 
 ## Development & Testing
 

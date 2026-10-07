@@ -43,8 +43,9 @@ TUNNEL_TOKEN=eyJhIjoi...your-very-long-token-here...
 ```
 
 !!! tip "Exposing the dashboard"
-    Public hostnames (e.g. `dashboard.example.com` → `http://homepage:3000`)
-    are configured in the Zero Trust dashboard **after** deployment — see the
+    Public hostnames (e.g. `dashboard.example.com` →
+    `http://homepage-remote:3000`) are configured in the Zero Trust dashboard
+    **after** deployment — see the
     [Observability Dashboard](../configuration/observability.md) guide.
 
 ### 2.2. `PUID` and `PGID` — Host User & Group IDs

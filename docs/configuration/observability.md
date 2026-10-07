@@ -6,22 +6,24 @@ The CineVault stack ships three observability components that, together with the
 - **Uptime Kuma** — self-hosted endpoint status monitoring for every service in the stack.
 - **Homepage** — the dashboard that links them together, plus live widgets for Jellyfin, Seerr, the *arr stack, and Tdarr.
 
-The dashboard itself is exposed through the Cloudflare tunnel (`dashboard.example.com`); Dozzle and Uptime Kuma are **LAN-only operational tools** — their WebUI ports are published on The Host but UFW-scoped to the auto-detected local subnet (zero-trust micro-segmentation, ARCHITECTURE.md §2).
+The dashboard itself is exposed through the Cloudflare tunnel (`dashboard.example.com`, served by the `homepage-remote` instance so its tiles link to the public hostnames — see [Homepage Dashboard](homepage.md)); Dozzle and Uptime Kuma are **LAN-only operational tools** — their WebUI ports are published on The Host but UFW-scoped to the auto-detected local subnet (zero-trust micro-segmentation, ARCHITECTURE.md §2).
 
 ## Accessing the Services
 
 | Service | LAN address | External access |
 | :--- | :--- | :--- |
-| Homepage | `http://mediacenter.local:80` | `https://dashboard.example.com` (see below) |
+| Homepage (LAN instance) | `http://mediacenter.local:80` | — (LAN links) |
+| Homepage (remote instance) | — (no published port; `ingress_net` only) | `https://dashboard.example.com` (see below) |
 | Dozzle | `http://mediacenter.local:8888` | LAN only (UFW `/24`-scoped) |
-| Uptime Kuma | `http://mediacenter.local:3001` | LAN only (UFW `/24`-scoped) |
+| Uptime Kuma | `http://mediacenter.local:3001` | `https://status.example.com` (Access-protected, see below) |
 
-!!! note "Dozzle and Uptime Kuma are LAN-only"
-    Their WebUI ports (8888/3001) are allowed through UFW **only** from the
+!!! note "Dozzle stays LAN-only; Uptime Kuma has an Access-protected route"
+    The Dozzle WebUI port (8888) is allowed through UFW **only** from the
     auto-detected local subnet — same contract as the Maintainerr WebUI
-    (6246). Remote access requires dedicated public hostnames in the
-    Cloudflare Zero Trust dashboard (e.g. `logs.example.com`,
-    `status.example.com`) or a VPN path.
+    (6246). Uptime Kuma is additionally reachable remotely at
+    `status.example.com` (keep the Cloudflare Access policy attached); Dozzle
+    remote access would require a dedicated public hostname (e.g.
+    `logs.example.com`) or a VPN path.
 
 ## Cloudflare Zero Trust: Expose the Dashboard
 
@@ -36,7 +38,14 @@ The `cloudflared` container is a **remotely-managed** tunnel (it authenticates w
     | Subdomain | `dashboard` |
     | Domain | `example.com` |
     | Path | (leave empty) |
-    | Service | `http://homepage:3000` |
+    | Service | `http://homepage-remote:3000` |
+
+    !!! warning "Repoint an existing route after upgrading"
+        Deployments created before the dual-instance split pointed
+        `dashboard.example.com` at `http://homepage:3000`. Edit the public
+        hostname and set the service to **`http://homepage-remote:3000`** —
+        otherwise the remote dashboard keeps serving the LAN-links instance
+        (see [Homepage Dashboard](homepage.md#two-instances-lan-vs-remote-links)).
 
 4. **Ordering matters:** routing rules are evaluated top-down. Make sure the `dashboard.example.com` rule sits **strictly above any catch-all `*` / 404 rule** for the domain — a catch-all above it would shadow the dashboard hostname.
 5. Attach a Cloudflare Access policy to `dashboard.example.com` so only authorised identities can reach the dashboard (CONSTITUTION.MD §2 Maxim 4 — Zero Trust access).
@@ -146,8 +155,10 @@ On first login (LAN address above), create a monitor per service using the inter
 | SABnzbd | `http://sabnzbd:8080/` |
 | Tdarr | `http://tdarr:8265/` |
 | Prowlarr | `http://prowlarr:9696/ping` |
+| Spotweb | `http://spotweb:80/` |
 | Bazarr | `http://bazarr:6767/` |
-| Homepage | `http://homepage:3000/` |
+| Homepage (LAN) | `http://homepage:3000/` |
+| Homepage (remote) | `http://homepage-remote:3000/` |
 | Dozzle | `http://dozzle:8080/` |
 
 ### Docker host
@@ -182,4 +193,4 @@ any catch-all rule** — and attach an Access policy.
 
 ## Homepage Widgets
 
-The dashboard templates live in `ansible/files/homepage/` and are rendered by the `configuration` role into `/opt/mediastack/appdata/homepage/`. API-backed widgets (Jellyfin active sessions, Seerr open requests, Radarr/Sonarr/Prowlarr/Bazarr/SABnzbd/Tdarr queues and stats) read their keys from `.env` — see [Homepage Dashboard](homepage.md) for the one-time key setup.
+The dashboard templates live in `ansible/files/homepage/` and are rendered by the `configuration` role into **both** instances' config directories — `/opt/mediastack/appdata/homepage/` (LAN, `mediacenter.local` links) and `/opt/mediastack/appdata/homepage-remote/` (remote, `*.example.com` links; see [Homepage Dashboard](homepage.md#two-instances-lan-vs-remote-links)). API-backed widgets (Jellyfin active sessions, Seerr open requests, Radarr/Sonarr/Prowlarr/Bazarr/SABnzbd/Tdarr queues and stats) read their keys from `.env` — see [Homepage Dashboard](homepage.md) for the one-time key setup.

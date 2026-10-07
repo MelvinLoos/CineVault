@@ -8,23 +8,68 @@ size, transcoding jobs, etc.) require a one-time manual setup.
 
 ## How the Layout Is Provisioned
 
-The Homepage UI is rendered from two Ansible templates:
+The Homepage UI is rendered from three Ansible templates:
 
 - `ansible/files/homepage/widgets.yaml.j2` — defines the top-bar widgets
   (resources, search, weather, etc.).
+- `ansible/files/homepage/docker.yaml.j2` — binds the Docker integration to
+  the constrained socket proxy.
 - `ansible/files/homepage/services.yaml.j2` — defines the grouped service
-  tiles and their per-service widget bindings (Jellyfin, Seerr, Radarr,
-  Sonarr, SABnzbd, Prowlarr, Bazarr, Tdarr, Maintainerr…) plus links to the
-  Dozzle and Uptime Kuma observability tools.
+  tiles and their per-service widget bindings (Jellyfin, Seerr, Wizarr,
+  Radarr, Sonarr, SABnzbd, Prowlarr, Spotweb, Bazarr, Tdarr, Maintainerr…)
+  plus links to the Dozzle and Uptime Kuma observability tools.
+
+!!! note "Spotweb"
+    Homepage ships no native Spotweb widget, so the tile uses the Docker
+    integration (container status) plus a site monitor (`http://spotweb:80`).
+    Its icon is `spotnet` — no dedicated Spotweb icon exists in the
+    dashboard-icons library; `spotnet` is the closest match from the same
+    Dutch spots/Usenet ecosystem.
 
 !!! note
     The **Maintainerr** tile displays live storage metrics (items handled,
     movies/shows/episodes processed, reclaimable space) served from its own
     `/api/storage-metrics` endpoint — no key must be provisioned.
 
-Both files are rendered and copied to the Homepage configuration volume during
+All three files are rendered **twice** — once per dashboard instance (see
+[Two Instances: LAN vs Remote Links](#two-instances-lan-vs-remote-links)
+below) — and copied into each instance's configuration volume during
 playbook execution, so any structural change should be made in the templates
 — **not** in the live container.
+
+## Two Instances: LAN vs Remote Links
+
+Homepage has no native support for switching a tile's `href` based on the
+network you are viewing it from (the upstream "local URL" proposal was
+rejected — gethomepage PR #4093), so CineVault runs **two instances** of the
+same dashboard, rendered from the same templates:
+
+| Instance | URL | Tile links |
+| :--- | :--- | :--- |
+| `homepage` (LAN) | `http://mediacenter.local` | `http://mediacenter.local:<port>` for every service |
+| `homepage-remote` (Ingress) | `https://dashboard.example.com` | Cloudflare Tunnel hostnames where they exist; LAN-only services render **status-only** (no `href`) |
+
+The remote instance is stateless compute: it publishes **no host ports** and
+is reachable exclusively through `cloudflared` on `ingress_net`. It keeps
+its state separate from the LAN instance at
+`/opt/mediastack/appdata/homepage-remote` (State vs. Compute).
+
+The public hostname → service map is the `ingress_href` dictionary at the
+top of `services.yaml.j2` (the SSOT for remote links):
+
+| Service | Remote link |
+| :--- | :--- |
+| Jellyfin | `https://example.com` (apex domain) |
+| Seerr | `https://request.example.com` |
+| Wizarr | `https://join.example.com` |
+| Uptime Kuma | `https://status.example.com` |
+| Radarr, Sonarr, Prowlarr, Spotweb, Bazarr, SABnzbd, qBittorrent, Tdarr, Dozzle, Maintainerr | — (status-only tiles; these services are LAN-only) |
+
+!!! warning "Repoint the tunnel route on upgrade"
+    Deployments created before the split route `dashboard.example.com` to
+    `http://homepage:3000`. Update the public hostname to
+    **`http://homepage-remote:3000`** in the Cloudflare Zero Trust dashboard,
+    or the remote dashboard will keep serving the LAN links.
 
 !!! warning "API keys are not auto-provisioned"
     The service widgets reference API keys via environment variables, but the
@@ -105,14 +150,14 @@ TDARR_API_KEY=replace-with-tdarr-key
 
 ## Step 3: Apply the Changes
 
-The Homepage container reads the API keys from environment variables only at
-startup, so you must restart it for the new values to take effect. Choose one
-of the following:
+The Homepage containers read the API keys from environment variables only at
+startup, so you must restart both instances for the new values to take
+effect. Choose one of the following:
 
-### Option A — Restart the container directly
+### Option A — Restart the containers directly
 
 ```bash
-docker compose restart homepage
+docker compose restart homepage homepage-remote
 ```
 
 ### Option B — Re-run the Ansible playbook
@@ -121,7 +166,7 @@ This is the recommended option, as it also re-renders
 `docker-compose.yml.j2` from your updated `.env`:
 
 ```bash
-ansible-playbook ansible/site.yml
+ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/provision_host.yml -K
 ```
 
 ## Verifying the Integration
@@ -134,9 +179,9 @@ shows an error:
 1. Double-check that the corresponding `*_API_KEY` value in `.env` matches the
    one shown in the service's WebUI exactly (no surrounding quotes or
    whitespace).
-2. Confirm the service is reachable from the Homepage container on the Docker
-   network — `docker compose logs homepage` will surface connection or
-   401/403 errors.
+2. Confirm the service is reachable from the Homepage containers on the Docker
+   network — `docker compose logs homepage homepage-remote` will surface
+   connection or 401/403 errors.
 3. Restart the Homepage container once more after correcting the value.
 4. If the Jellyfin widget still fails with `Unexpected end of JSON input` and
    `docker compose logs homepage` shows `HTTP Error 404` for `/emby/...`
@@ -152,7 +197,10 @@ shows an error:
 ## Dozzle & Uptime Kuma Links
 
 The dashboard's Infrastructure group links to Dozzle (container logs, e.g.
-Watchtower update runs) and Uptime Kuma (endpoint status). The links use the
-`web_hostname` pattern (`mediacenter.local:8888` / `mediacenter.local:3001`),
-and both WebUIs are UFW-scoped to the local subnet — see the
+Watchtower update runs) and Uptime Kuma (endpoint status). On the **LAN
+instance** the links use the `web_hostname` pattern
+(`mediacenter.local:8888` / `mediacenter.local:3001`), and both WebUIs are
+UFW-scoped to the local subnet. On the **remote instance**, Uptime Kuma is
+linked via `https://status.example.com` (Access-protected) while Dozzle
+renders status-only — see the
 [Observability Dashboard](observability.md) guide.
