@@ -1110,6 +1110,186 @@ def test_homepage_jellyfin_widget_uses_api_version_2(host):
     )
 
 
+# ---------------------------------------------------------------------------
+# Homepage dual-instance contract (docs/configuration/homepage.md)
+# The dashboard is rendered twice: the LAN instance (mediacenter.local:80)
+# links to The Host directly; the remote instance (dashboard.example.com via
+# The Ingress) links to the Cloudflare Tunnel hostnames and renders LAN-only
+# services status-only.
+# ---------------------------------------------------------------------------
+
+
+def _collect_homepage_services(data):
+    """Flatten the grouped Homepage services.yaml into {name: properties}."""
+    services = {}
+    for group in data:
+        if not isinstance(group, dict):
+            continue
+        for group_services in group.values():
+            if not isinstance(group_services, list):
+                continue
+            for service in group_services:
+                if not isinstance(service, dict):
+                    continue
+                for name, props in service.items():
+                    services[name] = props
+    return services
+
+
+def test_homepage_spotweb_tile_links_acquisition_pipeline(host):
+    """
+    The LAN dashboard must surface Spotweb (the Dutch Usenet indexer) as a
+    first-class tile: linked on its published host port (8085), bound to the
+    `spotweb` container for status/stats, and probed by a site monitor.
+
+    Regression guard: Spotweb was deployed via docker-compose.yml but absent
+    from the Homepage dashboard, so the only entry point was the raw
+    http://<host>:8085 URL.
+    """
+    services_yaml = host.file("/opt/mediastack/appdata/homepage/services.yaml")
+    assert services_yaml.exists, (
+        "The rendered Homepage services.yaml must exist on The Host"
+    )
+    data = yaml.safe_load(services_yaml.content_string)
+    assert data, "The rendered Homepage services.yaml must not be empty"
+
+    spotweb = _collect_homepage_services(data).get("Spotweb")
+    assert spotweb is not None, (
+        "The Spotweb tile must exist in the Homepage services.yaml — it was "
+        "previously missing even though the container was deployed"
+    )
+    href = spotweb.get("href", "")
+    assert href.startswith("http://") and href.endswith(":8085"), (
+        f"The Spotweb tile must link to the published host port 8085 "
+        f"(got href={href!r})"
+    )
+    assert spotweb.get("container") == "spotweb", (
+        "The Spotweb tile must bind to the 'spotweb' container for the "
+        "docker status/stats integration"
+    )
+    assert spotweb.get("siteMonitor") == "http://spotweb:80", (
+        "The Spotweb tile must probe http://spotweb:80 via the site monitor "
+        "— Homepage ships no native Spotweb widget"
+    )
+
+
+def test_homepage_remote_instance_compose_contract(host):
+    """
+    A second Homepage instance (homepage-remote) serves
+    dashboard.example.com with *.example.com links. Contract:
+      - defined in the deployed compose file
+      - NO published ports: reachable exclusively through cloudflared on
+        ingress_net (zero-trust micro-segmentation, ARCHITECTURE.md §2)
+      - ingress_net membership so The Ingress can route to it
+      - own config state at appdata/homepage-remote (State vs. Compute)
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    data = yaml.safe_load(compose.content_string)
+
+    remote = data["services"].get("homepage-remote")
+    assert remote is not None, (
+        "Service 'homepage-remote' must be defined in the deployed compose "
+        "file (remote dashboard for dashboard.example.com)"
+    )
+    assert "ports" not in remote, (
+        "homepage-remote must NOT publish any host port — The Ingress "
+        "reaches it over ingress_net only"
+    )
+    assert "ingress_net" in remote.get("networks", []), (
+        "homepage-remote must attach to ingress_net so cloudflared can "
+        "route dashboard.example.com to it"
+    )
+    volumes = remote.get("volumes", [])
+    assert any("appdata/homepage-remote:/app/config" in v for v in volumes), (
+        "homepage-remote must keep its rendered config in "
+        "appdata/homepage-remote (State vs. Compute, AGENTS.md §3)"
+    )
+
+    remote_dir = host.file("/opt/mediastack/appdata/homepage-remote")
+    assert remote_dir.is_directory, (
+        "The appdata/homepage-remote config directory must exist and be "
+        "provisioned by the filesystem role"
+    )
+
+
+def test_homepage_remote_instance_uses_ingress_links(host):
+    """
+    The remote instance's rendered services.yaml must link to the public
+    Cloudflare Tunnel hostnames (request/join/status + the apex domain for
+    Jellyfin) and must NOT carry hrefs for LAN-only services, so no remote
+    tile ever links to an unreachable mediacenter.local address. The LAN
+    instance must keep the local links.
+
+    Homepage cannot switch hrefs based on the viewing network (gethomepage
+    PR #4093 was rejected upstream), so the split lives in the deployment.
+    """
+    remote_yaml = host.file(
+        "/opt/mediastack/appdata/homepage-remote/services.yaml"
+    )
+    assert remote_yaml.exists, (
+        "The rendered remote Homepage services.yaml must exist on The Host "
+        "(appdata/homepage-remote/services.yaml)"
+    )
+    remote_services = _collect_homepage_services(
+        yaml.safe_load(remote_yaml.content_string)
+    )
+
+    expected_ingress_hrefs = {
+        "Jellyfin": "https://example.com",
+        "Seerr": "https://request.example.com",
+        "Wizarr": "https://join.example.com",
+        "Uptime Kuma": "https://status.example.com",
+    }
+    for name, href in expected_ingress_hrefs.items():
+        assert name in remote_services, (
+            f"The remote dashboard must still show the {name} tile"
+        )
+        assert remote_services[name].get("href") == href, (
+            f"The remote {name} tile must link to the Ingress hostname "
+            f"{href!r} (got {remote_services[name].get('href')!r})"
+        )
+
+    for name in (
+        "Radarr",
+        "Sonarr",
+        "Prowlarr",
+        "Spotweb",
+        "Bazarr",
+        "SABnzbd",
+        "qBittorrent",
+        "Tdarr",
+        "Dozzle",
+        "Maintainerr",
+    ):
+        assert name in remote_services, (
+            f"The remote dashboard must still show the {name} tile"
+        )
+        assert "href" not in remote_services[name], (
+            f"The remote {name} tile must render status-only (no href): "
+            "there is no public hostname for it, and a mediacenter.local "
+            "link would be unreachable remotely"
+        )
+
+    lan_yaml = host.file("/opt/mediastack/appdata/homepage/services.yaml")
+    assert lan_yaml.exists, (
+        "The rendered LAN Homepage services.yaml must exist on The Host"
+    )
+    lan_services = _collect_homepage_services(
+        yaml.safe_load(lan_yaml.content_string)
+    )
+    jellyfin_href = lan_services["Jellyfin"].get("href", "")
+    assert jellyfin_href.startswith("http://") and jellyfin_href.endswith(
+        ":8096"
+    ), (
+        f"The LAN Jellyfin tile must keep its local link (port 8096), got "
+        f"{jellyfin_href!r}"
+    )
+    assert "example.com" not in jellyfin_href, (
+        "The LAN dashboard must not link through The Ingress"
+    )
+
+
 def test_docker_proxy_grants_watchtower_lifecycle_permissions(host):
     """
     docker-proxy must grant watchtower (and Homepage's Docker widget) the
