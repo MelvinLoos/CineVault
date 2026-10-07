@@ -75,6 +75,19 @@
             url: http://prowlarr:9696
             key: "{{ '{{HOMEPAGE_VAR_PROWLARR_KEY}}' }}"
 {% endif %}
+    - Spotweb:
+        # No dedicated Spotweb icon exists in the dashboard-icons library;
+        # `spotnet` (the same Dutch spots/Usenet ecosystem) is the closest
+        # match. Homepage falls back to the initial letter if it ever 404s.
+        icon: spotnet
+        href: "http://{{ web_hostname | default('mediacenter.local') }}:8085"
+        description: Dutch Usenet Indexer
+        server: local-docker
+        container: spotweb
+        # No native Spotweb widget exists in Homepage. The site monitor makes
+        # the tile show UP/DOWN + response time; the docker integration adds
+        # container status/stats (both read-only probes).
+        siteMonitor: http://spotweb:80
     - Bazarr:
         icon: bazarr
         href: "http://{{ web_hostname | default('mediacenter.local') }}:6767"
