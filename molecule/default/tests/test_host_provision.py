@@ -969,7 +969,16 @@ def test_dozzle_users_yml_seeds_admin_account(host):
         "appdata/dozzle/users.yml must exist — Dozzle runs with simple auth "
         "and a missing users.yml means no account can ever sign in"
     )
-    content = yaml.safe_load(users.content_string)
+    # users.yml is a credential database deliberately locked to
+    # mediasvc:mediasvc 0600 by the configuration role, so the unprivileged
+    # vagrant SSH user cannot `cat` it — testinfra's file module would raise
+    # "Permission denied" (the exists/stat assertions need no read access).
+    # Read the content via passwordless sudo instead, mirroring the UFW and
+    # spotweb docker-exec checks elsewhere in this suite.
+    raw = host.check_output(
+        "sudo cat /opt/mediastack/appdata/dozzle/users.yml"
+    )
+    content = yaml.safe_load(raw)
     assert content and isinstance(content.get("users"), dict), (
         "users.yml must contain a 'users' map"
     )
