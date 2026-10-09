@@ -1,0 +1,1551 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Automate and secure your home infrastructure with a declarative, zero-trust container stack.">
+      
+      
+      
+        <link rel="canonical" href="https://MelvinLoos.github.io/CineVault/configuration/observability/">
+      
+      
+        <link rel="prev" href="../homepage/">
+      
+      
+        <link rel="next" href="../spotweb/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Observability Dashboard - CineVault</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#observability-dashboard" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="CineVault" class="md-header__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CineVault
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Observability Dashboard
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="cyan" data-md-color-accent="cyan"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../deployment/initial-setup/" class="md-tabs__link">
+          
+  
+  
+  Deployment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../homepage/" class="md-tabs__link">
+          
+  
+  
+  Configuration
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../maintenance/storage-cleanup/" class="md-tabs__link">
+          
+  
+  
+  Maintenance
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CineVault" class="md-nav__button md-logo" aria-label="CineVault" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    CineVault
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/MelvinLoos/cinevault" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    MelvinLoos/cinevault
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Deployment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/initial-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Initial Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../deployment/bare-metal-provisioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setting up the host
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Configuration
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../homepage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Homepage Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability Dashboard
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability Dashboard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-the-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing the Services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudflare-zero-trust-expose-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare Zero Trust: Expose the Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dozzle-watchtower-logs-mcp-for-ai-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dozzle — Watchtower Logs &amp; MCP for AI Agents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dozzle — Watchtower Logs &amp; MCP for AI Agents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-access-constrained-socket-proxy-no-raw-socket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker access — constrained socket proxy (no raw socket)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication-simple-auth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication (simple auth)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcp-endpoint-container-tools-for-ai-coding-assistants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP endpoint — container tools for AI coding assistants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uptime-kuma-endpoint-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uptime Kuma — Endpoint Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uptime Kuma — Endpoint Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-run-setup-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-run setup verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maintenance window
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudflare-tunnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare Tunnel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homepage-widgets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Homepage Widgets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spotweb/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotweb Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wizarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wizarr Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tdarr Transcoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../distributed-tdarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distributed Tdarr Node
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bazarr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bazarr Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Maintenance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Maintenance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../maintenance/storage-cleanup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Storage Cleanup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-the-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing the Services
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloudflare-zero-trust-expose-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare Zero Trust: Expose the Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dozzle-watchtower-logs-mcp-for-ai-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dozzle — Watchtower Logs &amp; MCP for AI Agents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dozzle — Watchtower Logs &amp; MCP for AI Agents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-access-constrained-socket-proxy-no-raw-socket" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker access — constrained socket proxy (no raw socket)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentication-simple-auth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication (simple auth)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcp-endpoint-container-tools-for-ai-coding-assistants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP endpoint — container tools for AI coding assistants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uptime-kuma-endpoint-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uptime Kuma — Endpoint Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uptime Kuma — Endpoint Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-run-setup-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-run setup verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monitors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker host
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance-window" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Maintenance window
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloudflare-tunnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloudflare Tunnel
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#homepage-widgets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Homepage Widgets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="observability-dashboard">Observability Dashboard</h1>
+<p>The CineVault stack ships three observability components that, together with the existing Homepage dashboard, give you a single pane of glass for container health, log streaming, and endpoint uptime:</p>
+<ul>
+<li><strong>Dozzle</strong> — real-time container log streaming (e.g. Watchtower update runs), backed by a <strong>read-only</strong> mount of the Docker socket.</li>
+<li><strong>Uptime Kuma</strong> — self-hosted endpoint status monitoring for every service in the stack.</li>
+<li><strong>Homepage</strong> — the dashboard that links them together, plus live widgets for Jellyfin, Seerr, the *arr stack, and Tdarr.</li>
+</ul>
+<p>The dashboard itself is exposed through the Cloudflare tunnel (<code>dashboard.example.com</code>, served by the <code>homepage-remote</code> instance so its tiles link to the public hostnames — see <a href="../homepage/">Homepage Dashboard</a>); Dozzle and Uptime Kuma are <strong>LAN-only operational tools</strong> — their WebUI ports are published on The Host but UFW-scoped to the auto-detected local subnet (zero-trust micro-segmentation, ARCHITECTURE.md §2).</p>
+<h2 id="accessing-the-services">Accessing the Services</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Service</th>
+<th style="text-align: left;">LAN address</th>
+<th style="text-align: left;">External access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Homepage (LAN instance)</td>
+<td style="text-align: left;"><code>http://mediacenter.local:80</code></td>
+<td style="text-align: left;">— (LAN links)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Homepage (remote instance)</td>
+<td style="text-align: left;">— (no published port; <code>ingress_net</code> only)</td>
+<td style="text-align: left;"><code>https://dashboard.example.com</code> (see below)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Dozzle</td>
+<td style="text-align: left;"><code>http://mediacenter.local:8888</code></td>
+<td style="text-align: left;">LAN only (UFW <code>/24</code>-scoped)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Uptime Kuma</td>
+<td style="text-align: left;"><code>http://mediacenter.local:3001</code></td>
+<td style="text-align: left;"><code>https://status.example.com</code> (Access-protected, see below)</td>
+</tr>
+</tbody>
+</table>
+<p>!!! note "Dozzle stays LAN-only; Uptime Kuma has an Access-protected route"
+    The Dozzle WebUI port (8888) is allowed through UFW <strong>only</strong> from the
+    auto-detected local subnet — same contract as the Maintainerr WebUI
+    (6246). Uptime Kuma is additionally reachable remotely at
+    <code>status.example.com</code> (keep the Cloudflare Access policy attached); Dozzle
+    remote access would require a dedicated public hostname (e.g.
+    <code>logs.example.com</code>) or a VPN path.</p>
+<h2 id="cloudflare-zero-trust-expose-the-dashboard">Cloudflare Zero Trust: Expose the Dashboard</h2>
+<p>The <code>cloudflared</code> container is a <strong>remotely-managed</strong> tunnel (it authenticates with <code>TUNNEL_TOKEN</code> only), so public-hostname routing is configured in the Cloudflare Zero Trust dashboard — not in a repository file.</p>
+<ol>
+<li>Open the <strong>Cloudflare Zero Trust</strong> dashboard → <strong>Networks → Tunnels</strong>.</li>
+<li>Select the CineVault tunnel → <strong>Public Hostname</strong> tab → <strong>Add a public hostname</strong>.</li>
+<li>
+<p>Fill in:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Field</th>
+<th style="text-align: left;">Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Subdomain</td>
+<td style="text-align: left;"><code>dashboard</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Domain</td>
+<td style="text-align: left;"><code>example.com</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Path</td>
+<td style="text-align: left;">(leave empty)</td>
+</tr>
+<tr>
+<td style="text-align: left;">Service</td>
+<td style="text-align: left;"><code>http://homepage-remote:3000</code></td>
+</tr>
+</tbody>
+</table>
+<p>!!! warning "Repoint an existing route after upgrading"
+    Deployments created before the dual-instance split pointed
+    <code>dashboard.example.com</code> at <code>http://homepage:3000</code>. Edit the public
+    hostname and set the service to <strong><code>http://homepage-remote:3000</code></strong> —
+    otherwise the remote dashboard keeps serving the LAN-links instance
+    (see <a href="../homepage/#two-instances-lan-vs-remote-links">Homepage Dashboard</a>).</p>
+</li>
+<li>
+<p><strong>Ordering matters:</strong> routing rules are evaluated top-down. Make sure the <code>dashboard.example.com</code> rule sits <strong>strictly above any catch-all <code>*</code> / 404 rule</strong> for the domain — a catch-all above it would shadow the dashboard hostname.</p>
+</li>
+<li>Attach a Cloudflare Access policy to <code>dashboard.example.com</code> so only authorised identities can reach the dashboard (CONSTITUTION.MD §2 Maxim 4 — Zero Trust access).</li>
+</ol>
+<h2 id="dozzle-watchtower-logs-mcp-for-ai-agents">Dozzle — Watchtower Logs &amp; MCP for AI Agents</h2>
+<p>Dozzle streams logs from every container on The Host. The most common use is inspecting <strong>Watchtower</strong> update runs (the 04:00 maintenance window): open Dozzle, select the <code>watchtower</code> container, and check the most recent "Session done" line for <code>Failed=N</code>.</p>
+<h3 id="docker-access-constrained-socket-proxy-no-raw-socket">Docker access — constrained socket proxy (no raw socket)</h3>
+<p>Dozzle does <strong>not</strong> mount <code>/var/run/docker.sock</code>. The previous <code>:ro</code> mount gave
+a false sense of safety: the read-only flag only marks the socket file
+read-only on disk while every Docker API call — including create/delete — still
+passes through it. Dozzle instead connects to <code>tcp://docker-proxy:2375</code>
+(<code>DOZZLE_REMOTE_HOST</code>, Dozzle's documented socket-proxy transport) over
+<code>socket_proxy_net</code>, so all of its Docker traffic is filtered by
+<code>tecnativa/docker-socket-proxy</code> — the same constrained path used by Watchtower
+and Uptime Kuma. The container runs as the non-root <code>mediasvc</code> user and needs
+no <code>docker</code> group supplementary membership.</p>
+<h3 id="authentication-simple-auth">Authentication (simple auth)</h3>
+<p>Dozzle runs with <code>DOZZLE_AUTH_PROVIDER=simple</code>. Users live in
+<code>/opt/mediastack/appdata/dozzle/users.yml</code> (config state on the fast SSD —
+ARCHITECTURE.md §1), so they survive container recreation. The playbook seeds
+the <code>admin</code> account on first run by piping a random password (from
+<code>ansible/credentials/dozzle.key</code>) through Dozzle's <code>generate</code> subcommand; the
+plaintext is injected into <code>.env</code> as <strong><code>DOZZLE_ADMIN_PASSWORD</code></strong>.</p>
+<ul>
+<li>WebUI sign-in: <code>http://mediacenter.local:8888</code> with user <code>admin</code> and
+  <code>DOZZLE_ADMIN_PASSWORD</code> from <code>.env</code>.</li>
+<li>To reset credentials, delete <code>appdata/dozzle/users.yml</code> and re-run the
+  playbook (<code>--tags secrets,configuration</code>).</li>
+</ul>
+<h3 id="mcp-endpoint-container-tools-for-ai-coding-assistants">MCP endpoint — container tools for AI coding assistants</h3>
+<p>When <code>DOZZLE_ENABLE_MCP=true</code>, Dozzle serves a <strong>Model Context Protocol</strong>
+endpoint at <strong><code>http://mediacenter.local:8888/api/mcp</code></strong> (Streamable HTTP
+transport). It exposes five <strong>read-only</strong> tools:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Tool</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>list_containers</code></td>
+<td style="text-align: left;">List all containers (optional state filter)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>get_container_logs</code></td>
+<td style="text-align: left;">Structured logs with level detection &amp; JSON parsing</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>search_container_logs</code></td>
+<td style="text-align: left;">Keyword search across a container's logs</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>list_hosts</code></td>
+<td style="text-align: left;">All connected Docker hosts</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>get_container_stats</code></td>
+<td style="text-align: left;">CPU / memory usage for a container</td>
+</tr>
+</tbody>
+</table>
+<p>Because simple auth is enabled, the MCP endpoint is <strong>never anonymous</strong>: the
+first time a client connects, it opens a browser tab where you sign in to
+Dozzle and approve the client (one-time OAuth consent). The client then stores
+and refreshes its token automatically (access tokens last an hour, refresh
+tokens 30 days). Example client configuration (VS Code <code>.vscode/mcp.json</code>):</p>
+<pre><code class="language-json">{
+  &quot;servers&quot;: {
+    &quot;dozzle&quot;: { &quot;type&quot;: &quot;http&quot;, &quot;url&quot;: &quot;http://mediacenter.local:8888/api/mcp&quot; }
+  }
+}
+</code></pre>
+<p>Clients without OAuth support can instead exchange credentials once at
+<code>POST /api/token</code> (form-encoded <code>username</code>/<code>password</code>) and send the returned
+JWT as an <code>Authorization: Bearer</code> header.</p>
+<p>The endpoint stays LAN-only: it is served from the same published port as the
+WebUI (<code>8888:8080</code>), which UFW scopes to the local subnet.</p>
+<p>Users and settings (pinned containers, etc.) are persisted in
+<code>/opt/mediastack/appdata/dozzle</code>, so they survive container recreation.</p>
+<p>Dozzle listens on container port 8080, which collides with SABnzbd's host mapping — the WebUI is therefore published as <strong><code>8888:8080</code></strong>. Its <code>/healthcheck</code> endpoint is served without authentication, so the compose healthcheck probe keeps working with auth enabled.</p>
+<h2 id="uptime-kuma-endpoint-monitoring">Uptime Kuma — Endpoint Monitoring</h2>
+<p>The image is patch-pinned to <code>2.5.5</code> (upstream publishes no minor rollup tag)
+to freeze the setup surface the playbook automates against — bump manually to
+the next 2.5.x release. The 1.x line is unmaintained.</p>
+<p>Uptime Kuma stores its configuration in <code>/opt/mediastack/appdata/uptime-kuma</code> (survives container recreation).</p>
+<h3 id="first-run-setup-verification">First-run setup verification</h3>
+<p>The pinned 2.5.5 image has no REST endpoint to create the admin account (a
+<code>POST /api/setup</code> route only exists on newer, better-auth-based versions), so
+account creation is manual: open the WebUI once and create the admin (or run
+<code>docker exec -it uptime-kuma npm run reset-password</code>).</p>
+<p>The playbook verifies instead: it queries <code>/api/entry-page</code> and — when
+<code>UPTIME_KUMA_ADMIN_USERNAME</code> / <code>UPTIME_KUMA_ADMIN_PASSWORD</code> are set in <code>.env</code>
+— fails the run with instructions while first-run setup is still pending;
+with blank credentials it degrades to a warning. 2.x exposes no REST API for
+monitor CRUD either, so everything below is a one-time manual WebUI setup.</p>
+<h3 id="monitors">Monitors</h3>
+<p>On first login (LAN address above), create a monitor per service using the internal Docker DNS names:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Monitor</th>
+<th style="text-align: left;">URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Jellyfin</td>
+<td style="text-align: left;"><code>http://jellyfin:8096/health</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Seerr</td>
+<td style="text-align: left;"><code>http://seerr:5055/api/v1/status</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Radarr</td>
+<td style="text-align: left;"><code>http://radarr:7878/ping</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Sonarr</td>
+<td style="text-align: left;"><code>http://sonarr:8989/ping</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">SABnzbd</td>
+<td style="text-align: left;"><code>http://sabnzbd:8080/</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Tdarr</td>
+<td style="text-align: left;"><code>http://tdarr:8265/</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Prowlarr</td>
+<td style="text-align: left;"><code>http://prowlarr:9696/ping</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Spotweb</td>
+<td style="text-align: left;"><code>http://spotweb:80/</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Bazarr</td>
+<td style="text-align: left;"><code>http://bazarr:6767/</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Homepage (LAN)</td>
+<td style="text-align: left;"><code>http://homepage:3000/</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Homepage (remote)</td>
+<td style="text-align: left;"><code>http://homepage-remote:3000/</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Dozzle</td>
+<td style="text-align: left;"><code>http://dozzle:8080/</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="docker-host">Docker host</h3>
+<p>To watch every container's state from the dashboard: <strong>Settings → Docker
+Hosts → Add</strong> and enter <code>tcp://docker-proxy:2375</code>. The Kuma container is
+attached to <code>socket_proxy_net</code> and reaches the constrained socket proxy —
+no raw socket mount is needed.</p>
+<p>The proxy must grant <code>CONTAINERS=1</code> (list/inspect), <code>INFO=1</code> (handshake
+during the connection test) and <code>VERSION=1</code> or the save action returns
+<strong>403 Forbidden</strong> from HAProxy's catch-all deny. <code>tecnativa/docker-socket-proxy</code>
+is patch-pinned to <code>v0.4.2</code> — the pre-HAProxy-3.4.2 line — because upstream
+issue #180 reports a v0.5.0 regression breaking endpoint handling.</p>
+<p>!!! warning "Do not expose a Docker-connected Kuma publicly"
+    Upstream warns that a Docker-connected Uptime Kuma must not be exposed to
+    the internet. Keep any tunnel hostname (below) strictly Access-protected
+    or leave Kuma LAN-only.</p>
+<h3 id="maintenance-window">Maintenance window</h3>
+<p>Add a <strong>Maintenance</strong> period (recurring, daily <code>0 0 4 * * *</code>, 30 minutes) so
+Watchtower's 04:00 image-update cycle doesn't trigger false alarms.</p>
+<h3 id="cloudflare-tunnel">Cloudflare Tunnel</h3>
+<p><code>UPTIME_KUMA_TRUST_PROXY=1</code> is set, so Kuma honours forwarded headers behind
+a proxy. To expose it through The Ingress, add <code>status.example.com</code> →
+<code>http://uptime-kuma:3001</code> in the Cloudflare Zero Trust dashboard — <strong>above
+any catch-all rule</strong> — and attach an Access policy.</p>
+<h2 id="homepage-widgets">Homepage Widgets</h2>
+<p>The dashboard templates live in <code>ansible/files/homepage/</code> and are rendered by the <code>configuration</code> role into <strong>both</strong> instances' config directories — <code>/opt/mediastack/appdata/homepage/</code> (LAN, <code>mediacenter.local</code> links) and <code>/opt/mediastack/appdata/homepage-remote/</code> (remote, <code>*.example.com</code> links; see <a href="../homepage/#two-instances-lan-vs-remote-links">Homepage Dashboard</a>). API-backed widgets (Jellyfin active sessions, Seerr open requests, Radarr/Sonarr/Prowlarr/Bazarr/SABnzbd/Tdarr queues and stats) read their keys from <code>.env</code> — see <a href="../homepage/">Homepage Dashboard</a> for the one-time key setup.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.top", "search.suggest", "search.highlight"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
