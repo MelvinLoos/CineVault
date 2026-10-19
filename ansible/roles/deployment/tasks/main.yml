@@ -47,6 +47,13 @@
   tags:
     - deployment
 
+- name: Deploy Stack - Validate docker-compose.yml syntax
+  ansible.builtin.command:
+    cmd: docker compose -f /opt/mediastack/docker-compose.yml config --quiet
+  changed_when: false
+  tags:
+    - deployment
+
 - name: Deploy Stack - Spin up the Prosumer Media Hub
   community.docker.docker_compose_v2:
     project_src: /opt/mediastack/
