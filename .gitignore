@@ -5,6 +5,7 @@ ansible/credentials/
 ansible/playbooks/credentials/
 
 .env
+site/
 
 # Ignore cached agent skill files
 .agents/
