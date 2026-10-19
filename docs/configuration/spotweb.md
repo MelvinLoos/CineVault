@@ -58,3 +58,13 @@ Prowlarr will now automatically sync the Spotweb indexer to your connected appli
     ```
 - **Spotweb cannot reach the Database**: Verify that both the `spotweb` and `spotweb-db` containers are running and attached to the `acquisition_net` network. The compose file gates Spotweb's startup on `spotweb-db` reporting **healthy** (`condition: service_healthy`), so a startup race with MariaDB's ~60s InnoDB initialisation can no longer produce "Can't connect to MySQL server" errors.
 - **Prowlarr test fails**: Ensure that the **Base URL** in Prowlarr uses the container name `spotweb` rather than `localhost` or the host IP, as they communicate over the internal Docker network.
+- **`Fatal error CacheIsCorruptException occured during retrieve`**: Spotweb caches external HTTP resources (such as blacklists/whitelists retrieved during `retrieve.php`) in a two-tier structure: metadata records in the MariaDB `cache` database table that reference physical cache files on disk (in `/var/www/spotweb/cache/web/`). If physical cache files are lost or corrupted (for instance due to volume recreation, storage exhaustion, or partial file cleanups) while the database metadata remains intact, `Dao_Base_Cache->getCacheContent()` throws `CacheIsCorruptException`.
+    To resolve this error, clear the stale cache metadata in MariaDB and remove any remaining on-disk web cache files:
+    ```bash
+    # Truncate cache metadata in the MariaDB database
+    PW=$(docker exec spotweb printenv SPOTWEB_DB_PASS)
+    docker exec spotweb-db mariadb -uspotweb -p"${PW}" spotweb -e "TRUNCATE TABLE cache;"
+
+    # Clear cached HTTP files inside the Spotweb container
+    docker exec spotweb rm -rf /var/www/spotweb/cache/web/*
+    ```
