@@ -6,17 +6,38 @@
 # Ordering note: the first-run .env seed must run before the extraction logic
 # below, so keys shipped in a seeded .env win over freshly generated ones.
 
-- name: Configuration - Pre-seed Servarr API Keys
+- name: Configuration - Pre-seed Servarr API Keys (Initial Seed)
   ansible.builtin.template:
     src: "{{ playbook_dir }}/../files/servarr/config.xml.j2"
     dest: "/opt/mediastack/appdata/{{ item.app }}/config.xml"
     owner: mediasvc
     group: mediasvc
     mode: '0644'
+    force: false
   loop:
     - { app: 'radarr', port: '7878', api_key: "{{ secrets_radarr_key }}" }
     - { app: 'sonarr', port: '8989', api_key: "{{ secrets_sonarr_key }}" }
     - { app: 'prowlarr', port: '9696', api_key: "{{ secrets_prowlarr_key }}" }
+  tags:
+    - configuration
+
+- name: Configuration - Reconcile Servarr config.xml API Key & Port settings
+  # Servarr containers rewrite config.xml on boot (normalising formatting and
+  # stripping non-schema elements). Re-templating on every run breaks Molecule
+  # idempotency (AGENTS.md §3). This task uses lineinfile to ensure the essential
+  # <ApiKey> and <Port> elements match SSOT values, updating them in place when
+  # rotated or drifted while remaining completely idempotent on subsequent runs.
+  ansible.builtin.lineinfile:
+    path: "/opt/mediastack/appdata/{{ item.app }}/config.xml"
+    regexp: '^\s*<{{ item.key }}>.*</{{ item.key }}>'
+    line: "  <{{ item.key }}>{{ item.value }}</{{ item.key }}>"
+  loop:
+    - { app: 'radarr', key: 'ApiKey', value: "{{ secrets_radarr_key }}" }
+    - { app: 'radarr', key: 'Port', value: '7878' }
+    - { app: 'sonarr', key: 'ApiKey', value: "{{ secrets_sonarr_key }}" }
+    - { app: 'sonarr', key: 'Port', value: '8989' }
+    - { app: 'prowlarr', key: 'ApiKey', value: "{{ secrets_prowlarr_key }}" }
+    - { app: 'prowlarr', key: 'Port', value: '9696' }
   tags:
     - configuration
 
