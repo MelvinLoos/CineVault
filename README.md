@@ -66,6 +66,8 @@ The media stack consists of the following services, categorized by their Bounded
     *   **Watchtower:** Automatic Docker image updates.
     *   **Docker Socket Proxy:** Secure abstraction for the Docker socket.
     *   **Maintainerr:** Rule-based cleanup of stale media from Jellyfin, the *arrs, and Seerr.
+*   **Entertainment:**
+    *   **SingPulse:** House-party karaoke: guests queue songs from their phones, The Stage (Android TV) plays them (Resource limited to 2 CPUs / 1GB RAM). See [SingPulse](docs/configuration/singpulse.md).
 *   **Observability:**
     *   **Dozzle:** Real-time container log streaming (e.g. Watchtower update runs) via the constrained Docker socket proxy, with an authenticated MCP endpoint (`/api/mcp`) exposing read-only container tools to AI coding agents.
     *   **Uptime Kuma:** Self-hosted endpoint status monitoring for every service (internal-only).
@@ -183,6 +185,7 @@ Once deployed, the following services are available on The Host:
 | **Maintainerr** | 6246 | Maintenance | No (Local `/24` only — library cleanup WebUI) |
 | **Dozzle** | 8888 | Observability | No (Local `/24` only — log viewer WebUI) |
 | **Uptime Kuma** | 3001 | Observability | **Yes** (`status.example.com`) |
+| **SingPulse** | 3000 | Entertainment | **Yes** (`sing.example.com` — Party Token, no Access policy; Local `/24` for The Stage) |
 
 > The dashboard runs twice: the LAN instance (`mediacenter.local:80`) keeps local links, while `dashboard.example.com` (Cloudflare Access-protected) is served by the internal-only `homepage-remote` instance, whose tiles link to the public `*.example.com` hostnames — see [Homepage Dashboard](docs/configuration/homepage.md) and [Observability Dashboard](docs/configuration/observability.md). Dozzle remains a LAN-only operational tool (WebUI port UFW-scoped to the local subnet, `mediacenter.local:8888`); Uptime Kuma is reachable at `status.example.com` behind Cloudflare Access.
 

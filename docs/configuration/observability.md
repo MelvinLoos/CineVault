@@ -160,6 +160,7 @@ On first login (LAN address above), create a monitor per service using the inter
 | Homepage (LAN) | `http://homepage:3000/` |
 | Homepage (remote) | `http://homepage-remote:3000/` |
 | Dozzle | `http://dozzle:8080/` |
+| SingPulse | `http://singpulse:3000/api/health` |
 
 ### Docker host
 
