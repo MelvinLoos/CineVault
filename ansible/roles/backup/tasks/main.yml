@@ -69,7 +69,9 @@
       REPO=/opt/mediastack/backups
       PASSWORD_FILE=/etc/restic/password
 
-      restic -r "$REPO" -p "$PASSWORD_FILE" backup /opt/mediastack/appdata
+      restic -r "$REPO" -p "$PASSWORD_FILE" backup /opt/mediastack/appdata \
+        --exclude '/opt/mediastack/appdata/singpulse/*.mp4' \
+        --exclude '/opt/mediastack/appdata/singpulse/.yt-dlp'
 
       restic -r "$REPO" -p "$PASSWORD_FILE" forget \
         --keep-daily 7 \

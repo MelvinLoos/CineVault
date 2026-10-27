@@ -68,6 +68,15 @@
   tags:
     - security
 
+- name: Zero Trust Micro-segmentation - Allow SingPulse (3000) from local subnet only
+  community.general.ufw:
+    rule: allow
+    port: '3000'
+    proto: tcp
+    from_ip: "{{ media_subnet_cidr }}"
+  tags:
+    - security
+
 - name: Host Hardening - Enable UFW and drop default inbound
   community.general.ufw:
     state: enabled

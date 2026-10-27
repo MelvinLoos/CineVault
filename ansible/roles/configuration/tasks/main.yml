@@ -225,6 +225,18 @@
   tags:
     - configuration
 
+- name: Configuration - Extract existing SingPulse credentials from host .env
+  ansible.builtin.shell:
+    cmd: awk -F '=' '/^{{ item }}=/ {print $2}' /opt/mediastack/.env
+  loop:
+    - SINGPULSE_ADMIN_PIN
+    - SINGPULSE_STATS_API_KEY
+  register: configuration_existing_singpulse_cmd
+  changed_when: false
+  when: configuration_host_env_stat.stat.exists
+  tags:
+    - configuration
+
 - name: Configuration - Set existing API key facts
   ansible.builtin.set_fact:
     configuration_current_bazarr_key: >-
@@ -235,6 +247,12 @@
       {{ configuration_existing_sabnzbd_key_cmd.stdout | trim
          if (configuration_host_env_stat.stat.exists and configuration_existing_sabnzbd_key_cmd.stdout is defined)
          else '' }}
+    configuration_current_singpulse_pin: >-
+      {{ (configuration_existing_singpulse_cmd.results[0].stdout | default('') | trim)
+         if configuration_host_env_stat.stat.exists else '' }}
+    configuration_current_singpulse_stats_key: >-
+      {{ (configuration_existing_singpulse_cmd.results[1].stdout | default('') | trim)
+         if configuration_host_env_stat.stat.exists else '' }}
   tags:
     - configuration
 
@@ -248,6 +266,14 @@
       {{ configuration_current_sabnzbd_key
          if (configuration_current_sabnzbd_key | length > 0)
          else secrets_sabnzbd_key }}
+    configuration_final_singpulse_pin: >-
+      {{ configuration_current_singpulse_pin
+         if (configuration_current_singpulse_pin | length > 0)
+         else secrets_singpulse_admin_pin }}
+    configuration_final_singpulse_stats_key: >-
+      {{ configuration_current_singpulse_stats_key
+         if (configuration_current_singpulse_stats_key | length > 0)
+         else secrets_singpulse_stats_api_key }}
   tags:
     - configuration
 
@@ -273,5 +299,8 @@
     # when an MCP client first connects to /api/mcp. Mirrors the
     # UPTIME_KUMA_ADMIN_* pattern: read by Ansible/docs, not by Compose.
     - { key: 'DOZZLE_ADMIN_PASSWORD', value: "{{ secrets_dozzle_admin_password }}" }
+    # SingPulse Host Mode PIN and /api/stats key (hand-set values preserved).
+    - { key: 'SINGPULSE_ADMIN_PIN', value: "{{ configuration_final_singpulse_pin }}" }
+    - { key: 'SINGPULSE_STATS_API_KEY', value: "{{ configuration_final_singpulse_stats_key }}" }
   tags:
     - configuration

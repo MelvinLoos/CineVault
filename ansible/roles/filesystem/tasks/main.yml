@@ -45,6 +45,7 @@
     - spotweb-db
     - maintainerr
     - uptime-kuma
+    - singpulse
   tags:
     - filesystem
 
