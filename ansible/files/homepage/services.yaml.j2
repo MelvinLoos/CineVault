@@ -19,6 +19,7 @@
     'seerr': 'https://request.example.com',
     'wizarr': 'https://join.example.com',
     'uptime-kuma': 'https://status.example.com',
+    'singpulse': 'https://sing.example.com',
 } %}
 {# Emit the tile href for the active link mode: a single `        href: "..."`
    line (prefixed with an explicit newline escape so it can follow the icon
@@ -70,6 +71,29 @@
         description: User Invitations
         server: local-docker
         container: wizarr
+    - SingPulse:
+        icon: mdi-microphone-variant{{ tile_href('singpulse', 3000) }}
+        description: Karaoke Party
+        server: local-docker
+        container: singpulse
+        siteMonitor: http://singpulse:3000/api/health
+        widget:
+            type: customapi
+            url: http://singpulse:3000/api/stats
+            refreshInterval: 10000
+            headers:
+                X-API-Key: "{{ '{{HOMEPAGE_VAR_SINGPULSE_KEY}}' }}"
+            mappings:
+                - field: nowPlaying.title
+                  label: Now playing
+                - field: nowPlaying.singer
+                  label: Singer
+                - field: queue.length
+                  label: Queue
+                  format: number
+                - field: clients.remotes
+                  label: Guests
+                  format: number
 
 - The Acquisition Pipeline:
     - Radarr:
