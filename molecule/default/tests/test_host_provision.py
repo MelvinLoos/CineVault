@@ -55,6 +55,7 @@ MEDIASTACK_DIRECTORIES = [
     "/opt/mediastack/appdata/maintainerr",
     "/opt/mediastack/appdata/dozzle",
     "/opt/mediastack/appdata/uptime-kuma",
+    "/opt/mediastack/appdata/singpulse",
     # Media Payload tree (data) — "Resides on High-Capacity Drive" per ARCHITECTURE.md
     "/opt/mediastack/data",
     # The Download Client scratch space — SABnzbd active Usenet downloads
@@ -775,7 +776,7 @@ def test_ufw_allows_observability_webuis_from_local_subnet(host):
     output = ufw_status.stdout
     expected_cidr = get_expected_subnet(host)
 
-    for port, tool in (("8888", "Dozzle"), ("3001", "Uptime Kuma")):
+    for port, tool in (("8888", "Dozzle"), ("3001", "Uptime Kuma"), ("3000", "SingPulse")):
         assert port in output, (
             f"UFW must have an ALLOW rule for port {port} ({tool} WebUI) "
             "so LAN clients can reach it"
@@ -851,6 +852,50 @@ def test_deployed_compose_defines_healthchecks(host):
         assert "healthcheck" in service, (
             f"Service '{name}' must define a healthcheck so its state is "
             "visible via `docker ps` and the Homepage docker widget"
+        )
+
+
+def test_singpulse_compose_contract(host):
+    """
+    SingPulse (Entertainment bounded context) must run as mediasvc (Zero Root
+    Execution), publish 3000 for The Stage, attach to ingress_net only, keep
+    its cache under appdata/singpulse (State vs. Compute) and be resource
+    constrained so yt-dlp/ffmpeg cannot starve Jellyfin QuickSync.
+    """
+    compose = host.file("/opt/mediastack/docker-compose.yml")
+    assert compose.exists, "The rendered compose file must exist on The Host"
+    service = yaml.safe_load(compose.content_string)["services"]["singpulse"]
+
+    assert str(service["user"]) == "5000:5000", (
+        "SingPulse must run as the non-root mediasvc user (PUID:PGID)"
+    )
+    assert "3000:3000" in service["ports"], (
+        "SingPulse must publish 3000 for The Stage and LAN guests"
+    )
+    assert list(service["networks"]) == ["ingress_net"], (
+        "SingPulse must attach to ingress_net only"
+    )
+    assert any(
+        v.endswith("/appdata/singpulse:/app/cache") for v in service["volumes"]
+    ), "SingPulse cache must be mounted from appdata/singpulse"
+    limits = service["deploy"]["resources"]["limits"]
+    assert limits["memory"] == "1g" and float(limits["cpus"]) == 2.0, (
+        "SingPulse must be limited to 2 CPUs / 1GB RAM"
+    )
+
+
+def test_singpulse_credentials_generated_in_env(host):
+    """The playbook must seed the Host Mode PIN and stats API key in .env."""
+    env = host.file("/opt/mediastack/.env")
+    assert env.exists, "The host .env must exist"
+    for key in ("SINGPULSE_ADMIN_PIN", "SINGPULSE_STATS_API_KEY"):
+        values = [
+            line.split("=", 1)[1]
+            for line in env.content_string.splitlines()
+            if line.startswith(f"{key}=")
+        ]
+        assert len(values) == 1 and values[0].strip(), (
+            f"{key} must be present exactly once and non-empty in .env"
         )
 
 
@@ -1249,6 +1294,7 @@ def test_homepage_remote_instance_uses_ingress_links(host):
         "Seerr": "https://request.example.com",
         "Wizarr": "https://join.example.com",
         "Uptime Kuma": "https://status.example.com",
+        "SingPulse": "https://sing.example.com",
     }
     for name, href in expected_ingress_hrefs.items():
         assert name in remote_services, (

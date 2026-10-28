@@ -38,6 +38,7 @@ nav:
       - Observability Dashboard: configuration/observability.md
       - Spotweb Integration: configuration/spotweb.md
       - Wizarr Onboarding: configuration/wizarr.md
+      - SingPulse Karaoke: configuration/singpulse.md
       - Tdarr Transcoding: configuration/tdarr.md
       - Distributed Tdarr Node: configuration/distributed-tdarr.md
       - Bazarr Configuration: configuration/bazarr.md

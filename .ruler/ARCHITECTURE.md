@@ -13,7 +13,8 @@ The system mandates a single root directory for all media data to enable **Atomi
 │   ├── sonarr/
 │   ├── prowlarr/
 │   ├── sabnzbd/
-│   └── seerr/
+│   ├── seerr/
+│   └── singpulse/               <-- Karaoke MP4 cache + polaroids
 └── data/                        <-- The Media Payload (Resides on High-Capacity Drive)
     ├── usenet/                  <-- SABnzbd active downloads
     └── media/
@@ -22,11 +23,12 @@ The system mandates a single root directory for all media data to enable **Atomi
 ```
 
 ## 2. Network Topography (Zero-Trust Micro-segmentation)
-* `ingress_net`: `cloudflared`, `seerr`, `jellyfin`
+* `ingress_net`: `cloudflared`, `seerr`, `jellyfin`, `singpulse`
 * `internal_api`: `seerr`, `radarr`, `sonarr`
 * `acquisition_net`: `radarr`, `sonarr`, `prowlarr`, `sabnzbd`
 
 ## 3. Hardware Acceleration & Resource Constraints
 * Jellyfin must have the `/dev/dri/renderD128` device explicitly mapped.
 * SABnzbd must be strictly constrained via Docker resource limits (e.g., max 2 CPUs, 2GB RAM) to prevent host starvation during unpacking operations.
+* SingPulse must be constrained via Docker resource limits (max 2 CPUs, 1GB RAM) so yt-dlp/ffmpeg merges cannot starve Jellyfin QuickSync transcoding.
 * All containers must execute under a non-root `PUID` and `PGID` corresponding to a dedicated `mediasvc` system user.

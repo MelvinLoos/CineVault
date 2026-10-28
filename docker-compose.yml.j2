@@ -25,7 +25,7 @@
 networks:
   ingress_net:
     driver: bridge
-    # Boundary: cloudflared → seerr → jellyfin
+    # Boundary: cloudflared → seerr → jellyfin → singpulse
     # Connects The Ingress to user-facing services only.
     # No direct path to acquisition or processing services.
 
@@ -60,7 +60,7 @@ networks:
 #     state is visible via the `docker ps` HEALTH column and the Homepage
 #     docker widget. Documented exceptions: cloudflared ships a distroless
 #     image (no shell, no HTTP client), recyclarr is a one-shot maintenance
-#     run, and homepage/wizarr/maintainerr/gluetun/watchtower rely on the
+#     run, and homepage/wizarr/maintainerr/singpulse/gluetun/watchtower rely on the
 #     healthcheck baked into their images.
 #   - All volume mounts within /opt/mediastack/ (State vs. Compute — AGENTS.md §3)
 # ---------------------------------------------------------------------------
@@ -468,6 +468,7 @@ services:
       - HOMEPAGE_VAR_JELLYFIN_KEY=${JELLYFIN_API_KEY}
       - HOMEPAGE_VAR_SEERR_KEY=${SEERR_API_KEY}
       - HOMEPAGE_VAR_TDARR_KEY=${TDARR_API_KEY}
+      - HOMEPAGE_VAR_SINGPULSE_KEY=${SINGPULSE_STATS_API_KEY}
       - UMASK=002
     ports:
       - "80:3000"
@@ -511,6 +512,7 @@ services:
       - HOMEPAGE_VAR_JELLYFIN_KEY=${JELLYFIN_API_KEY}
       - HOMEPAGE_VAR_SEERR_KEY=${SEERR_API_KEY}
       - HOMEPAGE_VAR_TDARR_KEY=${TDARR_API_KEY}
+      - HOMEPAGE_VAR_SINGPULSE_KEY=${SINGPULSE_STATS_API_KEY}
       - UMASK=002
     # No ports: The Ingress reaches this instance over ingress_net only.
     extra_hosts:
@@ -803,3 +805,40 @@ services:
       timeout: 5s
       start_period: 40s
       retries: 3
+
+  # ---------------------------------------------------------------------------
+  # Entertainment Bounded Context (PRODUCT_SPECIFICATION.md §2)
+  # Entertainment context — SingPulse house-party karaoke. Guests reach it via
+  # The Ingress (party-token QR) or the LAN; The Stage (Android TV APK) connects
+  # to http://<The Host LAN IP>:3000/tv. The image ships its own HEALTHCHECK
+  # (node fetch of /api/health), visible as (healthy) in `docker ps`.
+  # ---------------------------------------------------------------------------
+  singpulse:
+    image: ghcr.io/melvinloos/singpulse:latest
+    container_name: singpulse
+    # Zero Root Execution (AGENTS.md §3): entrypoint only drops privileges when
+    # started as root, so an explicit user simply execs the server.
+    user: ${PUID}:${PGID}
+    environment:
+      - TZ=${TZ}
+      - PORT=3000
+      # Empty = random Party Token per start (shown on The Stage QR code)
+      - PARTY_TOKEN=${SINGPULSE_PARTY_TOKEN:-}
+      - ADMIN_PIN=${SINGPULSE_ADMIN_PIN}
+      - PUBLIC_REMOTE_URL=${SINGPULSE_PUBLIC_URL:-https://sing.example.com}
+      - MAX_CACHE_GB=${SINGPULSE_MAX_CACHE_GB:-25}
+      - STATS_API_KEY=${SINGPULSE_STATS_API_KEY}
+      # No writable $HOME under mediasvc: keep yt-dlp's cache inside the mount
+      - XDG_CACHE_HOME=/app/cache/.yt-dlp
+    volumes:
+      - ./appdata/singpulse:/app/cache  # Karaoke MP4 cache + polaroids (ARCHITECTURE.md §1)
+    ports:
+      - "3000:3000"  # LAN: The Stage + guests on Wi-Fi. UFW-scoped by provision_host.yml.
+    networks:
+      - ingress_net
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1g
+    restart: unless-stopped

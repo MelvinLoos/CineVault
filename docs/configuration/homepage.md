@@ -63,6 +63,7 @@ top of `services.yaml.j2` (the SSOT for remote links):
 | Seerr | `https://request.example.com` |
 | Wizarr | `https://join.example.com` |
 | Uptime Kuma | `https://status.example.com` |
+| SingPulse | `https://sing.example.com` (no Access policy; Party Token gated) |
 | Radarr, Sonarr, Prowlarr, Spotweb, Bazarr, SABnzbd, qBittorrent, Tdarr, Dozzle, Maintainerr | — (status-only tiles; these services are LAN-only) |
 
 !!! warning "Repoint the tunnel route on upgrade"
